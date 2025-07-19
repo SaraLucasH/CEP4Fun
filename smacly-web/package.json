@@ -1,0 +1,23 @@
+{
+  "name": "sistinformacion_tfm_nodjs_image",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "express-toastr": "^2.0.2",
+    "http": "^0.0.1-security",
+    "socket.io": "^4.8.1"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

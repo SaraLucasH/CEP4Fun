@@ -1,0 +1,2752 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Language" content="en-us">
+  <title>SmaCly</title>
+  <script src="js\blocks_compressed.js"></script>
+  <script src="js\blockly_compressed.js"></script>
+  <script src="js\javascript_compressed.js"></script>
+  <script src="js\blocks.js"></script>
+  <script src="js\standard_categories.js"></script>
+  <script src="js\customblocklibrary.js"></script>
+  <script src="js\htmlGenerator.js"></script>
+  <script src="js\en.js"></script>
+  <script src="js\es.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="js\personalizedfunctions.js"></script>
+  <script src="js\http_request.js"></script>
+  <script src="js\lowCodePlatform.js"></script>
+  <link rel="stylesheet" href="/resources/styles.css">
+  <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
+  <!-- Incluir los estilos de express-toastr -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+</head>
+
+<body>  
+  <div class="wrapper">
+    <div>
+      <img id="logo" src="/resources/logo.png" />
+    </div>
+    <div>
+      <p id="title">SmaCly : Design your smart contract using blockly</p>
+    </div>    
+    <div></div>
+
+    <div class="pointsAndToogleOptions">
+      <div class="points-label">
+        <i class="fa-solid fa-medal points-icon"></i>
+        <span class="points-value" id="points">0</span>
+      </div>
+      <div class="playgroundToggleOptions">      
+        <ul>
+          <li>
+            <label for="logCheck">Register log events:</label>
+            <input type="checkbox" class="casilla" onclick="registerLogs(this.checked)" id="logCheck">
+          </li>
+        </ul>
+      </div>
+    </div>   
+
+    
+    <script>
+      var socket = io();
+
+      socket.on('Points', (newPoints) => {
+        var points = parseInt(document.getElementById('points').innerHTML);
+        if(points == NaN){
+          points = 0;
+        }else{
+          points = newPoints + points;
+          if(points < 0){
+            points = 0;
+          }
+        }
+        document.getElementById('points').textContent = points;
+      });
+    </script>
+    
+    
+    <div>
+      <script>
+        var socket = io();
+        toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": true,
+        "onclick": null,
+        "timeOut": "15000",
+        "extendedTimeOut": "6000",
+        "resetTimeoutOnDuplicate":true,
+        "showEasing": "swing",
+        "showMethod": "fadeIn"
+      }
+    
+        // Escuchar por el evento 'mensaje' emitido por el servidor
+        socket.on('Toasts', function (data) {
+    
+          if (data.type && data.message) {
+            if (data.type == 'Warning') {
+              toastr.warning(data.message);
+            } else if(data.type == 'Info') {
+              toastr.info(data.message);
+            }else if(data.type == 'Error') {
+              toastr.error(data.message);
+            }
+            else {
+              toastr.success(data.message);
+            }
+          }
+        });
+      </script>
+    </div>
+
+    <div id="botonera">
+      <input type="button" id="seeXMLButton" value="🔎See XML" onclick="toXml()" class="button">
+      <input type="button" id="saveXMLButton" value="💾Save XML" onclick="saveXml()" class="button" disabled>
+      <input type="button" id="saveLogButton" value="💾Save Log Events" onclick="saveLog()" class="button" disabled>
+      <input type="button" id="cleanBlockButton" value="🗑️ Clean blocks" onclick="cleanWorkspace()" class="button">
+      <input type="file" id="loadFileButton" class="button">
+      <!--<input type="button" id="loadFileAreaButtom" value="📥Import to see" onclick=loadFileAsText() class="button">-->
+      <!--<input type="button" id="tranformButton" value="🧩Transform Blockly to HTML" onclick="saveHtmlToDownload()" class="button">-->
+      <input type="button" id="tranformButton" value="🧩Transform XML to Blockly" onclick="fromXml()" class="button">
+    </div>
+
+  </div>
+
+  <table>
+    <tr>
+      <td>
+        <textarea id="XmlArea" style="width:30vw; height: 83vh;" onchange="textAreaChange()"
+          onkeyup="textAreaChange()"></textarea>
+
+      </td>
+      <td>
+        <div id="blocklyDiv" style="width: 69vw; height: 84vh;"></div>
+      </td>
+    </tr>
+  </table>
+
+  <!--div id="blocklyDiv" style="height: 60vh; width: 87vw;"></div-->
+
+  <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
+    <category name="File">
+      <block type="file">
+        <field name="name">Insert here file's name</field>
+      </block>
+      <block type="version">
+        <field name="symbolversion">greater</field>
+        <field name="value1version">0</field>
+        <field name="value2version">0</field>
+        <field name="value3version">0</field>
+        <field name="symbolcomparation">less_equal</field>
+        <field name="value1versionoptional">0</field>
+        <field name="value2versionoptional">0</field>
+        <field name="value3versionoptional">0</field>
+      </block>
+    </category>
+    <category name="Interface">
+      <block type="interface">
+        <field name="name">Insert here interface's name</field>
+      </block>
+      <block type="interface_clausedeclaration">
+        <field name="name">Insert here function's name</field>
+        <field name="values_visibility">public</field>
+        <field name="values_inputmodifier">view</field>
+      </block>
+    </category>
+    <category name="Import">
+      <block type="import">
+        <field name="resource_route">Insert here the resource's route</field>
+      </block>
+      <block type="alias_import">
+        <field name="alias_import">default</field>
+      </block>
+    </category>
+    <category name="Library">
+      <block type="library">
+        <field name="name">Insert here library's name</field>
+      </block>
+    </category>
+    <category name="Event">
+      <block type="event">
+        <field name="name">Insert here event's name</field>
+      </block>
+    </category>
+    <category name="Modifier">
+      <block type="modifier">
+        <field name="name">Insert here modifier's name</field>
+      </block>
+      <block type="closemodifier"></block>
+      <block type="markmodifier"></block>
+      <category name="Restriction">
+        <block type="restriction_clause"></block>
+        <block type="restriction_clausecomment">
+          <field name="comment">Insert here your comment</field>
+        </block>
+      </category>
+      <category name="Restriction gas">
+        <block type="restriction_clause"></block>
+        <block type="restriction_clausecomment">
+          <field name="comment">Insert here your comment</field>
+        </block>
+        <block type="coin_expression">
+          <field name="amount_coin">0</field>
+          <field name="type_coin">ether_coin</field>
+        </block>
+      </category>
+    </category>
+    <category name="Contract">
+      <category name="Constructor">
+        <block type="contract_constructor">
+          <field name="visibility_values">public</field>
+          <field name="payable">TRUE</field>
+        </block>
+      </category>
+      <block type="contract">
+        <field name="name">Insert here contract's name</field>
+      </block>
+      <block type="contract_father">
+        <field name="name">Contract's name inherit</field>
+      </block>
+    </category>
+    <category name="Function">
+      <block type="clause">
+        <field name="name">Insert here function's name</field>
+        <field name="returns">TRUE</field>
+      </block>
+      <block type="block_inputmodifier"></block>
+      <block type="return_clause"></block>
+    </category>
+    <category name="Types">
+      <block type="type_int">
+        <field name="int_options">int</field>
+      </block>
+      <block type="type_uint">
+        <field name="uint_options">uint</field>
+      </block>
+      <block type="type_bool">
+        <field name="bool_options">bool</field>
+      </block>
+      <block type="type_float">
+        <field name="float_options">float</field>
+      </block>
+      <block type="type_address">
+        <field name="address_options">address</field>
+      </block>
+      <block type="type_text">
+        <field name="typetext_options">char</field>
+      </block>
+      <block type="type_identifier">
+        <field name="identifier_options">Insert here your defined type</field>
+      </block>
+      <block type="type_byte">
+        <field name="bytes_options">byte</field>
+      </block>
+      <block type="type_mapping"></block>
+      <category name="Predefined types">
+        <block type="block_user">
+          <field name="name_user">default</field>
+          <field name="surname_user">default</field>
+          <field name="address_user">default</field>
+          <field name="email_user">default</field>
+        </block>
+        <block type="block_company">
+          <field name="name_company">default</field>
+          <field name="city_company">default</field>
+          <field name="address_company">default</field>
+          <field name="email_company">default</field>
+        </block>
+      </category>
+    </category>
+    <category name="Properties">
+      <category name="Long properties">
+        <block type="mapping_property">
+          <field name="constant">TRUE</field>
+          <field name="visibility_values">public</field>
+          <field name="storagedata_values">memory</field>
+          <field name="name">Insert here String property's identifier</field>
+        </block>
+        <block type="text_property">
+          <field name="type">char_type</field>
+          <field name="constant">TRUE</field>
+          <field name="storagedata_values">memory</field>
+          <field name="name">Insert here Text property's identifier</field>
+        </block>
+        <block type="byte_property">
+          <field name="byte_type">byte</field>
+          <field name="constant">TRUE</field>
+          <field name="values_visibility">public</field>
+          <field name="storagedata_values">memory</field>
+          <field name="name">Insert here byte property's identifier</field>
+        </block>
+        <block type="identifier_property">
+          <field name="type">default</field>
+          <field name="constant">TRUE</field>
+          <field name="visibility_values">public</field>
+          <field name="storagedata_values">memory</field>
+          <field name="name">Insert here property's identifier</field>
+        </block>
+        <block type="boolean_property">
+          <field name="constant">TRUE</field>
+          <field name="visibility_values">public</field>
+          <field name="values_storagedata">memory</field>
+          <field name="name">Insert here boolean property's identifier</field>
+        </block>
+        <block type="address_property">
+          <field name="addresstype_values">address</field>
+          <field name="constant">TRUE</field>
+          <field name="visibility_values">public</field>
+          <field name="storagedata_values">memory</field>
+        </block>
+        <block type="number_property">
+          <field name="numbertype_property">int_property</field>
+          <field name="constant">TRUE</field>
+          <field name="visibility_values">public</field>
+          <field name="storagedata_values">memory</field>
+          <field name="name">Insert here the name of the property</field>
+        </block>
+        <block type="user_property">
+          <field name="constant">TRUE</field>
+          <field name="visibility_values">public</field>
+          <field name="values_storagedata">memory</field>
+          <field name="name">Insert here user property's identifier</field>
+        </block>
+        <block type="company_property">
+          <field name="constant">TRUE</field>
+          <field name="visibility_values">public</field>
+          <field name="values_storagedata">memory</field>
+          <field name="name">Insert here company property's identifier</field>
+        </block>
+        <block type="personalized_struct">
+          <field name="name">Insert here struct's identifier</field>
+        </block>
+        <block type="enum">
+          <field name="name">Insert here enum's identifier</field>
+        </block>
+        <block type="enum_value"></block>
+      </category>
+      <category name="Short properties">
+        <block type="identifier_shortproperty">
+          <field name="type">Insert here identifier type</field>
+          <field name="name">Insert here the property's identifier</field>
+        </block>
+        <block type="number_shortproperty">
+          <field name="numbertype_property">int_property</field>
+          <field name="name">Insert here the name of the property</field>
+        </block>
+        <block type="boolean_shortproperty">
+          <field name="name">Insert here boolean property's identifier</field>
+        </block>
+        <block type="text_shortproperty">
+          <field name="type">char_type</field>
+          <field name="name">Insert here Text property's identifier</field>
+        </block>
+        <block type="address_shortproperty">
+          <field name="addresstype_values">address</field>
+          <field name="name">Insert here the address property's identifier</field>
+        </block>
+        <block type="byte_shortproperty">
+          <field name="byte_type">byte</field>
+          <field name="name">Insert here byte property's identifier</field>
+        </block>
+        <block type="mapping_shortproperty">
+          <field name="name">Insert here mapping property's identifier</field>
+        </block>
+        <block type="user_shortproperty">
+          <field name="name">Insert here user property's identifier</field>
+        </block>
+        <block type="company_shortproperty">
+          <field name="name">Insert here company property's identifier</field>
+        </block>
+        <block type="personalized_struct">
+          <field name="name">Insert here struct's identifier</field>
+        </block>
+        <block type="enum">
+          <field name="name">Insert here enum's identifier</field>
+        </block>
+        <block type="enum_value"></block>
+      </category>
+      <category name="Array Dimension">
+        <block type="array_property">
+          <field name="cells">0</field>
+        </block>
+        <block type="dynamic_array"></block>
+      </category>
+    </category>
+    <category name="Predefined variables">
+      <block type="blockvariables">
+        <field name="values_blockvariables">block.difficulty</field>
+      </block>
+      <block type="msgvariables">
+        <field name="msgvariables">msg.sender</field>
+      </block>
+      <block type="txvariables">
+        <field name="values_txvariables">tx.origin</field>
+      </block>
+      <block type="block_this">
+        <field name="thisvalues">this</field>
+      </block>
+      <block type="block_thisexpression">
+        <field name="value">Insert here your expression</field>
+      </block>
+      <block type="block_now"></block>
+    </category>
+    <category name="Expression">
+      <category name="Using library expression">
+        <block type="block_usinglibrary">
+          <field name="name">Insert here library's name</field>
+          <field name="alias">alias</field>
+        </block>
+      </category>
+      <category name="Shift expression">
+        <block type="shift_expression">
+          <field name="operators">
+            &lt;&lt; </field>
+        </block>
+      </category>
+      <category name="Emit event expression">
+        <block type="emit_event">
+          <field name="name">Insert here event's name to emit</field>
+        </block>
+      </category>
+      <category name="Time expression">
+        <block type="time_expression">
+          <field name="time_value">0</field>
+          <field name="time_unity">years_value</field>
+        </block>
+      </category>
+      <category name="Assign value expressions">
+        <block type="assign_value_expression">
+          <field name="operators">=</field>
+        </block>
+        <block type="assing_value_expression1inputs">
+          <field name="operators">=</field>
+        </block>
+      </category>
+      <category name="Var expression">
+        <block type="var_expression">
+          <field name="name">Insert here variable's name</field>
+        </block>
+      </category>
+      <category name="Bitwise expression">
+        <block type="bitwise_expression">
+          <field name="operators">|</field>
+        </block>
+        <block type="bitwise_expression1inputs">
+          <field name="operators">|</field>
+        </block>
+      </category>
+      <category name="Casting expression">
+        <block type="casting_expression"></block>
+      </category>
+      <category name="Personalized expression">
+        <block type="personalized_expression">
+          <field name="values_expression">Insert here your personalized expression</field>
+        </block>
+        <block type="personalized_inputexpression">
+          <field name="values_expression">Insert here your expression</field>
+        </block>
+      </category>
+      <category name="Tuple expression">
+        <block type="tuple"></block>
+      </category>
+    </category>
+    <category name="Predefined functions">
+      <block type="keccak_function">
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="keccak_inputfunction">
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="sha_function">
+        <field name="name">sha3</field>
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="sha_inputfunction">
+        <field name="name">sha3</field>
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="abyencode_function">
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="abyencode_inputfunction">
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="selfdestruct_function">
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="assert_function">
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="revert_expression">
+        <field name="value_parameter">Insert here expression</field>
+      </block>
+      <block type="deleteexpression">
+        <field name="value_deleteexpression">Insert here the expression</field>
+      </block>
+      <block type="log_function">
+        <field name="value_log">0</field>
+        <field name="Insert here the expression">value_parameter</field>
+      </block>
+    </category>
+    <category name="Params">
+      <category name="Input Params">
+        <block type="inputparam"></block>
+        <block type="input_param">
+          <field name="indexed">TRUE</field>
+          <field name="storagedata_values">memory</field>
+          <field name="name">Insert here param's name</field>
+        </block>
+        <block type="inputparamshortidentifier">
+          <field name="name">Insert here the identifier's name</field>
+        </block>
+      </category>
+      <category name="Output Params">
+        <block type="outputparam">
+          <field name="name">Insert here the name of the output param</field>
+        </block>
+        <block type="tuple"></block>
+      </category>
+    </category>
+    <category name="Logic">
+      <block type="block_ifcondition"></block>
+      <block type="block_elseifcondition"></block>
+      <block type="block_elsecondition"></block>
+      <block type="block_negation"></block>
+      <block type="block_null"></block>
+      <block type="block_boolean">
+        <field name="values">true</field>
+      </block>
+      <block type="comparation_expression">
+        <field name="operators">==</field>
+      </block>
+      <block type="comparation_arithmeticalexpression">
+        <field name="operators">&lt;</field>
+      </block>
+      <block type="comparation_logicalexpression">
+        <field name="operators">||</field>
+      </block>
+      <block type="parenthesis_expression"></block>
+    </category>
+    <category name="Math">
+      <block type="arithmetical_expression">
+        <field name="operators">+</field>
+      </block>
+      <block type="parenthesis_expression"></block>
+    </category>
+    <category name="Number">
+      <block type="block_positivenumber">
+        <field name="value">0</field>
+      </block>
+      <block type="block_number">
+        <field name="value">0</field>
+      </block>
+    </category>
+    <category name="Text">
+      <block type="block_text">
+        <field name="value">default</field>
+      </block>
+    </category>
+    <category name="Loop">
+      <block type="block_whileloop"></block>
+      <block type="block_dowhile"></block>
+      <block type="block_for">
+        <field name="namevariable">Counter's name</field>
+        <field name="value">0</field>
+        <field name="namevariable2">counter</field>
+        <field name="operatorcomparation">&lt;</field>
+        <field name="limit">limit</field>
+        <field name="namevariable3">counter</field>
+        <field name="arithmeticaloperator">++</field>
+      </block>
+    </category>
+    <category name="Standards">
+      <category name="ERC-20">
+        <block type="file">
+          <field name="name">FileERC20</field>
+          <value name="version_file">
+            <block type="version">
+              <field name="symbolversion">&gt;=</field>
+              <field name="value1version">0</field>
+              <field name="value2version">4</field>
+              <field name="value3version">0</field>
+              <field name="symbolcomparation">&lt;=</field>
+              <field name="value1versionoptional">0</field>
+              <field name="value2versionoptional">0</field>
+              <field name="value3versionoptional">0</field>
+            </block>
+          </value>
+          <statement name="elements_file">
+            <block type="contract">
+              <field name="name">Insert here contract's name</field>
+              <statement name="contract_elements">
+                <block type="event">
+                  <field name="name">Transfer</field>
+                  <value name="inputparams">
+                    <block type="inputparam">
+                      <statement name="inputparams">
+                        <block type="input_param">
+                          <field name="indexed">TRUE</field>
+                          <field name="storagedata_values">memory</field>
+                          <field name="name">_from</field>
+                          <value name="type">
+                            <block type="type_address">
+                              <field name="address_options">address</field>
+                            </block>
+                          </value>
+                          <next>
+                            <block type="input_param">
+                              <field name="indexed">TRUE</field>
+                              <field name="storagedata_values">memory</field>
+                              <field name="name">_to</field>
+                              <value name="type">
+                                <block type="type_address">
+                                  <field name="address_options">address</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="input_param">
+                                  <field name="indexed">FALSE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">_value</field>
+                                  <value name="type">
+                                    <block type="type_uint">
+                                      <field name="uint_options">uint256</field>
+                                    </block>
+                                  </value>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </statement>
+                    </block>
+                  </value>
+                  <next>
+                    <block type="event">
+                      <field name="name">Approval</field>
+                      <value name="inputparams">
+                        <block type="inputparam">
+                          <statement name="inputparams">
+                            <block type="input_param">
+                              <field name="indexed">TRUE</field>
+                              <field name="storagedata_values">memory</field>
+                              <field name="name">_owner</field>
+                              <value name="type">
+                                <block type="type_address">
+                                  <field name="address_options">address</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">_spender</field>
+                                  <value name="type">
+                                    <block type="type_address">
+                                      <field name="address_options">address</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="input_param">
+                                      <field name="indexed">FALSE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">_value</field>
+                                      <value name="type">
+                                        <block type="type_uint">
+                                          <field name="uint_options">uint256</field>
+                                        </block>
+                                      </value>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </statement>
+                        </block>
+                      </value>
+                      <next>
+                        <block type="clause">
+                          <field name="name">name</field>
+                          <field name="values_visibility">public</field>
+                          <field name="values_inputmodifier">view</field>
+                          <value name="returns_values">
+                            <block type="type_text">
+                              <field name="typetext_options">string</field>
+                            </block>
+                          </value>
+                          <next>
+                            <block type="clause">
+                              <field name="name">symbol</field>
+                              <field name="values_visibility">public</field>
+                              <field name="values_inputmodifier">view</field>
+                              <value name="returns_values">
+                                <block type="type_text">
+                                  <field name="typetext_options">string</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="clause">
+                                  <field name="name">decimals</field>
+                                  <field name="values_visibility">public</field>
+                                  <field name="values_inputmodifier">view</field>
+                                  <value name="returns_values">
+                                    <block type="type_uint">
+                                      <field name="uint_options">uint8</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="clause">
+                                      <field name="name">totalSupply</field>
+                                      <field name="values_visibility">public</field>
+                                      <field name="values_inputmodifier">view</field>
+                                      <value name="returns_values">
+                                        <block type="type_uint">
+                                          <field name="uint_options">uint256</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="clause">
+                                          <field name="name">balanceOf</field>
+                                          <field name="values_visibility">public</field>
+                                          <field name="values_inputmodifier">view</field>
+                                          <value name="inputparams_function">
+                                            <block type="inputparam">
+                                              <statement name="inputparams">
+                                                <block type="input_param">
+                                                  <field name="indexed">FALSE</field>
+                                                  <field name="storagedata_values">memory</field>
+                                                  <field name="name">_owner</field>
+                                                  <value name="type">
+                                                    <block type="type_address">
+                                                      <field name="address_options">address</field>
+                                                    </block>
+                                                  </value>
+                                                </block>
+                                          </value>
+                                          <next>
+                                            <block type="clause">
+                                              <field name="name">transfer</field>
+                                              <field name="values_visibility">public</field>
+                                              <field name="values_inputmodifier">view</field>
+                                              <value name="inputparams_function">
+                                                <block type="inputparam">
+                                                  <statement name="inputparams">
+                                                    <block type="input_param">
+                                                      <field name="indexed">FALSE</field>
+                                                      <field name="storagedata_values">memory</field>
+                                                      <field name="name">_to</field>
+                                                      <value name="type">
+                                                        <block type="type_address">
+                                                          <field name="address_options">address</field>
+                                                        </block>
+                                                      </value>
+                                                      <next>
+                                                        <block type="input_param">
+                                                          <field name="indexed">FALSE</field>
+                                                          <field name="storagedata_values">memory</field>
+                                                          <field name="name">_value</field>
+                                                          <value name="type">
+                                                            <block type="type_uint">
+                                                              <field name="uint_options">uint256</field>
+                                                            </block>
+                                                          </value>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </statement>
+                                                </block>
+                                              </value>
+                                              <value name="returns_values">
+                                                <block type="outputparam">
+                                                  <field name="type">bool</field>
+                                                  <field name="value">success</field>
+                                                </block>
+                                              </value>
+                                              <next>
+                                                <block type="clause">
+                                                  <field name="name">transferFrom</field>
+                                                  <field name="values_visibility">public</field>
+                                                  <field name="values_inputmodifier">view</field>
+                                                  <value name="inputparams_function">
+                                                    <block type="inputparam">
+                                                      <statement name="inputparams">
+                                                        <block type="input_param">
+                                                          <field name="indexed">FALSE</field>
+                                                          <field name="storagedata_values">memory</field>
+                                                          <field name="name">_from</field>
+                                                          <value name="type">
+                                                            <block type="type_address">
+                                                              <field name="address_options">address</field>
+                                                            </block>
+                                                          </value>
+                                                          <next>
+                                                            <block type="input_param">
+                                                              <field name="indexed">FALSE</field>
+                                                              <field name="storagedata_values">memory</field>
+                                                              <field name="name">_to</field>
+                                                              <value name="type">
+                                                                <block type="type_address">
+                                                                  <field name="address_options">address</field>
+                                                                </block>
+                                                              </value>
+                                                              <next>
+                                                                <block type="input_param">
+                                                                  <field name="indexed">FALSE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">_value</field>
+                                                                  <value name="type">
+                                                                    <block type="type_uint">
+                                                                      <field name="uint_options">uint256</field>
+                                                                    </block>
+                                                                  </value>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </next>
+                                                        </block>
+                                                      </statement>
+                                                    </block>
+                                                  </value>
+                                                  <value name="returns_values">
+                                                    <block type="outputparam">
+                                                      <field name="type">bool</field>
+                                                      <field name="value">success</field>
+                                                    </block>
+                                                  </value>
+                                                  <next>
+                                                    <block type="clause">
+                                                      <field name="name">approve</field>
+                                                      <field name="values_visibility">public</field>
+                                                      <field name="values_inputmodifier">view</field>
+                                                      <value name="inputparams_function">
+                                                        <block type="inputparam">
+                                                          <statement name="inputparams">
+                                                            <block type="input_param">
+                                                              <field name="indexed">FALSE</field>
+                                                              <field name="storagedata_values">memory</field>
+                                                              <field name="name">_spender</field>
+                                                              <value name="type">
+                                                                <block type="type_address">
+                                                                  <field name="address_options">address</field>
+                                                                </block>
+                                                              </value>
+                                                              <next>
+                                                                <block type="input_param">
+                                                                  <field name="indexed">FALSE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">_value</field>
+                                                                  <value name="type">
+                                                                    <block type="type_uint">
+                                                                      <field name="uint_options">uint256</field>
+                                                                    </block>
+                                                                  </value>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </statement>
+                                                        </block>
+                                                      </value>
+                                                      <value name="returns_values">
+                                                        <block type="outputparam">
+                                                          <field name="type">bool</field>
+                                                          <field name="value">success</field>
+                                                        </block>
+                                                      </value>
+                                                      <next>
+                                                        <block type="clause">
+                                                          <field name="name">allowance</field>
+                                                          <field name="values_visibility">public</field>
+                                                          <field name="values_inputmodifier">view</field>
+                                                          <value name="inputparams_function">
+                                                            <block type="inputparam">
+                                                              <statement name="inputparams">
+                                                                <block type="input_param">
+                                                                  <field name="indexed">TRUE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">_owner</field>
+                                                                  <value name="type">
+                                                                    <block type="type_address">
+                                                                      <field name="address_options">address</field>
+                                                                    </block>
+                                                                  </value>
+                                                                  <next>
+                                                                    <block type="input_param">
+                                                                      <field name="indexed">TRUE</field>
+                                                                      <field name="storagedata_values">memory</field>
+                                                                      <field name="name">spender</field>
+                                                                      <value name="type">
+                                                                        <block type="type_address">
+                                                                          <field name="address_options">address</field>
+                                                                        </block>
+                                                                      </value>
+                                                                    </block>
+                                                                  </next>
+                                                                </block>
+                                                              </statement>
+                                                            </block>
+                                                          </value>
+                                                          <value name="returns_values">
+                                                            <block type="outputparam">
+                                                              <field name="type">uint256</field>
+                                                              <field name="value">remaining</field>
+                                                            </block>
+                                                          </value>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </next>
+                                                </block>
+                                              </next>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </next>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+          </statement>
+        </block>
+      </category>
+      <category name="ERC-223">
+        <block type="file">
+          <field name="name">FileERC223</field>
+          <value name="version_file">
+            <block type="version">
+              <field name="symbolversion">greater</field>
+              <field name="value1version">0</field>
+              <field name="value2version">0</field>
+              <field name="value3version">0</field>
+              <field name="symbolcomparation">less_equal</field>
+              <field name="value1versionoptional">0</field>
+              <field name="value2versionoptional">0</field>
+              <field name="value3versionoptional">0</field>
+            </block>
+          </value>
+          <statement name="elements_file">
+            <block type="contract">
+              <field name="name">ERC-223</field>
+              <statement name="contract_elements">
+                <block type="number_property">
+                  <field name="numbertype_property">uint</field>
+                  <field name="constant">FALSE</field>
+                  <field name="visibility_values">public</field>
+                  <field name="storagedata_values">memory</field>
+                  <field name="name">totalSupply</field>
+                  <next>
+                    <block type="event">
+                      <field name="name">Transfer</field>
+                      <value name="inputparams">
+                        <block type="inputparam">
+                          <statement name="inputparams">
+                            <block type="input_param">
+                              <field name="indexed">TRUE</field>
+                              <field name="storagedata_values">memory</field>
+                              <field name="name">from</field>
+                              <value name="type">
+                                <block type="type_address">
+                                  <field name="address_options">address</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">to</field>
+                                  <value name="type">
+                                    <block type="type_address">
+                                      <field name="address_options">address</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="input_param">
+                                      <field name="indexed">FALSE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">value</field>
+                                      <value name="type">
+                                        <block type="type_uint">
+                                          <field name="uint_options">uint</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="input_param">
+                                          <field name="indexed">TRUE</field>
+                                          <field name="storagedata_values">memory</field>
+                                          <field name="name">data</field>
+                                          <value name="type">
+                                            <block type="type_byte">
+                                              <field name="bytes_options">byte</field>
+                                            </block>
+                                          </value>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </statement>
+                        </block>
+                      </value>
+                      <next>
+                        <block type="clause">
+                          <field name="name">name</field>
+                          <field name="values_visibility">public</field>
+                          <field name="values_inputmodifier">view</field>
+                          <value name="returns_values">
+                            <block type="outputparam">
+                              <field name="name">_name</field>
+                              <value name="value_type_outputparam">
+                                <block type="type_text">
+                                  <field name="typetext_options">string</field>
+                                </block>
+                              </value>
+                            </block>
+                          </value>
+                          <next>
+                            <block type="clause">
+                              <field name="name">symbol</field>
+                              <field name="values_visibility">public</field>
+                              <field name="values_inputmodifier">view</field>
+                              <value name="returns_values">
+                                <block type="outputparam">
+                                  <field name="name">_symbol</field>
+                                  <value name="value_type_outputparam">
+                                    <block type="type_text">
+                                      <field name="typetext_options">string</field>
+                                    </block>
+                                  </value>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="clause">
+                                  <field name="name">decimals</field>
+                                  <field name="values_visibility">public</field>
+                                  <field name="values_inputmodifier">view</field>
+                                  <value name="returns_values">
+                                    <block type="outputparam">
+                                      <field name="name">_decimals</field>
+                                      <value name="value_type_outputparam">
+                                        <block type="type_uint">
+                                          <field name="uint_options">uint8</field>
+                                        </block>
+                                      </value>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="clause">
+                                      <field name="name">totalSupply</field>
+                                      <field name="values_visibility">public</field>
+                                      <field name="values_inputmodifier">view</field>
+                                      <value name="returns_values">
+                                        <block type="outputparam">
+                                          <field name="name">_supply</field>
+                                          <value name="value_type_outputparam">
+                                            <block type="type_uint">
+                                              <field name="uint_options">uint256</field>
+                                            </block>
+                                          </value>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="clause">
+                                          <field name="name">balanceOf</field>
+                                          <field name="values_visibility">public</field>
+                                          <field name="values_inputmodifier">view</field>
+                                          <value name="inputparams_function">
+                                            <block type="inputparam">
+                                              <statement name="inputparams">
+                                                <block type="input_param">
+                                                  <field name="indexed">FALSE</field>
+                                                  <field name="storagedata_values">memory</field>
+                                                  <field name="name">who</field>
+                                                  <value name="type">
+                                                    <block type="type_address">
+                                                      <field name="address_options">address</field>
+                                                    </block>
+                                                  </value>
+                                                </block>
+                                              </statement>
+                                            </block>
+                                          </value>
+                                          <value name="returns_values">
+                                            <block type="type_uint">
+                                              <field name="uint_options">uint</field>
+                                            </block>
+                                          </value>
+                                          <next>
+                                            <block type="clause">
+                                              <field name="name">transfer</field>
+                                              <field name="values_visibility">public</field>
+                                              <field name="values_inputmodifier">view</field>
+                                              <value name="inputparams_function">
+                                                <block type="inputparam">
+                                                  <statement name="inputparams">
+                                                    <block type="input_param">
+                                                      <field name="indexed">FALSE</field>
+                                                      <field name="storagedata_values">memory</field>
+                                                      <field name="name">to</field>
+                                                      <value name="type">
+                                                        <block type="type_address">
+                                                          <field name="address_options">address</field>
+                                                        </block>
+                                                      </value>
+                                                      <next>
+                                                        <block type="input_param">
+                                                          <field name="indexed">FALSE</field>
+                                                          <field name="storagedata_values">memory</field>
+                                                          <field name="name">value</field>
+                                                          <value name="type">
+                                                            <block type="type_uint">
+                                                              <field name="uint_options">uint</field>
+                                                            </block>
+                                                          </value>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </statement>
+                                                </block>
+                                              </value>
+                                              <value name="returns_values">
+                                                <block type="outputparam">
+                                                  <field name="name">ok</field>
+                                                  <value name="value_type_outputparam">
+                                                    <block type="type_bool">
+                                                      <field name="bool_options">bool</field>
+                                                    </block>
+                                                  </value>
+                                                </block>
+                                              </value>
+                                              <next>
+                                                <block type="clause">
+                                                  <field name="name">transfer</field>
+                                                  <field name="values_visibility">public</field>
+                                                  <field name="values_inputmodifier">view</field>
+                                                  <value name="inputparams_function">
+                                                    <block type="inputparam">
+                                                      <statement name="inputparams">
+                                                        <block type="input_param">
+                                                          <field name="indexed">FALSE</field>
+                                                          <field name="storagedata_values">memory</field>
+                                                          <field name="name">to</field>
+                                                          <value name="type">
+                                                            <block type="type_address">
+                                                              <field name="address_options">address</field>
+                                                            </block>
+                                                          </value>
+                                                          <next>
+                                                            <block type="input_param">
+                                                              <field name="indexed">FALSE</field>
+                                                              <field name="storagedata_values">memory</field>
+                                                              <field name="name">value</field>
+                                                              <value name="type">
+                                                                <block type="type_uint">
+                                                                  <field name="uint_options">uint</field>
+                                                                </block>
+                                                              </value>
+                                                              <next>
+                                                                <block type="input_param">
+                                                                  <field name="indexed">FALSE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">data</field>
+                                                                  <value name="type">
+                                                                    <block type="type_byte">
+                                                                      <field name="bytes_options">byte</field>
+                                                                    </block>
+                                                                  </value>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </next>
+                                                        </block>
+                                                      </statement>
+                                                    </block>
+                                                  </value>
+                                                  <value name="returns_values">
+                                                    <block type="outputparam">
+                                                      <field name="name">ok</field>
+                                                      <value name="value_type_outputparam">
+                                                        <block type="type_bool">
+                                                          <field name="bool_options">bool</field>
+                                                        </block>
+                                                      </value>
+                                                    </block>
+                                                  </value>
+                                                  <next>
+                                                    <block type="clause">
+                                                      <field name="name">transfer</field>
+                                                      <field name="values_visibility">public</field>
+                                                      <field name="values_inputmodifier">view</field>
+                                                      <value name="inputparams_function">
+                                                        <block type="inputparam">
+                                                          <statement name="inputparams">
+                                                            <block type="input_param">
+                                                              <field name="indexed">FALSE</field>
+                                                              <field name="storagedata_values">memory</field>
+                                                              <field name="name">to</field>
+                                                              <value name="type">
+                                                                <block type="type_address">
+                                                                  <field name="address_options">address</field>
+                                                                </block>
+                                                              </value>
+                                                              <next>
+                                                                <block type="input_param">
+                                                                  <field name="indexed">FALSE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">value</field>
+                                                                  <value name="type">
+                                                                    <block type="type_uint">
+                                                                      <field name="uint_options">uint</field>
+                                                                    </block>
+                                                                  </value>
+                                                                  <next>
+                                                                    <block type="input_param">
+                                                                      <field name="indexed">FALSE</field>
+                                                                      <field name="storagedata_values">memory</field>
+                                                                      <field name="name">data</field>
+                                                                      <value name="type">
+                                                                        <block type="type_byte">
+                                                                          <field name="bytes_options">byte</field>
+                                                                        </block>
+                                                                      </value>
+                                                                      <next>
+                                                                        <block type="input_param">
+                                                                          <field name="indexed">FALSE</field>
+                                                                          <field name="storagedata_values">memory
+                                                                          </field>
+                                                                          <field name="name">custom_fallback</field>
+                                                                          <value name="type">
+                                                                            <block type="type_text">
+                                                                              <field name="typetext_options">string
+                                                                              </field>
+                                                                            </block>
+                                                                          </value>
+                                                                        </block>
+                                                                      </next>
+                                                                    </block>
+                                                                  </next>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </statement>
+                                                        </block>
+                                                      </value>
+                                                      <value name="returns_values">
+                                                        <block type="outputparam">
+                                                          <field name="name">ok</field>
+                                                          <value name="value_type_outputparam">
+                                                            <block type="type_bool">
+                                                              <field name="bool_options">bool</field>
+                                                            </block>
+                                                          </value>
+                                                        </block>
+                                                      </value>
+                                                    </block>
+                                                  </next>
+                                                </block>
+                                              </next>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </next>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+          </statement>
+        </block>
+      </category>
+      <category name="ERC-721">
+        <block type="file">
+          <field name="name">FileERC721</field>
+          <value name="version_file">
+            <block type="version">
+              <field name="symbolversion">greater</field>
+              <field name="value1version">0</field>
+              <field name="value2version">4</field>
+              <field name="value3version">20</field>
+              <field name="symbolcomparation">less_equal</field>
+              <field name="value1versionoptional">0</field>
+              <field name="value2versionoptional">0</field>
+              <field name="value3versionoptional">0</field>
+            </block>
+          </value>
+          <statement name="elements_file">
+            <block type="contract">
+              <field name="name">ERC-721</field>
+              <statement name="contract_elements">
+                <block type="event">
+                  <field name="name">Transfer</field>
+                  <value name="inputparams">
+                    <block type="inputparam">
+                      <statement name="inputparams">
+                        <block type="input_param">
+                          <field name="indexed">TRUE</field>
+                          <field name="storagedata_values">memory</field>
+                          <field name="name">_from</field>
+                          <value name="type">
+                            <block type="type_address">
+                              <field name="address_options">address</field>
+                            </block>
+                          </value>
+                          <next>
+                            <block type="input_param">
+                              <field name="indexed">TRUE</field>
+                              <field name="storagedata_values">memory</field>
+                              <field name="name">_to</field>
+                              <value name="type">
+                                <block type="type_address">
+                                  <field name="address_options">address</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">_tokeinId</field>
+                                  <value name="type">
+                                    <block type="type_uint">
+                                      <field name="uint_options">uint256</field>
+                                    </block>
+                                  </value>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </statement>
+                    </block>
+                  </value>
+                  <next>
+                    <block type="event">
+                      <field name="name">Approval</field>
+                      <value name="inputparams">
+                        <block type="inputparam">
+                          <statement name="inputparams">
+                            <block type="input_param">
+                              <field name="indexed">TRUE</field>
+                              <field name="storagedata_values">memory</field>
+                              <field name="name">_owner</field>
+                              <value name="type">
+                                <block type="type_address">
+                                  <field name="address_options">address</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">_approved</field>
+                                  <value name="type">
+                                    <block type="type_address">
+                                      <field name="address_options">address</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="input_param">
+                                      <field name="indexed">TRUE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">_tokeinId</field>
+                                      <value name="type">
+                                        <block type="type_uint">
+                                          <field name="uint_options">uint256</field>
+                                        </block>
+                                      </value>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </statement>
+                        </block>
+                      </value>
+                      <next>
+                        <block type="event">
+                          <field name="name">ApprovalForAll</field>
+                          <value name="inputparams">
+                            <block type="inputparam">
+                              <statement name="inputparams">
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">_owner</field>
+                                  <value name="type">
+                                    <block type="type_address">
+                                      <field name="address_options">address</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="input_param">
+                                      <field name="indexed">TRUE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">_operator</field>
+                                      <value name="type">
+                                        <block type="type_address">
+                                          <field name="address_options">address</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="input_param">
+                                          <field name="indexed">FALSE</field>
+                                          <field name="storagedata_values">memory</field>
+                                          <field name="name">_approved</field>
+                                          <value name="type">
+                                            <block type="type_bool">
+                                              <field name="bool_options">bool</field>
+                                            </block>
+                                          </value>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </statement>
+                            </block>
+                          </value>
+                          <next>
+                            <block type="clause">
+                              <field name="name">name</field>
+                              <field name="values_visibility">public</field>
+                              <field name="values_inputmodifier">view</field>
+                              <value name="returns_values">
+                                <block type="outputparam">
+                                  <field name="name">_name</field>
+                                  <value name="value_type_outputparam">
+                                    <block type="type_text">
+                                      <field name="typetext_options">string</field>
+                                    </block>
+                                  </value>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="clause">
+                                  <field name="name">symbol</field>
+                                  <field name="values_visibility">public</field>
+                                  <field name="values_inputmodifier">view</field>
+                                  <value name="returns_values">
+                                    <block type="outputparam">
+                                      <field name="name">_symbol</field>
+                                      <value name="value_type_outputparam">
+                                        <block type="type_text">
+                                          <field name="typetext_options">string</field>
+                                        </block>
+                                      </value>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="clause">
+                                      <field name="name">decimals</field>
+                                      <field name="values_visibility">public</field>
+                                      <field name="values_inputmodifier">view</field>
+                                      <value name="returns_values">
+                                        <block type="outputparam">
+                                          <field name="name">_decimals</field>
+                                          <value name="value_type_outputparam">
+                                            <block type="type_uint">
+                                              <field name="uint_options">uint8</field>
+                                            </block>
+                                          </value>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="clause">
+                                          <field name="name">totalSupply</field>
+                                          <field name="values_visibility">public</field>
+                                          <field name="values_inputmodifier">view</field>
+                                          <value name="returns_values">
+                                            <block type="outputparam">
+                                              <field name="name">_supply</field>
+                                              <value name="value_type_outputparam">
+                                                <block type="type_uint">
+                                                  <field name="uint_options">uint256</field>
+                                                </block>
+                                              </value>
+                                            </block>
+                                          </value>
+                                          <next>
+                                            <block type="clause">
+                                              <field name="name">balanceOf</field>
+                                              <field name="values_visibility">public</field>
+                                              <field name="values_inputmodifier">view</field>
+                                              <value name="inputparams_function">
+                                                <block type="inputparam">
+                                                  <statement name="inputparams">
+                                                    <block type="input_param">
+                                                      <field name="indexed">FALSE</field>
+                                                      <field name="storagedata_values">memory</field>
+                                                      <field name="name">_owner</field>
+                                                      <value name="type">
+                                                        <block type="type_address">
+                                                          <field name="address_options">address</field>
+                                                        </block>
+                                                      </value>
+                                                    </block>
+                                                  </statement>
+                                                </block>
+                                              </value>
+                                              <value name="returns_values">
+                                                <block type="type_uint">
+                                                  <field name="uint_options">uint256</field>
+                                                </block>
+                                              </value>
+                                              <next>
+                                                <block type="clause">
+                                                  <field name="name">ownerOf</field>
+                                                  <field name="values_visibility">public</field>
+                                                  <field name="values_inputmodifier">payable</field>
+                                                  <value name="inputparams_function">
+                                                    <block type="inputparam">
+                                                      <statement name="inputparams">
+                                                        <block type="input_param">
+                                                          <field name="indexed">FALSE</field>
+                                                          <field name="storagedata_values">memory</field>
+                                                          <field name="name">_tokenId</field>
+                                                          <value name="type">
+                                                            <block type="type_uint">
+                                                              <field name="uint_options">uint256</field>
+                                                            </block>
+                                                          </value>
+                                                        </block>
+                                                      </statement>
+                                                    </block>
+                                                  </value>
+                                                  <value name="returns_values">
+                                                    <block type="type_address">
+                                                      <field name="address_options">address</field>
+                                                    </block>
+                                                  </value>
+                                                  <next>
+                                                    <block type="clause">
+                                                      <field name="name">safeTransferFrom</field>
+                                                      <field name="values_visibility">public</field>
+                                                      <field name="values_inputmodifier">payable</field>
+                                                      <value name="inputparams_function">
+                                                        <block type="inputparam">
+                                                          <statement name="inputparams">
+                                                            <block type="input_param">
+                                                              <field name="indexed">FALSE</field>
+                                                              <field name="storagedata_values">memory</field>
+                                                              <field name="name">_from</field>
+                                                              <value name="type">
+                                                                <block type="type_address">
+                                                                  <field name="address_options">address</field>
+                                                                </block>
+                                                              </value>
+                                                              <next>
+                                                                <block type="input_param">
+                                                                  <field name="indexed">FALSE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">_to</field>
+                                                                  <value name="type">
+                                                                    <block type="type_address">
+                                                                      <field name="address_options">address</field>
+                                                                    </block>
+                                                                  </value>
+                                                                  <next>
+                                                                    <block type="input_param">
+                                                                      <field name="indexed">FALSE</field>
+                                                                      <field name="storagedata_values">memory</field>
+                                                                      <field name="name">_tokenId</field>
+                                                                      <value name="type">
+                                                                        <block type="type_uint">
+                                                                          <field name="uint_options">uint256</field>
+                                                                        </block>
+                                                                      </value>
+                                                                      <next>
+                                                                        <block type="input_param">
+                                                                          <field name="indexed">FALSE</field>
+                                                                          <field name="storagedata_values">memory
+                                                                          </field>
+                                                                          <field name="name">data</field>
+                                                                          <value name="type">
+                                                                            <block type="type_byte">
+                                                                              <field name="bytes_options">byte</field>
+                                                                            </block>
+                                                                          </value>
+                                                                        </block>
+                                                                      </next>
+                                                                    </block>
+                                                                  </next>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </statement>
+                                                        </block>
+                                                      </value>
+                                                      <next>
+                                                        <block type="clause">
+                                                          <field name="name">safeTransferFrom</field>
+                                                          <field name="values_visibility">public</field>
+                                                          <field name="values_inputmodifier">payable</field>
+                                                          <value name="inputparams_function">
+                                                            <block type="inputparam">
+                                                              <statement name="inputparams">
+                                                                <block type="input_param">
+                                                                  <field name="indexed">FALSE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">_from</field>
+                                                                  <value name="type">
+                                                                    <block type="type_address">
+                                                                      <field name="address_options">address</field>
+                                                                    </block>
+                                                                  </value>
+                                                                  <next>
+                                                                    <block type="input_param">
+                                                                      <field name="indexed">FALSE</field>
+                                                                      <field name="storagedata_values">memory</field>
+                                                                      <field name="name">_to</field>
+                                                                      <value name="type">
+                                                                        <block type="type_address">
+                                                                          <field name="address_options">address</field>
+                                                                        </block>
+                                                                      </value>
+                                                                      <next>
+                                                                        <block type="input_param">
+                                                                          <field name="indexed">FALSE</field>
+                                                                          <field name="storagedata_values">memory
+                                                                          </field>
+                                                                          <field name="name">_tokenId</field>
+                                                                          <value name="type">
+                                                                            <block type="type_uint">
+                                                                              <field name="uint_options">uint256</field>
+                                                                            </block>
+                                                                          </value>
+                                                                        </block>
+                                                                      </next>
+                                                                    </block>
+                                                                  </next>
+                                                                </block>
+                                                              </statement>
+                                                            </block>
+                                                          </value>
+                                                          <next>
+                                                            <block type="clause">
+                                                              <field name="name">transferFrom</field>
+                                                              <field name="values_visibility">public</field>
+                                                              <field name="values_inputmodifier">payable</field>
+                                                              <value name="inputparams_function">
+                                                                <block type="inputparam">
+                                                                  <statement name="inputparams">
+                                                                    <block type="input_param">
+                                                                      <field name="indexed">FALSE</field>
+                                                                      <field name="storagedata_values">memory</field>
+                                                                      <field name="name">_from</field>
+                                                                      <value name="type">
+                                                                        <block type="type_address">
+                                                                          <field name="address_options">address</field>
+                                                                        </block>
+                                                                      </value>
+                                                                      <next>
+                                                                        <block type="input_param">
+                                                                          <field name="indexed">FALSE</field>
+                                                                          <field name="storagedata_values">memory
+                                                                          </field>
+                                                                          <field name="name">_to</field>
+                                                                          <value name="type">
+                                                                            <block type="type_address">
+                                                                              <field name="address_options">address
+                                                                              </field>
+                                                                            </block>
+                                                                          </value>
+                                                                          <next>
+                                                                            <block type="input_param">
+                                                                              <field name="indexed">FALSE</field>
+                                                                              <field name="storagedata_values">memory
+                                                                              </field>
+                                                                              <field name="name">_tokenId</field>
+                                                                              <value name="type">
+                                                                                <block type="type_uint">
+                                                                                  <field name="uint_options">uint256
+                                                                                  </field>
+                                                                                </block>
+                                                                              </value>
+                                                                            </block>
+                                                                          </next>
+                                                                        </block>
+                                                                      </next>
+                                                                    </block>
+                                                                  </statement>
+                                                                </block>
+                                                              </value>
+                                                              <next>
+                                                                <block type="clause">
+                                                                  <field name="name">setApprovalForAll</field>
+                                                                  <field name="values_visibility">public</field>
+                                                                  <field name="values_inputmodifier">view</field>
+                                                                  <value name="inputparams_function">
+                                                                    <block type="inputparam">
+                                                                      <statement name="inputparams">
+                                                                        <block type="input_param">
+                                                                          <field name="indexed">FALSE</field>
+                                                                          <field name="storagedata_values">memory
+                                                                          </field>
+                                                                          <field name="name">_operator</field>
+                                                                          <value name="type">
+                                                                            <block type="type_address">
+                                                                              <field name="address_options">address
+                                                                              </field>
+                                                                            </block>
+                                                                          </value>
+                                                                          <next>
+                                                                            <block type="input_param">
+                                                                              <field name="indexed">FALSE</field>
+                                                                              <field name="storagedata_values">memory
+                                                                              </field>
+                                                                              <field name="name">_approved</field>
+                                                                              <value name="type">
+                                                                                <block type="type_bool">
+                                                                                  <field name="bool_options">bool
+                                                                                  </field>
+                                                                                </block>
+                                                                              </value>
+                                                                            </block>
+                                                                          </next>
+                                                                        </block>
+                                                                      </statement>
+                                                                    </block>
+                                                                  </value>
+                                                                  <next>
+                                                                    <block type="clause">
+                                                                      <field name="name">getApproved</field>
+                                                                      <field name="values_visibility">public</field>
+                                                                      <field name="values_inputmodifier">view</field>
+                                                                      <value name="inputparams_function">
+                                                                        <block type="inputparam">
+                                                                          <statement name="inputparams">
+                                                                            <block type="input_param">
+                                                                              <field name="indexed">FALSE</field>
+                                                                              <field name="storagedata_values">memory
+                                                                              </field>
+                                                                              <field name="name">_tokenId</field>
+                                                                              <value name="type">
+                                                                                <block type="type_uint">
+                                                                                  <field name="uint_options">uint256
+                                                                                  </field>
+                                                                                </block>
+                                                                              </value>
+                                                                            </block>
+                                                                          </statement>
+                                                                        </block>
+                                                                      </value>
+                                                                      <value name="returns_values">
+                                                                        <block type="type_address">
+                                                                          <field name="address_options">address</field>
+                                                                        </block>
+                                                                      </value>
+                                                                      <next>
+                                                                        <block type="clause">
+                                                                          <field name="name">isApprovedForAll</field>
+                                                                          <field name="values_visibility">public</field>
+                                                                          <field name="values_inputmodifier">view
+                                                                          </field>
+                                                                          <value name="inputparams_function">
+                                                                            <block type="inputparam">
+                                                                              <statement name="inputparams">
+                                                                                <block type="input_param">
+                                                                                  <field name="indexed">FALSE</field>
+                                                                                  <field name="storagedata_values">
+                                                                                    memory</field>
+                                                                                  <field name="name">_owner</field>
+                                                                                  <value name="type">
+                                                                                    <block type="type_address">
+                                                                                      <field name="address_options">
+                                                                                        address</field>
+                                                                                    </block>
+                                                                                  </value>
+                                                                                  <next>
+                                                                                    <block type="input_param">
+                                                                                      <field name="indexed">FALSE
+                                                                                      </field>
+                                                                                      <field name="storagedata_values">
+                                                                                        memory</field>
+                                                                                      <field name="name">_operator
+                                                                                      </field>
+                                                                                      <value name="type">
+                                                                                        <block type="type_address">
+                                                                                          <field name="address_options">
+                                                                                            address</field>
+                                                                                        </block>
+                                                                                      </value>
+                                                                                    </block>
+                                                                                  </next>
+                                                                                </block>
+                                                                              </statement>
+                                                                            </block>
+                                                                          </value>
+                                                                          <value name="returns_values">
+                                                                            <block type="type_bool">
+                                                                              <field name="bool_options">bool</field>
+                                                                            </block>
+                                                                          </value>
+                                                                          <next>
+                                                                            <block type="clause">
+                                                                              <field name="name">approve</field>
+                                                                              <field name="values_visibility">public
+                                                                              </field>
+                                                                              <field name="values_inputmodifier">payable
+                                                                              </field>
+                                                                              <value name="inputparams_function">
+                                                                                <block type="inputparam">
+                                                                                  <statement name="inputparams">
+                                                                                    <block type="input_param">
+                                                                                      <field name="indexed">FALSE
+                                                                                      </field>
+                                                                                      <field name="storagedata_values">
+                                                                                        memory</field>
+                                                                                      <field name="name">_approved
+                                                                                      </field>
+                                                                                      <value name="type">
+                                                                                        <block type="type_address">
+                                                                                          <field name="address_options">
+                                                                                            address</field>
+                                                                                        </block>
+                                                                                      </value>
+                                                                                      <next>
+                                                                                        <block type="input_param">
+                                                                                          <field name="indexed">FALSE
+                                                                                          </field>
+                                                                                          <field
+                                                                                            name="storagedata_values">
+                                                                                            memory</field>
+                                                                                          <field name="name">_tokenId
+                                                                                          </field>
+                                                                                          <value name="type">
+                                                                                            <block type="type_uint">
+                                                                                              <field
+                                                                                                name="uint_options">
+                                                                                                uint256</field>
+                                                                                            </block>
+                                                                                          </value>
+                                                                                        </block>
+                                                                                      </next>
+                                                                                    </block>
+                                                                                  </statement>
+                                                                                </block>
+                                                                              </value>
+                                                                              <next>
+                                                                                <block type="clause">
+                                                                                  <field name="name">supportsInterface
+                                                                                  </field>
+                                                                                  <field name="values_visibility">public
+                                                                                  </field>
+                                                                                  <field name="values_inputmodifier">
+                                                                                    payable</field>
+                                                                                  <value name="inputparams_function">
+                                                                                    <block type="inputparam">
+                                                                                      <statement name="inputparams">
+                                                                                        <block type="input_param">
+                                                                                          <field name="indexed">FALSE
+                                                                                          </field>
+                                                                                          <field
+                                                                                            name="storagedata_values">
+                                                                                            memory</field>
+                                                                                          <field name="name">interfaceID
+                                                                                          </field>
+                                                                                          <value name="type">
+                                                                                            <block type="type_byte">
+                                                                                              <field
+                                                                                                name="bytes_options">
+                                                                                                bytes4</field>
+                                                                                            </block>
+                                                                                          </value>
+                                                                                        </block>
+                                                                                      </statement>
+                                                                                    </block>
+                                                                                  </value>
+                                                                                  <value name="returns_values">
+                                                                                    <block type="type_bool">
+                                                                                      <field name="bool_options">bool
+                                                                                      </field>
+                                                                                    </block>
+                                                                                  </value>
+                                                                                  <next>
+                                                                                    <block type="clause">
+                                                                                      <field name="name">
+                                                                                        onERC721Received</field>
+                                                                                      <field name="values_visibility">
+                                                                                        public</field>
+                                                                                      <field
+                                                                                        name="values_inputmodifier">
+                                                                                        payable</field>
+                                                                                      <value
+                                                                                        name="inputparams_function">
+                                                                                        <block type="inputparam">
+                                                                                          <statement name="inputparams">
+                                                                                            <block type="input_param">
+                                                                                              <field name="indexed">
+                                                                                                FALSE</field>
+                                                                                              <field
+                                                                                                name="storagedata_values">
+                                                                                                memory</field>
+                                                                                              <field name="name">
+                                                                                                _operator</field>
+                                                                                              <value name="type">
+                                                                                                <block
+                                                                                                  type="type_address">
+                                                                                                  <field
+                                                                                                    name="address_options">
+                                                                                                    address</field>
+                                                                                                </block>
+                                                                                              </value>
+                                                                                              <next>
+                                                                                                <block
+                                                                                                  type="input_param">
+                                                                                                  <field name="indexed">
+                                                                                                    FALSE</field>
+                                                                                                  <field
+                                                                                                    name="storagedata_values">
+                                                                                                    memory</field>
+                                                                                                  <field name="name">
+                                                                                                    _from</field>
+                                                                                                  <value name="type">
+                                                                                                    <block
+                                                                                                      type="type_address">
+                                                                                                      <field
+                                                                                                        name="address_options">
+                                                                                                        address</field>
+                                                                                                    </block>
+                                                                                                  </value>
+                                                                                                  <next>
+                                                                                                    <block
+                                                                                                      type="input_param">
+                                                                                                      <field
+                                                                                                        name="indexed">
+                                                                                                        FALSE</field>
+                                                                                                      <field
+                                                                                                        name="storagedata_values">
+                                                                                                        memory</field>
+                                                                                                      <field
+                                                                                                        name="name">
+                                                                                                        _tokenId</field>
+                                                                                                      <value
+                                                                                                        name="type">
+                                                                                                        <block
+                                                                                                          type="type_uint">
+                                                                                                          <field
+                                                                                                            name="uint_options">
+                                                                                                            uint256
+                                                                                                          </field>
+                                                                                                        </block>
+                                                                                                      </value>
+                                                                                                      <next>
+                                                                                                        <block
+                                                                                                          type="input_param">
+                                                                                                          <field
+                                                                                                            name="indexed">
+                                                                                                            FALSE
+                                                                                                          </field>
+                                                                                                          <field
+                                                                                                            name="storagedata_values">
+                                                                                                            memory
+                                                                                                          </field>
+                                                                                                          <field
+                                                                                                            name="name">
+                                                                                                            data</field>
+                                                                                                          <value
+                                                                                                            name="type">
+                                                                                                            <block
+                                                                                                              type="type_byte">
+                                                                                                              <field
+                                                                                                                name="bytes_options">
+                                                                                                                byte
+                                                                                                              </field>
+                                                                                                            </block>
+                                                                                                          </value>
+                                                                                                        </block>
+                                                                                                      </next>
+                                                                                                    </block>
+                                                                                                  </next>
+                                                                                                </block>
+                                                                                              </next>
+                                                                                            </block>
+                                                                                          </statement>
+                                                                                        </block>
+                                                                                      </value>
+                                                                                      <value name="returns_values">
+                                                                                        <block type="type_byte">
+                                                                                          <field name="bytes_options">
+                                                                                            bytes4</field>
+                                                                                        </block>
+                                                                                      </value>
+                                                                                      <statement
+                                                                                        name="elements_function">
+                                                                                        <block type="return_clause">
+                                                                                          <value name="values">
+                                                                                            <block
+                                                                                              type="keccak_inputfunction">
+                                                                                              <field
+                                                                                                name="value_parameter">
+                                                                                                "onERC721Received(address,address,uint256,bytes)"
+                                                                                              </field>
+                                                                                            </block>
+                                                                                          </value>
+                                                                                        </block>
+                                                                                      </statement>
+                                                                                    </block>
+                                                                                  </next>
+                                                                                </block>
+                                                                              </next>
+                                                                            </block>
+                                                                          </next>
+                                                                        </block>
+                                                                      </next>
+                                                                    </block>
+                                                                  </next>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </next>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </next>
+                                                </block>
+                                              </next>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </next>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+          </statement>
+        </block>
+      </category>
+      <category name="ERC-777">
+        <block type="file">
+          <field name="name">FileERC777</field>
+          <value name="version_file">
+            <block type="version">
+              <field name="symbolversion">greater</field>
+              <field name="value1version">0</field>
+              <field name="value2version">4</field>
+              <field name="value3version">0</field>
+              <field name="symbolcomparation">less_equal</field>
+              <field name="value1versionoptional">0</field>
+              <field name="value2versionoptional">0</field>
+              <field name="value3versionoptional">0</field>
+            </block>
+          </value>
+          <statement name="elements_file">
+            <block type="contract">
+              <field name="name">ERC-777</field>
+              <statement name="contract_elements">
+                <block type="event">
+                  <field name="name">Sent</field>
+                  <value name="inputparams">
+                    <block type="inputparam">
+                      <statement name="inputparams">
+                        <block type="input_param">
+                          <field name="indexed">TRUE</field>
+                          <field name="storagedata_values">memory</field>
+                          <field name="name">operator</field>
+                          <value name="type">
+                            <block type="type_address">
+                              <field name="address_options">address</field>
+                            </block>
+                          </value>
+                          <next>
+                            <block type="input_param">
+                              <field name="indexed">TRUE</field>
+                              <field name="storagedata_values">memory</field>
+                              <field name="name">from</field>
+                              <value name="type">
+                                <block type="type_address">
+                                  <field name="address_options">address</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">to</field>
+                                  <value name="type">
+                                    <block type="type_address">
+                                      <field name="address_options">address</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="input_param">
+                                      <field name="indexed">FALSE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">amount</field>
+                                      <value name="type">
+                                        <block type="type_uint">
+                                          <field name="uint_options">uint256</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="input_param">
+                                          <field name="indexed">FALSE</field>
+                                          <field name="storagedata_values">memory</field>
+                                          <field name="name">userData</field>
+                                          <value name="type">
+                                            <block type="type_byte">
+                                              <field name="bytes_options">byte</field>
+                                            </block>
+                                          </value>
+                                          <next>
+                                            <block type="input_param">
+                                              <field name="indexed">FALSE</field>
+                                              <field name="storagedata_values">memory</field>
+                                              <field name="name">operatorData</field>
+                                              <value name="type">
+                                                <block type="type_byte">
+                                                  <field name="bytes_options">byte</field>
+                                                </block>
+                                              </value>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </statement>
+                    </block>
+                  </value>
+                  <next>
+                    <block type="event">
+                      <field name="name">Minted</field>
+                      <value name="inputparams">
+                        <block type="inputparam">
+                          <statement name="inputparams">
+                            <block type="input_param">
+                              <field name="indexed">TRUE</field>
+                              <field name="storagedata_values">memory</field>
+                              <field name="name">operator</field>
+                              <value name="type">
+                                <block type="type_address">
+                                  <field name="address_options">address</field>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">to</field>
+                                  <value name="type">
+                                    <block type="type_address">
+                                      <field name="address_options">address</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="input_param">
+                                      <field name="indexed">FALSE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">amount</field>
+                                      <value name="type">
+                                        <block type="type_uint">
+                                          <field name="uint_options">uint256</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="input_param">
+                                          <field name="indexed">FALSE</field>
+                                          <field name="storagedata_values">memory</field>
+                                          <field name="name">operatorData</field>
+                                          <value name="type">
+                                            <block type="type_byte">
+                                              <field name="bytes_options">byte</field>
+                                            </block>
+                                          </value>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </statement>
+                        </block>
+                      </value>
+                      <next>
+                        <block type="event">
+                          <field name="name">Burned</field>
+                          <value name="inputparams">
+                            <block type="inputparam">
+                              <statement name="inputparams">
+                                <block type="input_param">
+                                  <field name="indexed">TRUE</field>
+                                  <field name="storagedata_values">memory</field>
+                                  <field name="name">operator</field>
+                                  <value name="type">
+                                    <block type="type_address">
+                                      <field name="address_options">address</field>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="input_param">
+                                      <field name="indexed">TRUE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">from</field>
+                                      <value name="type">
+                                        <block type="type_address">
+                                          <field name="address_options">address</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="input_param">
+                                          <field name="indexed">FALSE</field>
+                                          <field name="storagedata_values">memory</field>
+                                          <field name="name">amount</field>
+                                          <value name="type">
+                                            <block type="type_uint">
+                                              <field name="uint_options">uint256</field>
+                                            </block>
+                                          </value>
+                                          <next>
+                                            <block type="input_param">
+                                              <field name="indexed">FALSE</field>
+                                              <field name="storagedata_values">memory</field>
+                                              <field name="name">userData</field>
+                                              <value name="type">
+                                                <block type="type_byte">
+                                                  <field name="bytes_options">byte</field>
+                                                </block>
+                                              </value>
+                                              <next>
+                                                <block type="input_param">
+                                                  <field name="indexed">FALSE</field>
+                                                  <field name="storagedata_values">memory</field>
+                                                  <field name="name">operatorData</field>
+                                                  <value name="type">
+                                                    <block type="type_byte">
+                                                      <field name="bytes_options">byte</field>
+                                                    </block>
+                                                  </value>
+                                                </block>
+                                              </next>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </statement>
+                            </block>
+                          </value>
+                          <next>
+                            <block type="event">
+                              <field name="name">AuthorizedOperator</field>
+                              <value name="inputparams">
+                                <block type="inputparam">
+                                  <statement name="inputparams">
+                                    <block type="input_param">
+                                      <field name="indexed">TRUE</field>
+                                      <field name="storagedata_values">memory</field>
+                                      <field name="name">operator</field>
+                                      <value name="type">
+                                        <block type="type_address">
+                                          <field name="address_options">address</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="input_param">
+                                          <field name="indexed">TRUE</field>
+                                          <field name="storagedata_values">memory</field>
+                                          <field name="name">tokenHolder</field>
+                                          <value name="type">
+                                            <block type="type_address">
+                                              <field name="address_options">address</field>
+                                            </block>
+                                          </value>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </statement>
+                                </block>
+                              </value>
+                              <next>
+                                <block type="event">
+                                  <field name="name">RevokedOperator</field>
+                                  <value name="inputparams">
+                                    <block type="inputparam">
+                                      <statement name="inputparams">
+                                        <block type="input_param">
+                                          <field name="indexed">TRUE</field>
+                                          <field name="storagedata_values">memory</field>
+                                          <field name="name">operator</field>
+                                          <value name="type">
+                                            <block type="type_address">
+                                              <field name="address_options">address</field>
+                                            </block>
+                                          </value>
+                                          <next>
+                                            <block type="input_param">
+                                              <field name="indexed">TRUE</field>
+                                              <field name="storagedata_values">memory</field>
+                                              <field name="name">tokenHolder</field>
+                                              <value name="type">
+                                                <block type="type_address">
+                                                  <field name="address_options">address</field>
+                                                </block>
+                                              </value>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </statement>
+                                    </block>
+                                  </value>
+                                  <next>
+                                    <block type="clause">
+                                      <field name="name">name</field>
+                                      <field name="values_visibility">public</field>
+                                      <field name="values_inputmodifier">view</field>
+                                      <value name="returns_values">
+                                        <block type="type_text">
+                                          <field name="typetext_options">string</field>
+                                        </block>
+                                      </value>
+                                      <next>
+                                        <block type="clause">
+                                          <field name="name">symbol</field>
+                                          <field name="values_visibility">public</field>
+                                          <field name="values_inputmodifier">view</field>
+                                          <value name="returns_values">
+                                            <block type="type_text">
+                                              <field name="typetext_options">string</field>
+                                            </block>
+                                          </value>
+                                          <next>
+                                            <block type="clause">
+                                              <field name="name">totalSupply</field>
+                                              <field name="values_visibility">public</field>
+                                              <field name="values_inputmodifier">view</field>
+                                              <value name="returns_values">
+                                                <block type="type_uint">
+                                                  <field name="uint_options">uint256</field>
+                                                </block>
+                                              </value>
+                                              <next>
+                                                <block type="clause">
+                                                  <field name="name">granularity</field>
+                                                  <field name="values_visibility">public</field>
+                                                  <field name="values_inputmodifier">view</field>
+                                                  <value name="returns_values">
+                                                    <block type="type_uint">
+                                                      <field name="uint_options">uint256</field>
+                                                    </block>
+                                                  </value>
+                                                  <next>
+                                                    <block type="clause">
+                                                      <field name="name">balanceOf</field>
+                                                      <field name="values_visibility">public</field>
+                                                      <field name="values_inputmodifier">view</field>
+                                                      <value name="inputparams_function">
+                                                        <block type="inputparam">
+                                                          <statement name="inputparams">
+                                                            <block type="input_param">
+                                                              <field name="indexed">FALSE</field>
+                                                              <field name="storagedata_values">memory</field>
+                                                              <field name="name">owner</field>
+                                                              <value name="type">
+                                                                <block type="type_address">
+                                                                  <field name="address_options">address</field>
+                                                                </block>
+                                                              </value>
+                                                            </block>
+                                                          </statement>
+                                                        </block>
+                                                      </value>
+                                                      <value name="returns_values">
+                                                        <block type="type_uint">
+                                                          <field name="uint_options">uint256</field>
+                                                        </block>
+                                                      </value>
+                                                      <next>
+                                                        <block type="clause">
+                                                          <field name="name">send</field>
+                                                          <field name="values_visibility">public</field>
+                                                          <field name="values_inputmodifier">view</field>
+                                                          <value name="inputparams_function">
+                                                            <block type="inputparam">
+                                                              <statement name="inputparams">
+                                                                <block type="input_param">
+                                                                  <field name="indexed">FALSE</field>
+                                                                  <field name="storagedata_values">memory</field>
+                                                                  <field name="name">to</field>
+                                                                  <value name="type">
+                                                                    <block type="type_address">
+                                                                      <field name="address_options">address</field>
+                                                                    </block>
+                                                                  </value>
+                                                                  <next>
+                                                                    <block type="input_param">
+                                                                      <field name="indexed">TRUE</field>
+                                                                      <field name="storagedata_values">memory</field>
+                                                                      <field name="name">amount</field>
+                                                                      <value name="type">
+                                                                        <block type="type_uint">
+                                                                          <field name="uint_options">uint256</field>
+                                                                        </block>
+                                                                      </value>
+                                                                    </block>
+                                                                  </next>
+                                                                </block>
+                                                              </statement>
+                                                            </block>
+                                                          </value>
+                                                          <next>
+                                                            <block type="clause">
+                                                              <field name="name">send</field>
+                                                              <field name="values_visibility">public</field>
+                                                              <field name="values_inputmodifier">view</field>
+                                                              <value name="inputparams_function">
+                                                                <block type="inputparam">
+                                                                  <statement name="inputparams">
+                                                                    <block type="input_param">
+                                                                      <field name="indexed">FALSE</field>
+                                                                      <field name="storagedata_values">memory</field>
+                                                                      <field name="name">to</field>
+                                                                      <value name="type">
+                                                                        <block type="type_address">
+                                                                          <field name="address_options">address</field>
+                                                                        </block>
+                                                                      </value>
+                                                                      <next>
+                                                                        <block type="input_param">
+                                                                          <field name="indexed">TRUE</field>
+                                                                          <field name="storagedata_values">memory
+                                                                          </field>
+                                                                          <field name="name">amount</field>
+                                                                          <value name="type">
+                                                                            <block type="type_uint">
+                                                                              <field name="uint_options">uint256</field>
+                                                                            </block>
+                                                                          </value>
+                                                                          <next>
+                                                                            <block type="input_param">
+                                                                              <field name="indexed">FALSE</field>
+                                                                              <field name="storagedata_values">memory
+                                                                              </field>
+                                                                              <field name="name">userData</field>
+                                                                              <value name="type">
+                                                                                <block type="type_byte">
+                                                                                  <field name="bytes_options">byte
+                                                                                  </field>
+                                                                                </block>
+                                                                              </value>
+                                                                            </block>
+                                                                          </next>
+                                                                        </block>
+                                                                      </next>
+                                                                    </block>
+                                                                  </statement>
+                                                                </block>
+                                                              </value>
+                                                              <next>
+                                                                <block type="clause">
+                                                                  <field name="name">authorizeOperator</field>
+                                                                  <field name="values_visibility">public</field>
+                                                                  <field name="values_inputmodifier">view</field>
+                                                                  <value name="inputparams_function">
+                                                                    <block type="inputparam">
+                                                                      <statement name="inputparams">
+                                                                        <block type="input_param">
+                                                                          <field name="indexed">FALSE</field>
+                                                                          <field name="storagedata_values">memory
+                                                                          </field>
+                                                                          <field name="name">operator</field>
+                                                                          <value name="type">
+                                                                            <block type="type_address">
+                                                                              <field name="address_options">address
+                                                                              </field>
+                                                                            </block>
+                                                                          </value>
+                                                                        </block>
+                                                                      </statement>
+                                                                    </block>
+                                                                  </value>
+                                                                  <next>
+                                                                    <block type="clause">
+                                                                      <field name="name">revokeOperator</field>
+                                                                      <field name="values_visibility">public</field>
+                                                                      <field name="values_inputmodifier">view</field>
+                                                                      <value name="inputparams_function">
+                                                                        <block type="inputparam">
+                                                                          <statement name="inputparams">
+                                                                            <block type="input_param">
+                                                                              <field name="indexed">FALSE</field>
+                                                                              <field name="storagedata_values">memory
+                                                                              </field>
+                                                                              <field name="name">operator</field>
+                                                                              <value name="type">
+                                                                                <block type="type_address">
+                                                                                  <field name="address_options">address
+                                                                                  </field>
+                                                                                </block>
+                                                                              </value>
+                                                                            </block>
+                                                                          </statement>
+                                                                        </block>
+                                                                      </value>
+                                                                      <next>
+                                                                        <block type="clause">
+                                                                          <field name="name">isOperatorFor</field>
+                                                                          <field name="values_visibility">public</field>
+                                                                          <field name="values_inputmodifier">view
+                                                                          </field>
+                                                                          <value name="inputparams_function">
+                                                                            <block type="inputparam">
+                                                                              <statement name="inputparams">
+                                                                                <block type="input_param">
+                                                                                  <field name="indexed">FALSE</field>
+                                                                                  <field name="storagedata_values">
+                                                                                    memory</field>
+                                                                                  <field name="name">operator</field>
+                                                                                  <value name="type">
+                                                                                    <block type="type_address">
+                                                                                      <field name="address_options">
+                                                                                        address</field>
+                                                                                    </block>
+                                                                                  </value>
+                                                                                  <next>
+                                                                                    <block type="input_param">
+                                                                                      <field name="indexed">FALSE
+                                                                                      </field>
+                                                                                      <field name="storagedata_values">
+                                                                                        memory</field>
+                                                                                      <field name="name">tokenHolder
+                                                                                      </field>
+                                                                                      <value name="type">
+                                                                                        <block type="type_address">
+                                                                                          <field name="address_options">
+                                                                                            address</field>
+                                                                                        </block>
+                                                                                      </value>
+                                                                                    </block>
+                                                                                  </next>
+                                                                                </block>
+                                                                              </statement>
+                                                                            </block>
+                                                                          </value>
+                                                                          <value name="returns_values">
+                                                                            <block type="type_bool">
+                                                                              <field name="bool_options">bool</field>
+                                                                            </block>
+                                                                          </value>
+                                                                          <next>
+                                                                            <block type="clause">
+                                                                              <field name="name">operatorSend</field>
+                                                                              <field name="values_visibility">public
+                                                                              </field>
+                                                                              <field name="values_inputmodifier">view
+                                                                              </field>
+                                                                              <value name="inputparams_function">
+                                                                                <block type="inputparam">
+                                                                                  <statement name="inputparams">
+                                                                                    <block type="input_param">
+                                                                                      <field name="indexed">TRUE</field>
+                                                                                      <field name="storagedata_values">
+                                                                                        memory</field>
+                                                                                      <field name="name">to</field>
+                                                                                      <value name="type">
+                                                                                        <block type="type_address">
+                                                                                          <field name="address_options">
+                                                                                            address</field>
+                                                                                        </block>
+                                                                                      </value>
+                                                                                      <next>
+                                                                                        <block type="input_param">
+                                                                                          <field name="indexed">TRUE
+                                                                                          </field>
+                                                                                          <field
+                                                                                            name="storagedata_values">
+                                                                                            memory</field>
+                                                                                          <field name="name">from
+                                                                                          </field>
+                                                                                          <value name="type">
+                                                                                            <block type="type_address">
+                                                                                              <field
+                                                                                                name="address_options">
+                                                                                                address</field>
+                                                                                            </block>
+                                                                                          </value>
+                                                                                          <next>
+                                                                                            <block type="input_param">
+                                                                                              <field name="indexed">
+                                                                                                FALSE</field>
+                                                                                              <field
+                                                                                                name="storagedata_values">
+                                                                                                memory</field>
+                                                                                              <field name="name">amount
+                                                                                              </field>
+                                                                                              <value name="type">
+                                                                                                <block type="type_uint">
+                                                                                                  <field
+                                                                                                    name="uint_options">
+                                                                                                    uint256</field>
+                                                                                                </block>
+                                                                                              </value>
+                                                                                              <next>
+                                                                                                <block
+                                                                                                  type="input_param">
+                                                                                                  <field name="indexed">
+                                                                                                    FALSE</field>
+                                                                                                  <field
+                                                                                                    name="storagedata_values">
+                                                                                                    memory</field>
+                                                                                                  <field name="name">
+                                                                                                    userData</field>
+                                                                                                  <value name="type">
+                                                                                                    <block
+                                                                                                      type="type_byte">
+                                                                                                      <field
+                                                                                                        name="bytes_options">
+                                                                                                        byte</field>
+                                                                                                    </block>
+                                                                                                  </value>
+                                                                                                  <next>
+                                                                                                    <block
+                                                                                                      type="input_param">
+                                                                                                      <field
+                                                                                                        name="indexed">
+                                                                                                        FALSE</field>
+                                                                                                      <field
+                                                                                                        name="storagedata_values">
+                                                                                                        memory</field>
+                                                                                                      <field
+                                                                                                        name="name">
+                                                                                                        operatorData
+                                                                                                      </field>
+                                                                                                      <value
+                                                                                                        name="type">
+                                                                                                        <block
+                                                                                                          type="type_byte">
+                                                                                                          <field
+                                                                                                            name="bytes_options">
+                                                                                                            byte</field>
+                                                                                                        </block>
+                                                                                                      </value>
+                                                                                                    </block>
+                                                                                                  </next>
+                                                                                                </block>
+                                                                                              </next>
+                                                                                            </block>
+                                                                                          </next>
+                                                                                        </block>
+                                                                                      </next>
+                                                                                    </block>
+                                                                                  </statement>
+                                                                                </block>
+                                                                              </value>
+                                                                            </block>
+                                                                          </next>
+                                                                        </block>
+                                                                      </next>
+                                                                    </block>
+                                                                  </next>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </next>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </next>
+                                                </block>
+                                              </next>
+                                            </block>
+                                          </next>
+                                        </block>
+                                      </next>
+                                    </block>
+                                  </next>
+                                </block>
+                              </next>
+                            </block>
+                          </next>
+                        </block>
+                      </next>
+                    </block>
+                  </next>
+                </block>
+              </statement>
+            </block>
+          </statement>
+        </block>
+      </category>
+    </category>
+  </xml>
+
+  <!--|Script|-->
+  <script>
+    var workspace = Blockly.inject('blocklyDiv',
+      { toolbox: document.getElementById('toolbox') });
+    Blockly.svgResize(workspace);
+  </script>
+  <script>
+    $("#XmlArea").change(function () {
+      if ($("#XmlArea").val() == "") {
+        //$("#tranformButton").prop("disabled",true);
+        $("#saveXMLButton").prop("disabled", true);
+      }
+      $("XmlArea").blur(function () {
+      });
+    });
+    $("#XmlArea").focus(function () {
+      if ($("#XmlArea").val() == "") {
+        //$("#tranformButton").prop("disabled",true);
+        $("#saveXMLButton").prop("disabled", true);
+      }
+      $("XmlArea").blur(function () {
+      });
+    });
+  </script>
+  <script>
+    $(document).ready(
+      function () {
+        $("#loadFileButton").on('change',
+          function () {
+            loadFileAsText();
+          });
+      });
+  </script>
+
+</body>
+
+</html>

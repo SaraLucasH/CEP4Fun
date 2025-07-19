@@ -1,0 +1,76 @@
+@App:name('DEP001_EventPattern')
+@App:description('CEP Application for events received from SmaCly')
+
+@sink(type = 'http', publisher.url = "http://localhost:3000/validation-dep001", sink.id = "dep001-validation", method = "POST", 
+	@map(type = 'json',
+	    @payload("""{"SmaclyDep001":{"Timestamp":"{{timestamp}}","IdSession":"{{idSession}}","BlockId":"{{blockId}}","VersionDeprecated":{{versionDeprecated}}}}""")))
+define stream Dep001ValidationStream (timestamp string, idSession string, symbolversion string, value1version int, value2version int, value3version int, symbolcomparation string,
+	value1versionoptional int, value2versionoptional int, value3versionoptional int, version1numeric int, versionoptionalnumeric int, versionDeprecated int, blockId string);
+
+@source(type = 'http', receiver.url = "http://localhost:1080/get-dep001", socketIdleTimeout = "150000",	@map(type = 'json',
+	@attributes(timestamp='$.timestamp',idSession='$.idSession', symbolversion='$.symbolversion', value1version ='$.value1version', value2version ='$.value2version',
+	value3version ='$.value3version', symbolcomparation ='$.symbolcomparation',
+	value1versionoptional ='$.value1versionoptional', value2versionoptional ='$.value2versionoptional', value3versionoptional ='$.value3versionoptional', blockId = '$.blockId')))
+define stream Dep001Stream (timestamp string, idSession string, symbolversion string, value1version int, value2version int, value3version int, symbolcomparation string, value1versionoptional int,
+	value2versionoptional int, value3versionoptional int, blockId string);
+
+@source(type = 'http-response', sink.id = "dep001-validation", http.status.code = "500", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream Failure500Dep001ValidationRequestStream (idSession string, failureReason string);
+
+-- Those with 400 status code
+@source(type = 'http-response', sink.id = "dep001-validation", http.status.code = "400", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream FailureDep001ValidationRequestStream (idSession string, failureReason string);
+
+ 
+-- Those with 2XX status code
+@source(type = 'http-response', sink.id = "dep001-validation", http.status.code = "2\d+", 
+	@map(type = 'json', 
+		@attributes(idSession = "trp:idSession")))
+define stream SuccessDep001ValidationRequestStream (idSession string);
+
+define stream Dep001NumericVersionTable (timestamp string, idSession string, symbolversion string, value1version int,
+	value2version int, value3version int, symbolcomparation string,
+	value1versionoptional int, value2versionoptional int, value3versionoptional int,
+	version1numeric int, versionoptionalnumeric int, blockId string);
+
+--Process requests and generate a response message
+@sink(type = 'log', 
+	@map(type = 'text'))
+define stream Dep001ValidationResponseStream (idSession string, message string);
+
+ 
+@info(name = 'String version to numeric query')
+from Dep001Stream 
+select timestamp, idSession, symbolversion, value1version, value2version, value3version, symbolcomparation, value1versionoptional, value2versionoptional, value3versionoptional,
+    convert(ifThenElse(value3version > 9, str:concat(value1version, value2version, value3version),  str:concat(value1version, value2version, value3version, 0)), 'int') as version1numeric,
+    convert(str:concat(value1versionoptional, value2versionoptional, value3versionoptional), 'int') as versionoptionalnumeric,
+	blockId
+insert into Dep001NumericVersionTable;
+
+@info(name = 'Insert data in http endpoint')
+from Dep001NumericVersionTable 
+select timestamp, idSession, symbolversion, value1version, value2version, value3version, symbolcomparation, value1versionoptional, value2versionoptional, value3versionoptional, version1numeric, versionoptionalnumeric, 
+ifThenElse(symbolversion == 'greater',
+ ifThenElse(version1numeric >= 500, 0, 1),
+ ifThenElse(version1numeric > 500, 0, 1)) as versionDeprecated,
+ blockId
+insert into Dep001ValidationStream;
+
+@info(name = 'successful-message-generator')
+from SuccessDep001ValidationRequestStream 
+select idSession, "Event request is accepted for processing" as message 
+insert into Dep001ValidationResponseStream;
+
+@info(name = 'failure-message-generator')
+from FailureDep001ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into Dep001ValidationResponseStream;
+
+@info(name = 'failure-message-generator-500')
+from Failure500Dep001ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into Dep001ValidationResponseStream;

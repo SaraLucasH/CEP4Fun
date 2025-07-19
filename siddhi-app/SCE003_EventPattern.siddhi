@@ -1,0 +1,61 @@
+@App:name('SCE003_EventPattern')
+@App:description('CEP Application for events received from SmaCly')
+
+@sink(type = 'http', publisher.url = "http://localhost:1880/event-state/sce003", sink.id = "SCE003-validation", method = "POST", 
+	@map(type = 'json',
+	    @payload("""{"Timestamp":"{{timestamp}}", "Topic":"sce003","IdSession":"{{idSession}}","Param1":"{{name}}","State":{{state}}, "BlockId":"{{blockId}}"}""")))
+define stream SCE003ValidationStream (timestamp string, idSession string, name string, blockId string, state int);
+
+@source(type = 'http', receiver.url = "http://localhost:1080/get-sce003", socketIdleTimeout = "150000",	@map(type = 'json',
+	@attributes(timestamp='$.timestamp',idSession='$.idSession', name='$.name', values_visibility ='$.values_visibility', blockId='$.blockId', hasModifiers='$.hasModifiers')))
+define stream SCE003Stream (timestamp string, idSession string, name string, values_visibility string, blockId string, hasModifiers int);
+
+@source(type = 'http-response', sink.id = "SCE003-validation", http.status.code = "500", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream Failure500SCE003ValidationRequestStream (idSession string, failureReason string);
+
+-- Those with 400 status code
+@source(type = 'http-response', sink.id = "SCE003-validation", http.status.code = "400", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream FailureSCE003ValidationRequestStream (idSession string, failureReason string);
+
+ 
+-- Those with 2XX status code
+@source(type = 'http-response', sink.id = "SCE003-validation", http.status.code = "2\d+", 
+	@map(type = 'json', 
+		@attributes(idSession = "trp:idSession")))
+define stream SuccessSCE003ValidationRequestStream (idSession string);
+
+--Process requests and generate a response message
+@sink(type = 'log', 
+	@map(type = 'text'))
+define stream SCE003ValidationResponseStream (idSession string, message string);
+
+@info(name = 'Insert data in http endpoint')
+from SCE003Stream 
+select timestamp, idSession, name, blockId, ifThenElse(values_visibility == 'public',
+    ifThenElse(hasModifiers > 0, 0, 1),
+    0) as state
+insert into SCE003ValidationStream;
+
+--@info(name = 'Insert data in http endpoint')
+--from SCE003VisibilityCountTable 
+--select * 
+--insert into SCE003ValidationStream;
+
+@info(name = 'successful-message-generator')
+from SuccessSCE003ValidationRequestStream 
+select idSession, "Event request is accepted for processing" as message 
+insert into SCE003ValidationResponseStream;
+
+@info(name = 'failure-message-generator')
+from FailureSCE003ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into SCE003ValidationResponseStream;
+
+@info(name = 'failure-message-generator-500')
+from Failure500SCE003ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into SCE003ValidationResponseStream;

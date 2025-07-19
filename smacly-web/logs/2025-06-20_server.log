@@ -1,0 +1,59 @@
+[LOG 2025-06-20T08:07:55.472Z] Server started on port 3000
+[LOG 2025-06-20T08:08:58.614Z] Prg002 received: {"Timestamp":"20/6/2025, 10:08:55","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"","State":1}
+[LOG 2025-06-20T08:09:04.491Z] Sye004 received: {"Timestamp":"20/6/2025, 10:09:01","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"ContratoBasePrestamo","State":0}
+[LOG 2025-06-20T08:16:00.927Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:15:57","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:16:09.853Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:16:06","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:16:16.179Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:16:13","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:16:20.718Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:16:17","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:16:30.733Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:16:27","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:16:56.984Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:16:53","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"prestamista","State":2}
+[LOG 2025-06-20T08:17:04.274Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:17:01","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"montoTotal","State":0}
+[LOG 2025-06-20T08:17:13.440Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:17:10","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"saldoRestante","State":0}
+[LOG 2025-06-20T08:17:17.494Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:17:14","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"cuotaMensual","State":0}
+[LOG 2025-06-20T08:17:24.507Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:17:21","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"plazoMeses","State":0}
+[LOG 2025-06-20T08:19:00.073Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:18:57","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"prestamista","State":0}
+[LOG 2025-06-20T08:19:08.144Z] Sye004 received: {"Timestamp":"20/6/2025, 10:19:05","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"ContratoBasePrestamo","State":0}
+[LOG 2025-06-20T08:19:33.239Z] Sye004 received: {"Timestamp":"20/6/2025, 10:19:30","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"ContratoBasePrestamo","State":0}
+[LOG 2025-06-20T08:21:07.371Z] Prg004 received: {"Timestamp":"20/6/2025, 10:21:04","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here modifier's name","State":1}
+[LOG 2025-06-20T08:21:48.825Z] Prg004 received: {"Timestamp":"20/6/2025, 10:21:45","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"soloPrestatario","State":2}
+[LOG 2025-06-20T08:22:01.258Z] Prg003 received: {"Timestamp":"20/6/2025, 10:21:58","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here function's name","State":1}
+[LOG 2025-06-20T08:22:11.847Z] Prg003 received: {"Timestamp":"20/6/2025, 10:22:08","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here function's name","State":1}
+[LOG 2025-06-20T08:22:11.850Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:22:08","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:22:37.627Z] Prg003 received: {"Timestamp":"20/6/2025, 10:22:34","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":2}
+[LOG 2025-06-20T08:22:37.630Z] Sce002 received: {"Timestamp":"20/6/2025, 10:22:34","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":0}
+[LOG 2025-06-20T08:22:37.631Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:22:34","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:23:18.536Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:23:15","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:23:59.248Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:23:56","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:24:03.210Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:24:00","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"saldoRestante","State":2}
+[LOG 2025-06-20T08:24:07.027Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:24:04","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagosRealizados","State":0}
+[LOG 2025-06-20T08:24:12.264Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:24:09","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:24:58.501Z] Prg003 received: {"Timestamp":"20/6/2025, 10:24:55","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":1}
+[LOG 2025-06-20T08:25:15.750Z] Prg003 received: {"Timestamp":"20/6/2025, 10:25:12","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":2}
+[LOG 2025-06-20T08:25:15.753Z] Sce002 received: {"Timestamp":"20/6/2025, 10:25:12","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":0}
+[LOG 2025-06-20T08:25:15.763Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:25:12","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:26:11.608Z] Prg003 received: {"Timestamp":"20/6/2025, 10:26:08","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"estaPagadoCompleto","State":0}
+[LOG 2025-06-20T08:26:11.611Z] Sce002 received: {"Timestamp":"20/6/2025, 10:26:08","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"estaPagadoCompleto","State":0}
+[LOG 2025-06-20T08:26:11.612Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:26:08","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:27:41.794Z] Sye004 received: {"Timestamp":"20/6/2025, 10:27:38","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Hipoteca","State":0}
+[LOG 2025-06-20T08:30:45.878Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:30:42","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"direccionPropiedad","State":2}
+[LOG 2025-06-20T08:31:04.532Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:31:01","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"direccionPropiedad","State":1}
+[LOG 2025-06-20T08:31:09.584Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:31:06","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"propiedadLiberada","State":2}
+[LOG 2025-06-20T08:31:40.763Z] Prg003 received: {"Timestamp":"20/6/2025, 10:31:37","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here function's name","State":1}
+[LOG 2025-06-20T08:32:22.253Z] Sye004 received: {"Timestamp":"20/6/2025, 10:32:19","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Hipoteca1","State":0}
+[LOG 2025-06-20T08:32:25.608Z] Sye004 received: {"Timestamp":"20/6/2025, 10:32:22","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Hipoteca","State":0}
+[LOG 2025-06-20T08:32:55.706Z] Ntd004 received: {"Timestamp":"20/6/2025, 10:32:52","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here function's name","State":0}
+[LOG 2025-06-20T08:39:50.630Z] Prg003 received: {"Timestamp":"20/6/2025, 10:39:47","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":1}
+[LOG 2025-06-20T08:39:50.634Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:39:47","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:39:59.557Z] Prg003 received: {"Timestamp":"20/6/2025, 10:39:56","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":1}
+[LOG 2025-06-20T08:39:59.562Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:39:56","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:40:40.246Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:40:37","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-20T08:40:46.177Z] Ntd001 received: {"Timestamp":"20/6/2025, 10:40:43","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"propiedadLiberada","State":1}
+[LOG 2025-06-20T08:41:26.421Z] Prg003 received: {"Timestamp":"20/6/2025, 10:41:23","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"pagarCuota","State":2}
+[LOG 2025-06-20T08:41:26.424Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:41:23","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:41:46.874Z] Prg003 received: {"Timestamp":"20/6/2025, 10:41:43","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"Insert here function's name","State":1}
+[LOG 2025-06-20T08:42:52.645Z] Prg003 received: {"Timestamp":"20/6/2025, 10:42:49","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"estadoHipoteca","State":2}
+[LOG 2025-06-20T08:42:52.651Z] Ntd002 received: {"Timestamp":"20/6/2025, 10:42:49","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","State":0}
+[LOG 2025-06-20T08:43:23.416Z] Sye001 received: {"Timestamp":"20/6/2025, 10:43:20","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"","State":1}
+[LOG 2025-06-20T08:43:27.236Z] Dep001 received: {"Timestamp":"20/6/2025, 10:43:27","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","VersionDeprecated":0}
+[LOG 2025-06-20T08:43:29.245Z] Dep001 received: {"Timestamp":"20/6/2025, 10:43:29","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","VersionDeprecated":0}
+[LOG 2025-06-20T08:43:32.261Z] Sye001 received: {"Timestamp":"20/6/2025, 10:43:29","IdSession":"f10004cf-2c25-4fdc-9a9f-4e5668cdb40f","Name":"","State":2}

@@ -1,0 +1,64 @@
+@App:name('EventStateFlow')
+@App:description('CEP Application for event states from SmaCly')
+
+@sink(type = 'http', publisher.url = "http://localhost:3000/validation-{{topic}}", sink.id = "EventStateSink", method = "POST", 
+	@map(type = 'json',
+	    @payload("""{"SmaCly_{{topic}}":{"Timestamp":"{{timestamp}}","IdSession":"{{idSession}}","Topic":"{{topic}}","Param1":"{{param1}}","State":{{state}}, "BlockId":"{{blockId}}"}}""")))
+define stream EventStateOutputStream (timestamp string, idSession string, topic string, state int, param1 string, blockId string);
+
+@source(type = 'http', receiver.url = "http://localhost:1080/event-state", socketIdleTimeout = "150000",	@map(type = 'json',
+	@attributes(timestamp='$.Timestamp',topic='$.Topic',idSession='$.IdSession', state='$.State', param1='$.Param1', blockId ='$.BlockId')))
+define stream EventStateStream (timestamp string, topic string, idSession string, state int, param1 string, blockId string);
+
+@source(type = 'http-response', sink.id = "EventStateSink", http.status.code = "500", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream Failure500EventStateValidationRequestStream (idSession string, failureReason string);
+
+-- Those with 400 status code
+@source(type = 'http-response', sink.id = "EventStateSink", http.status.code = "400", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream FailureEventStateValidationRequestStream (idSession string, failureReason string);
+
+define table EventStateTable (timestamp string, idSession string, topic string, param1 string, blockId string, state int);
+ 
+-- Those with 2XX status code  
+@source(type = 'http-response', sink.id = "EventStateSink", http.status.code = "2\d+", 
+	@map(type = 'json', 
+		@attributes(idSession = "trp:idSession")))
+define stream SuccessEventStateValidationRequestStream (idSession string);
+
+--Process requests and generate a response message
+@sink(type = 'log', 
+	@map(type = 'text'))
+define stream EventStateValidationResponseStream (idSession string, message string);
+
+@info(name = 'Update last state depending on newState data')
+from EventStateStream as newStateTable left outer join EventStateTable as lastStateTable
+    on newStateTable.topic == lastStateTable.topic and newStateTable.idSession == lastStateTable.idSession
+select newStateTable.timestamp, newStateTable.idSession, newStateTable.topic, newStateTable.param1, newStateTable.blockId,
+    ifThenElse(newStateTable.state == 1 and lastStateTable.state != 1, 1, ifThenElse(lastStateTable.state == 1 and newStateTable.state != 1, 2, newStateTable.state)) as state	
+update or insert into EventStateTable 
+    set EventStateTable.state = state 
+		on EventStateTable.topic == topic and EventStateTable.idSession == idSession;
+    
+from EventStateStream as newStateTable join EventStateTable as lastStateTable
+    on newStateTable.topic == lastStateTable.topic and newStateTable.idSession == lastStateTable.idSession
+select newStateTable.timestamp, newStateTable.idSession, newStateTable.topic, lastStateTable.state, newStateTable.param1, newStateTable.blockId
+insert into  EventStateOutputStream;
+
+@info(name = 'successful-message-generator')
+from SuccessEventStateValidationRequestStream 
+select idSession, "Event request is accepted for processing" as message 
+insert into EventStateValidationResponseStream;
+
+@info(name = 'failure-message-generator')
+from FailureEventStateValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into EventStateValidationResponseStream;
+
+@info(name = 'failure-message-generator-500')
+from Failure500EventStateValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into EventStateValidationResponseStream;

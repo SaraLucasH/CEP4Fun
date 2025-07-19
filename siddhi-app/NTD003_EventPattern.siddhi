@@ -1,0 +1,70 @@
+@App:name('NTD003_EventPattern')
+@App:description('CEP Application for events received from SmaCly')
+
+@sink(type = 'http', publisher.url = "http://localhost:1880/event-state/ntd003", sink.id = "NTD003-validation", method = "POST", 
+	@map(type = 'json',
+	    @payload("""{"Timestamp":"{{timestamp}}", "Topic":"ntd003","IdSession":"{{idSession}}","Param1":"{{name}}", "State":{{properInheritance}}, "BlockId":"{{blockId}}"}""")))
+define stream NTD003ValidationStream (timestamp string, idSession string, name string, total long, properInheritance int, blockId string);
+ 
+@source(type = 'http', receiver.url = "http://localhost:1080/get-ntd003", socketIdleTimeout = "150000",	@map(type = 'json',
+	@attributes(timestamp='$.timestamp',idSession='$.idSession', name='$.name', values_visibility ='$.values_visibility', values_inputmodifier ='$.values_inputmodifier', parent ='$.parent',
+		blockId ='$.blockId')))
+define stream NTD003Stream (timestamp string, idSession string, name string, values_visibility string, values_inputmodifier string, parent string, blockId string);
+
+@source(type = 'http-response', sink.id = "NTD003-validation", http.status.code = "500", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream Failure500NTD003ValidationRequestStream (idSession string, failureReason string);
+
+-- Those with 400 status code
+@source(type = 'http-response', sink.id = "NTD003-validation", http.status.code = "400", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream FailureNTD003ValidationRequestStream (idSession string, failureReason string);
+
+ 
+-- Those with 2XX status code
+@source(type = 'http-response', sink.id = "NTD003-validation", http.status.code = "2\d+", 
+	@map(type = 'json', 
+		@attributes(idSession = "trp:idSession")))
+define stream SuccessNTD003ValidationRequestStream (idSession string);
+
+define stream NTD003InheritanceCountTable (timestamp string, idSession string, name string, parent string, total long, blockId string);
+
+--Process requests and generate a response message
+@sink(type = 'log', 
+	@map(type = 'text'))
+define stream NTD003ValidationResponseStream (idSession string, message string);
+
+ 
+@info(name = 'String version to numeric query')
+from NTD003Stream 
+select timestamp, idSession, name, parent, distinctCount(parent) as total, blockId
+group by timestamp, idSession, name, values_visibility, values_inputmodifier, parent, blockId
+insert into NTD003InheritanceCountTable;
+
+@info(name = 'Insert data in http endpoint')
+from NTD003InheritanceCountTable 
+select timestamp, idSession, name, total, ifThenElse(total == 1, ifThenElse(parent == 'contract', 0, 1), 0) as properInheritance, blockId
+group by timestamp, idSession, name, parent, total, blockId
+insert into NTD003ValidationStream;
+
+--@info(name = 'Insert data in http endpoint')
+--from NTD003VisibilityCountTable 	
+--select * 
+--insert into NTD003ValidationStream;
+
+@info(name = 'successful-message-generator')
+from SuccessNTD003ValidationRequestStream 
+select idSession, "Event request is accepted for processing" as message 
+insert into NTD003ValidationResponseStream;
+
+@info(name = 'failure-message-generator')
+from FailureNTD003ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into NTD003ValidationResponseStream;
+
+@info(name = 'failure-message-generator-500')
+from Failure500NTD003ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into NTD003ValidationResponseStream;

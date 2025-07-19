@@ -1,0 +1,46 @@
+[LOG 2025-06-09T15:11:13.891Z] Server started on port 3000
+[LOG 2025-06-09T15:11:33.332Z] Server started on port 3000
+[LOG 2025-06-09T15:11:46.923Z] Prg002 received: {"Timestamp":"9/6/2025, 17:11:43","IdSession":"c88a8729-0ce2-4c6a-9d5c-281bf7905e03","Name":"","State":1}
+[LOG 2025-06-09T15:11:48.482Z] Sye003 received: [object Object]
+[LOG 2025-06-09T15:11:53.670Z] Sye003 received: [object Object]
+[LOG 2025-06-09T15:12:52.173Z] Server started on port 3000
+[LOG 2025-06-09T15:13:35.786Z] Prg002 received: {"Timestamp":"9/6/2025, 17:13:32","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"","State":1}
+[LOG 2025-06-09T15:13:38.445Z] Sye003 received: {"Timestamp":"9/6/2025, 17:13:35","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"c","State":0}
+[LOG 2025-06-09T15:13:43.854Z] Sye003 received: {"Timestamp":"9/6/2025, 17:13:40","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"a","State":0}
+[LOG 2025-06-09T15:14:02.205Z] Sye004 received: {"Timestamp":"9/6/2025, 17:13:59","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"a","State":0}
+[LOG 2025-06-09T15:14:09.077Z] Sye004 received: {"Timestamp":"9/6/2025, 17:14:06","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"s","State":0}
+[LOG 2025-06-09T15:15:01.887Z] Sye002 received: {"Timestamp":"9/6/2025, 17:14:58","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"a","State":0}
+[LOG 2025-06-09T15:15:11.817Z] Sye002 received: {"Timestamp":"9/6/2025, 17:15:08","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"a","State":0}
+[LOG 2025-06-09T15:15:13.101Z] Sye002 received: {"Timestamp":"9/6/2025, 17:15:10","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"v","State":1}
+[LOG 2025-06-09T15:15:37.928Z] Sye004 received: {"Timestamp":"9/6/2025, 17:15:34","IdSession":"f0f0e38c-e20f-4d08-a0db-e1ab6e296d3b","Name":"d","State":0}
+[LOG 2025-06-09T15:17:05.103Z] Server started on port 3000
+[LOG 2025-06-09T15:18:10.306Z] Prg002 received: {"Timestamp":"9/6/2025, 17:18:07","IdSession":"2019b533-8c2a-41e3-9760-f595959f3120","Name":"","State":1}
+[LOG 2025-06-09T15:18:14.118Z] Sye003 received: {"Timestamp":"9/6/2025, 17:18:11","IdSession":"2019b533-8c2a-41e3-9760-f595959f3120","Name":"d","State":0}
+[LOG 2025-06-09T15:18:30.402Z] Sye003 received: {"Timestamp":"9/6/2025, 17:18:27","IdSession":"2019b533-8c2a-41e3-9760-f595959f3120","Name":"c","State":1}
+[LOG 2025-06-09T16:26:47.506Z] Server started on port 3000
+[LOG 2025-06-09T16:27:41.478Z] Prg002 received: {"Timestamp":"9/6/2025, 18:27:38","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"","State":1}
+[LOG 2025-06-09T16:27:48.993Z] Sye004 received: {"Timestamp":"9/6/2025, 18:27:45","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"abstract","State":0}
+[LOG 2025-06-09T16:27:54.909Z] Sye004 received: {"Timestamp":"9/6/2025, 18:27:51","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"c1","State":0}
+[LOG 2025-06-09T16:28:00.482Z] Prg003 received: {"Timestamp":"9/6/2025, 18:27:57","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"f","State":1}
+[LOG 2025-06-09T16:28:00.485Z] Ntd002 received: {"Timestamp":"9/6/2025, 18:27:57","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","State":0}
+[LOG 2025-06-09T16:28:18.769Z] Ntd004 received: {"Timestamp":"9/6/2025, 18:28:15","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"f","State":1}
+[LOG 2025-06-09T16:32:02.940Z] Prg003 received: {"Timestamp":"9/6/2025, 18:31:59","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"f","State":1}
+[LOG 2025-06-09T16:32:02.945Z] Ntd002 received: {"Timestamp":"9/6/2025, 18:31:59","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","State":0}
+[LOG 2025-06-09T16:32:18.441Z] Sye004 received: {"Timestamp":"9/6/2025, 18:32:15","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"c12","State":0}
+[LOG 2025-06-09T16:32:39.450Z] Sye004 received: {"Timestamp":"9/6/2025, 18:32:36","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"c","State":0}
+[LOG 2025-06-09T16:33:21.818Z] Sye004 received: {"Timestamp":"9/6/2025, 18:33:18","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"c1","State":0}
+[LOG 2025-06-09T16:33:35.313Z] Sye004 received: {"Timestamp":"9/6/2025, 18:33:32","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"c1","State":0}
+[LOG 2025-06-09T16:33:37.199Z] Ntd004 received: {"Timestamp":"9/6/2025, 18:33:34","IdSession":"655fa6f0-a649-42cb-a7e3-a332ebb0bdee","Name":"f","State":2}
+[LOG 2025-06-09T18:56:57.310Z] Prg002 received: {"Timestamp":"9/6/2025, 20:56:54","IdSession":"f57d8dd7-43dd-4b62-ba41-cd619b0f151b","Name":"","State":1}
+[LOG 2025-06-09T18:57:04.433Z] Sye003 received: {"Timestamp":"9/6/2025, 20:57:01","IdSession":"f57d8dd7-43dd-4b62-ba41-cd619b0f151b","Name":"c","State":0}
+[LOG 2025-06-09T18:57:07.692Z] Sye003 received: {"Timestamp":"9/6/2025, 20:57:04","IdSession":"f57d8dd7-43dd-4b62-ba41-cd619b0f151b","Name":"c","State":1}
+[LOG 2025-06-09T18:58:32.304Z] Server started on port 3000
+[LOG 2025-06-09T18:58:40.260Z] Prg002 received: {"Timestamp":"9/6/2025, 20:58:37","IdSession":"72280559-640c-4b4e-8773-2f02d39c9cf0","Name":"","State":1}
+[LOG 2025-06-09T18:58:46.660Z] Sye003 received: {"Timestamp":"9/6/2025, 20:58:43","IdSession":"72280559-640c-4b4e-8773-2f02d39c9cf0","Name":"c","State":1}
+[LOG 2025-06-09T19:02:48.563Z] Sye003 received: {"Timestamp":"9/6/2025, 21:02:45","IdSession":"72280559-640c-4b4e-8773-2f02d39c9cf0","Name":"d","State":2}
+[LOG 2025-06-09T19:05:02.112Z] Server started on port 3000
+[LOG 2025-06-09T19:05:11.610Z] Prg003 received: {"Timestamp":"9/6/2025, 21:05:08","IdSession":"365ec04b-41a3-4d74-a0b2-e3eb47bd2d86","Name":"Insert here function's name","State":1}
+[LOG 2025-06-09T19:05:11.615Z] Prg002 received: {"Timestamp":"9/6/2025, 21:05:08","IdSession":"365ec04b-41a3-4d74-a0b2-e3eb47bd2d86","Name":"","State":1}
+[LOG 2025-06-09T19:11:28.418Z] Ntd001 received: {"Timestamp":"9/6/2025, 21:11:25","IdSession":"365ec04b-41a3-4d74-a0b2-e3eb47bd2d86","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-09T19:11:35.667Z] Prg003 received: {"Timestamp":"9/6/2025, 21:11:32","IdSession":"365ec04b-41a3-4d74-a0b2-e3eb47bd2d86","Name":"a","State":2}
+[LOG 2025-06-09T19:11:35.697Z] Ntd002 received: {"Timestamp":"9/6/2025, 21:11:32","IdSession":"365ec04b-41a3-4d74-a0b2-e3eb47bd2d86","State":0}

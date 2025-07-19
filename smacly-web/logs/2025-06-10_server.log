@@ -1,0 +1,6 @@
+[LOG 2025-06-10T20:44:21.347Z] Server started on port 3000
+[LOG 2025-06-10T20:45:01.794Z] Ntd001 received: {"Timestamp":"10/6/2025, 22:44:58","IdSession":"6cfd4087-cbd7-4783-ba27-4c592a9dfd15","Name":"Insert here variable's name","State":1}
+[LOG 2025-06-10T20:45:01.798Z] Prg002 received: {"Timestamp":"10/6/2025, 22:44:58","IdSession":"6cfd4087-cbd7-4783-ba27-4c592a9dfd15","Name":"","State":1}
+[LOG 2025-06-10T20:49:52.613Z] Ntd001 received: {"Timestamp":"10/6/2025, 22:49:49","IdSession":"6cfd4087-cbd7-4783-ba27-4c592a9dfd15","Name":"c","State":2}
+[LOG 2025-06-10T20:53:02.681Z] Ntd001 received: {"Timestamp":"10/6/2025, 22:52:59","IdSession":"6cfd4087-cbd7-4783-ba27-4c592a9dfd15","Name":"","State":0}
+[LOG 2025-06-10T20:53:10.264Z] Ntd001 received: {"Timestamp":"10/6/2025, 22:53:07","IdSession":"6cfd4087-cbd7-4783-ba27-4c592a9dfd15","Name":"","State":1}

@@ -1,0 +1,69 @@
+@App:name('SYE003_EventPattern')
+@App:description('CEP Application for events received from SmaCly')
+
+@sink(type = 'http', publisher.url = "http://localhost:1880/event-state/sye003", sink.id = "SYE003-validation", method = "POST", 
+	@map(type = 'json',
+	    @payload("""{"Timestamp":"{{timestamp}}","IdSession":"{{idSession}}","Topic":"sye003","Param1":"{{name}}","State":{{duplicated}}, "BlockId":"{{blockId}}"}""")))
+define stream SYE003ValidationStream (timestamp string, idSession string, name string, blockId string, total long, duplicated int);
+
+@source(type = 'http', receiver.url = "http://localhost:1080/get-sye003", socketIdleTimeout = "150000",	@map(type = 'json',
+	@attributes(timestamp='$.timestamp',idSession='$.idSession', name='$.name', blockId ='$.blockId')))
+define stream SYE003Stream (timestamp string, idSession string, name string, blockId string);
+
+@source(type = 'http-response', sink.id = "SYE003-validation", http.status.code = "500", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream Failure500SYE003ValidationRequestStream (idSession string, failureReason string);
+
+-- Those with 400 status code
+@source(type = 'http-response', sink.id = "SYE003-validation", http.status.code = "400", 
+	@map(type = 'json', 
+		@attributes(failureReason = "validation-response.reason", idSession = "trp:idSession")))
+define stream FailureSYE003ValidationRequestStream (idSession string, failureReason string);
+
+ 
+-- Those with 2XX status code
+@source(type = 'http-response', sink.id = "SYE003-validation", http.status.code = "2\d+", 
+	@map(type = 'json', 
+		@attributes(idSession = "trp:idSession")))
+define stream SuccessSYE003ValidationRequestStream (idSession string);
+
+define stream SYE003VisibilityCountTable (timestamp string, idSession string, name string, blockId string, total long);
+
+--Process requests and generate a response message
+@sink(type = 'log', 
+	@map(type = 'text'))
+define stream SYE003ValidationResponseStream (idSession string, message string);
+
+ 
+@info(name = 'String version to numeric query')
+from SYE003Stream 
+select timestamp, idSession, name, blockId, count(name) as total
+group by timestamp, idSession, name
+insert into SYE003VisibilityCountTable;
+
+@info(name = 'Insert data in http endpoint')
+from SYE003VisibilityCountTable 
+select timestamp, idSession, name, blockId, total, ifThenElse(total > 1, 1, 0) as duplicated
+group by timestamp, idSession, name
+insert into SYE003ValidationStream;
+
+--@info(name = 'Insert data in http endpoint')
+--from SYE003VisibilityCountTable 
+--select * 
+--insert into SYE003ValidationStream;
+
+@info(name = 'successful-message-generator')
+from SuccessSYE003ValidationRequestStream 
+select idSession, "Event request is accepted for processing" as message 
+insert into SYE003ValidationResponseStream;
+
+@info(name = 'failure-message-generator')
+from FailureSYE003ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into SYE003ValidationResponseStream;
+
+@info(name = 'failure-message-generator-500')
+from Failure500SYE003ValidationRequestStream 
+select idSession, str:concat("Event request is rejected due to ", failureReason) as message 
+insert into SYE003ValidationResponseStream;
