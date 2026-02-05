@@ -2,37 +2,340 @@
 "use strict";
 
 
-var SolidityGenerator = new Blockly.Generator('Solidity');
+var HtmlGenerator = new Blockly.Generator('HTML');//Registrar el generador a crear
 
-SolidityGenerator.ORDER_ATOMIC = 0;
-SolidityGenerator.ORDER_NONE = 0;
+HtmlGenerator.ORDER_ATOMIC = 0;
+HtmlGenerator.ORDER_NONE = 0;
 
-SolidityGenerator.init = function(workspace) {};
-SolidityGenerator.finish = function(code) {return code;};
+HtmlGenerator.init = function(workspace) {};
+HtmlGenerator.finish = function(code) {return code;};
 
-SolidityGenerator.scrub_ = function(block, code) {
+/*
+Parámetro de entrada: El bloque que va a generar su código asociado y el código que se lleva generado
+Descripción de la función: Lo que hace es analizar si hay un bloque siguiente y si lo hay (se guarda el bloque siguiente en la variable nextBlock) 
+llamar al generador de código asociado a ese bloque para generarlo y almacenarlo en la variable nextCode
+Párametro de salidad: El código actualizado con el código generado en la llamada a blockToCode
+*/
+HtmlGenerator.scrub_ = function(block, code) {
   var nextBlock = block.nextConnection && block.nextConnection.targetBlock();
-  if(nextBlock != null){
-    if(nextBlock.type == "inputparamshortidentifier" || nextBlock.type == "input_param"){
-      code +=  ", ";
-    }
-  }
-  var nextCode = SolidityGenerator.blockToCode(nextBlock);
+  var nextCode = HtmlGenerator.blockToCode(nextBlock);
   return code + nextCode;
 };
 
+
+function removeIndentAndTrailingNewline() {
+   
+}
+
+
+/*HtmlGenerator['prueba'] = function(block) {
+  var statements_head = HtmlGenerator.statementToCode(block, 'interface');
+  var statements_body = HtmlGenerator.statementToCode(block, 'contract');
+
+  var code = '<!DOCTYPE HTML>\n<html>\n<head>\n  <meta charset="utf-8">\n'
+    + statements_head
+    + "</head>\n\n<body>\n"
+    + statements_body
+    + "</body>\n</html>\n";
+
+  return code;
+};*/
 
 /*
 Parámetro de entrada: El bloque que va a generar su código asociado
 Descripción de la función: Lo que hace generar el código definido en ese elemento y se guarda en la variable code
 Párametro de salidad: El código generado almacenado en la variable code
 */
-SolidityGenerator['file'] = function(block) {
-  var version = SolidityGenerator.statementToCode(block, 'version_file');
-  var statements_content = SolidityGenerator.statementToCode(block, 'elements_file');
-  var code =  "// SPDX-License-Identifier: MIT" + '\n' + version + '\n' + statements_content + '\n';
+HtmlGenerator['file'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'elements_file');
+  var code = '<!DOCTYPE HTML>\n<html>\n' + statements_content + '</html>\n';
   return code;
 };
+
+HtmlGenerator['contract'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'contract_elements');
+  var contract_name = block.getFieldValue('name');
+  var code = '<body name = "' + contract_name + '" >\n' + statements_content + '</body>\n';
+  return code;
+};
+
+HtmlGenerator['interface'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'interface_functions');
+  var code = '<head>\n  <meta charset="utf-8">\n' + statements_content + '</head>\n';
+  return code;
+};
+
+HtmlGenerator['title'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+
+  if (statements_content != "")
+    document.getElementById('title').innerText = statements_content;
+  else
+    document.getElementById('title').innerText = "untitled web page";
+
+  var code = '<title>' + statements_content.trim() + '</title>\n';
+  return code;
+};
+
+HtmlGenerator['paragraph'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<p>\n' + statements_content + '</p>\n';
+  return code;
+};
+
+HtmlGenerator['plaintext'] = function(block) {
+  var text_content = block.getFieldValue('content');
+  var code = text_content + '\n';
+  return code;
+};
+
+HtmlGenerator['division'] = function(block) {
+  var value_name = HtmlGenerator.valueToCode(block, 'NAME', HtmlGenerator.ORDER_ATOMIC);
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<div' + value_name + '>\n' + statements_content + '</div>\n';
+  return code;
+};
+
+HtmlGenerator['style'] = function(block) {
+  var statements_name = HtmlGenerator.statementToCode(block, 'NAME');
+  var code = ' style="' + statements_name.trim() + '"';
+  return [code, HtmlGenerator.ORDER_NONE];
+};
+
+HtmlGenerator['color'] = function(block) {
+  var colour_name = block.getFieldValue('NAME');
+  var code = 'color: ' + colour_name + ';';
+  return code;
+};
+
+HtmlGenerator['bgcolour'] = function(block) {
+  var colour_name = block.getFieldValue('NAME');
+  var code = 'background-color: ' + colour_name + ';';
+  return code;
+};
+
+HtmlGenerator['genericstyle'] = function(block) {
+  var text_property = block.getFieldValue('property');
+  var text_value = block.getFieldValue('value');
+  var code = text_property + ': ' + text_value + ';';
+  return code;
+};
+
+HtmlGenerator['generictag'] = function(block) {
+  var text_name = block.getFieldValue('NAME');
+  var value_name = HtmlGenerator.valueToCode(block, 'NAME', HtmlGenerator.ORDER_ATOMIC);
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<' + text_name + value_name + '>\n' + statements_content + '</' + text_name + '>\n';
+  return code;
+};
+
+HtmlGenerator['more_attributes'] = function(block) {
+  var value_name1 = HtmlGenerator.valueToCode(block, 'NAME1', HtmlGenerator.ORDER_ATOMIC);
+  var value_name2 = HtmlGenerator.valueToCode(block, 'NAME2', HtmlGenerator.ORDER_ATOMIC);
+  var value_name3 = HtmlGenerator.valueToCode(block, 'NAME3', HtmlGenerator.ORDER_ATOMIC);
+  var code = value_name1 + value_name2 + value_name3;
+  return [code, HtmlGenerator.ORDER_NONE];
+};
+
+HtmlGenerator['genericattribute'] = function(block) {
+  var text_attribute = block.getFieldValue('attribute');
+  var text_value = block.getFieldValue('value');
+  var code = ' ' + text_attribute + '="' + text_value + '"';
+  return [code, HtmlGenerator.ORDER_NONE];
+};
+
+HtmlGenerator['link'] = function(block) {
+  var text_name = block.getFieldValue('NAME');
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<a href="' + text_name + '">' + statements_content.trim() + '</a>\n';
+  return code;
+};
+
+HtmlGenerator['span'] = function(block) {
+  var value_name = HtmlGenerator.valueToCode(block, 'NAME', HtmlGenerator.ORDER_ATOMIC);
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<span' + value_name + '>' + statements_content.trim() + '</span>\n';
+  return code;
+};
+
+HtmlGenerator['image'] = function(block) {
+  var text_image = block.getFieldValue('IMAGE');
+  var text_alt = block.getFieldValue('ALT');
+  var code = '<img src="' +  text_image + '" alt="' + text_alt + '">\n';
+  return code;
+};
+
+HtmlGenerator['emphasise'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<em>' + statements_content.trim() + '</em>\n';
+  return code;
+};
+
+HtmlGenerator['strong'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<strong>' + statements_content.trim() + '</strong>\n';
+  return code;
+};
+
+HtmlGenerator['headline'] = function(block) {
+  var dropdown_name = block.getFieldValue('NAME');
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<' + dropdown_name + '>' + statements_content.trim() + '</' +  dropdown_name + '>\n';
+  return code;
+};
+
+
+HtmlGenerator['linebreak'] = function(block) {
+  var code = '<br>\n';
+  return code;
+};
+
+HtmlGenerator['horizontalbreak'] = function(block) {
+  var code = '<hr>\n';
+  return code;
+};
+
+HtmlGenerator['unorderedlist'] = function(block) {
+  var statements_name = HtmlGenerator.statementToCode(block, 'NAME');
+  var code = '<ul>\n' + statements_name + '</ul>\n';
+  return code;
+};
+
+HtmlGenerator['orderedlist'] = function(block) {
+  var statements_name = HtmlGenerator.statementToCode(block, 'NAME');
+  var code = '<ol>\n' + statements_name + '</ol>\n';
+  return code;
+};
+
+HtmlGenerator['listelement'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<li>' + statements_content + '</li>\n';
+  return code;
+};
+
+HtmlGenerator['inserted'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<ins>' + statements_content.trim() + '</ins>\n';
+  return code;
+};
+
+HtmlGenerator['deleted'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<del>' + statements_content.trim() + '</del>\n';
+  return code;
+};
+
+HtmlGenerator['super'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<sup>' + statements_content.trim() + '</sup>\n';
+  return code;
+};
+
+HtmlGenerator['sub'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<sub>' + statements_content.trim() + '</sub>\n';
+  return code;
+};
+
+HtmlGenerator['code'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<code>\n' + statements_content + '</code>\n';
+  return code;
+};
+
+HtmlGenerator['quote'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<q>' + statements_content.trim() + '</q>\n';
+  return code;
+};
+
+HtmlGenerator['blockquote'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<blockquote>\n' + statements_content + '</blockquote>\n';
+  return code;
+};
+
+HtmlGenerator['sample'] = function(block) {
+var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<samp>\n' + statements_content + '</samp>\n';
+  return code;
+};
+
+HtmlGenerator['keyboard'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<kbd>\n' + statements_content + '</kbd>\n';
+  return code;
+};
+
+HtmlGenerator['variable'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<var>' + statements_content.trim() + '</var>\n';
+  return code;
+};
+
+HtmlGenerator['form'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<form>\n' + statements_content + '</form>\n';
+  return code;
+};
+
+HtmlGenerator['table'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<table>\n' + statements_content + '</table>\n';
+  return code;
+};
+
+HtmlGenerator['tablerow'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<tr>\n' + statements_content + '</tr>\n';
+  return code;
+};
+
+HtmlGenerator['tablecell'] = function(block) {
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<td>' + statements_content.trim() + '</td>\n';
+  return code;
+};
+
+HtmlGenerator['input_text'] = function(block) {
+  var text_default = block.getFieldValue('default');
+  var code = '<input value="' + text_default + '">\n';
+  return code;
+};
+
+HtmlGenerator['button'] = function(block) {
+  var statements_name = HtmlGenerator.statementToCode(block, 'NAME');
+  var code = '<button>' + statements_name.trim() + '</button>\n';
+  return code;
+};
+
+HtmlGenerator['input'] = function(block) {
+  var dropdown_type = block.getFieldValue('type');
+  var text_value = block.getFieldValue('value');
+  var value_text = HtmlGenerator.valueToCode(block, 'text', HtmlGenerator.ORDER_ATOMIC);
+  var code = '<input type="' + dropdown_type + '" value="' + text_value + '"' + value_text + ' />\n';
+  return code;
+};
+
+HtmlGenerator['script'] = function(block) {
+  var statements_content = Blockly.JavaScript.statementToCode(block, 'content');
+  var code = '<script>\n' + statements_content + '</script>\n';
+  return code;
+};
+
+HtmlGenerator['onclick'] = function(block) {
+  var statements_name = Blockly.JavaScript.statementToCode(block, 'NAME');
+  var code = ' onclick="' + statements_name.trim() + '"';
+  return [code, HtmlGenerator.ORDER_NONE];
+};
+
+HtmlGenerator['body_attributes'] = function(block) {
+  var value_name = HtmlGenerator.valueToCode(block, 'NAME', HtmlGenerator.ORDER_ATOMIC);
+  var statements_content = HtmlGenerator.statementToCode(block, 'content');
+  var code = '<body' + value_name + '>\n' + statements_content + '</body>\n';
+  return code;
+};
+
 
 SolidityGenerator['version'] = function(block) {
   var dropdown_symbolversion = block.getFieldValue('symbolversion');
@@ -116,10 +419,10 @@ SolidityGenerator['interface_clausedeclaration'] = function(block){
   var outputparam = SolidityGenerator.statementToCode(block,'returns_values');
   var code;
   if(interface_function_personalizedmodifier != null){
-    code = 'function ' + interface_function_name + '(' + inputparams_content + ')' + interface_function_visibility + ' ' + interface_function_valuesinputmodifier + outputparam + ";\n";
+    code = 'function ' + interface_function_name + '(' + inputparams_content + ')' + interface_function_visibility + ' ' + interface_function_valuesinputmodifier + outputparam + ";";
   }
   else{
-    code = 'function ' + interface_function_name + '(' + inputparams_content + ')' + interface_function_visibility + ' ' + outputparam + ";\n";
+    code = 'function ' + interface_function_name + '(' + inputparams_content + ')' + interface_function_visibility + ' ' + outputparam + ";";
   }
   return code;
 };
@@ -190,22 +493,21 @@ SolidityGenerator['input_param'] = function(block) {
   var property_array =  SolidityGenerator.statementToCode(block,'arraydimension');
   property_array = property_array.trim();
   var code;
-
-  if(inputparam_type != "uint" && inputparam_type != "int"){
+  if(inputparam_indexed == "TRUE"){
+    if(property_array == ""){
+      code = inputparam_type + " " +  'indexed' + " "+ inputparam_storagedata_values + " " +  inputparam_name;
+    }
+    else{
+      code = inputparam_type + " " + property_array + " " + 'indexed' + " " + inputparam_storagedata_values + " " +  inputparam_name;     
+    }
+  }
+  else{
     if(property_array == ""){
       code = inputparam_type + " " + inputparam_storagedata_values + " " +  inputparam_name;
     }
     else{
       code = inputparam_type + " " + property_array + inputparam_storagedata_values + " " +  inputparam_name;
     }
-  }
-  else{
-	if(property_array == ""){
-      code = inputparam_type + " " +  inputparam_name;
-    }
-    else{
-      code = inputparam_type + " " + property_array  + " " +  inputparam_name;
-    } 
   }
   return code;
 };
@@ -218,10 +520,10 @@ var property_array =  SolidityGenerator.statementToCode(block,'arraydimension');
 property_array = property_array.trim();
 var code;
 if(property_array != ""){
-  code =  inputparam_type + " " + property_array  + " " + inputparam_name;
+  code =  inputparam_type + property_array +  inputparam_name;
 }
 else{
-  code =  inputparam_type + " " +  inputparam_name;
+  code =  inputparam_type +  inputparam_name;
 }
 return code;
 };
@@ -231,15 +533,10 @@ SolidityGenerator['outputparam'] = function(block) {
   var outputparam_type =  SolidityGenerator.statementToCode(block, 'value_type_outputparam');
   var code;
   if(outputparam_type == null || outputparam_type == ""){
-    code =  "returns" + outputparam_name;
+    code =  outputparam_name;
   }
   else{
-    if(outputparam_name != ""){
-      code =  "returns" + outputparam_type + " " +  outputparam_name;
-    }
-    else{
-      code =  "returns" + outputparam_type;
-    }
+    code =  outputparam_type + " " +  outputparam_name;
   }
   return code;
 };
@@ -258,7 +555,7 @@ SolidityGenerator['contract'] = function(block) {
   var inheritance_contract = SolidityGenerator.statementToCode(block, 'namecontractfather');
   var code;
   if(inheritance_contract != ""){
-    inheritance_contract = "is " + inheritance_contract;
+    inheritance_contract = "is" + inheritance_contract;
     code = 'contract ' + contract_name + " " + inheritance_contract + "{\n" + statements_content + '}\n';
   }
   else{
@@ -323,9 +620,9 @@ SolidityGenerator['clause'] = function(block) {
   var function_valuesinputmodifier = block.getFieldValue('values_inputmodifier');
   var function_personalizedmodifier = SolidityGenerator.statementToCode(block,'modifiers');
   var outputparam = SolidityGenerator.statementToCode(block,'returns_values');
-  outputparam = outputparam.replace("returns","").trim();
-  if(outputparam != "" && outputparam != ''){
-	  outputparam = "returns(" + outputparam + ")"	
+  outputparam = outputparam.trim();
+  if(outputparam != ""){
+    outputparam = "returns " + outputparam;
   }
   var function_statements_content = SolidityGenerator.statementToCode(block,'elements_function');
   var code;
@@ -625,33 +922,21 @@ SolidityGenerator['mapping_property'] = function(block) {
   var property_visibility = block.getFieldValue('values_visibility');
   var property_storagedata_values =  block.getFieldValue('storagedata_values');
   var property_valueproperty = SolidityGenerator.statementToCode(block,'valueproperty');
-  var property_array =  SolidityGenerator.statementToCode(block,'arraydimension');
   var property_type = SolidityGenerator.statementToCode(block,'key') + "=>" + SolidityGenerator.statementToCode(block,'value');
   var code;
-  if(property_array == ""){
-    if(property_constant == "TRUE"){
-      code = "mapping " +  property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }
-    else{
-      code = "mapping " + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }   
+  if(property_constant == "TRUE"){
+    code = property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
   }
   else{
-    if(property_constant == "TRUE"){
-      code = "mapping " +  property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }
-    else{
-      code = "mapping " + property_type + " " + property_array + ' '  + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }  
-  }
-  return code;
+    code = property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+  }   return code;
 };
 
 
 SolidityGenerator['personalized_struct'] = function(block) {
   var struct_name = block.getFieldValue('name');
   var struct_properties = SolidityGenerator.statementToCode(block, 'properties_struct');
-  var code = "struct " + struct_name + "{\n" + struct_properties + "}\n";
+  var code = "personalized data type whose name is: " + struct_name + " and their properties are:\n" + struct_properties + "}\n";
   return code;
 };
 
@@ -682,7 +967,7 @@ SolidityGenerator['identifier_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -701,7 +986,7 @@ SolidityGenerator['number_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -726,7 +1011,7 @@ SolidityGenerator['text_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -745,7 +1030,7 @@ SolidityGenerator['address_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -764,7 +1049,7 @@ SolidityGenerator['byte_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -782,7 +1067,7 @@ SolidityGenerator['user_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = "User" + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -800,7 +1085,7 @@ SolidityGenerator['company_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = "Company" + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -819,11 +1104,11 @@ SolidityGenerator['mapping_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
-     code = "mapping " + property_type + ' ' + property_name + ' ' + property_valueproperty +";\n";
+  if(property_array != null){
+     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n";
   }
   else{
-    code = "mapping " + property_type + ' ' + property_array + ' ' + property_name + ' ' + property_valueproperty +";\n";
+    code = property_type + ' ' + property_array + ' ' + property_name + ' ' + property_valueproperty +";\n";
   }
   return code;
 };
@@ -1003,7 +1288,7 @@ SolidityGenerator['emit_event'] = function(block) {
   var emit_name_event = block.getFieldValue('name');
   var inputparams_content = SolidityGenerator.statementToCode(block, 'inputparams');
   inputparams_content = inputparams_content.trim();
-  var code = "emit " + emit_name_event +  "(" + inputparams_content + ");"; 
+  var code = "emit this alert " + emit_name_event +  "(" + inputparams_content + ");"; 
   return code;
 };
 
@@ -1071,13 +1356,13 @@ SolidityGenerator['assert_function'] = function(block) {
 
 SolidityGenerator['revert_expression'] = function(block) {
   var text_value = block.getFieldValue('value_revertexpression');
-  var code = "revert " + text_value + ';\n';
+  var code = "revert this action" + text_value + ';\n';
   return code;
 };
 
 SolidityGenerator['deleteexpression'] = function(block) {
   var text_value = block.getFieldValue('value_deleteexpression');
-  var code = "delete " + text_value + ';\n';
+  var code = "delete this element " + text_value + ';\n';
   return code;
 };
 
@@ -1094,7 +1379,7 @@ SolidityGenerator['block_ifcondition'] = function(block) {
   var condition = SolidityGenerator.statementToCode(block, 'condition');
   condition = condition.trim();
   var actionsif = SolidityGenerator.statementToCode(block, 'actionsif');
-  var code =  "if(" + condition + "){\n" + actionsif + "}\n";
+  var code =  "Check: " + condition + " to execute: {\n" + actionsif + "}\n";
   return code;
 };
 
@@ -1102,13 +1387,13 @@ SolidityGenerator['block_elseifcondition'] = function(block) {
   var condition = SolidityGenerator.statementToCode(block, 'condition');
   condition = condition.trim();
   var actionselseif = SolidityGenerator.statementToCode(block, 'actionselseif');
-  var code =  "else if(" + condition + "){\n" + actionselseif + "}\n";
+  var code =  "Otherwise check this condition(" + condition + "){\n" + actionselseif + "}\n";
   return code;
 };
 
 SolidityGenerator['block_elsecondition'] = function(block) {
   var expression = SolidityGenerator.statementToCode(block, 'actionselse');
-  var code =  "else{\n" + expression +  "}\n";
+  var code =  "Otherwise execute:{\n" + expression +  "}\n";
   return code;
 };
 
@@ -1167,7 +1452,7 @@ SolidityGenerator['block_whileloop'] = function(block) {
   var condition = SolidityGenerator.statementToCode(block, 'condition');
   condition = condition.trim();
   var statements_content = SolidityGenerator.statementToCode(block, 'elements_while');
-  var code = "while(" + condition + "){\n" + statements_content + "}\n";
+  var code = "while this condition (" + condition + ") execute the following actions:{\n" + statements_content + "}\n";
   return code;
 };
 
@@ -1175,7 +1460,7 @@ SolidityGenerator['block_dowhile'] = function(block) {
   var condition = SolidityGenerator.statementToCode(block, 'condition');
   condition = condition.trim();
   var statements_content = SolidityGenerator.statementToCode(block, 'elements_dowhile');
-  var code = "do{\n" + statements_content + "}while(" + condition + ")\n";
+  var code = "Execute the following actions:{\n" + statements_content + "} until this condition (" + condition + ")\n";
   return code;
 };
 
@@ -1221,29 +1506,13 @@ SolidityGenerator['type_float'] = function(block) {
 
 SolidityGenerator['type_User'] = function(block) {
   var options = block.getFieldValue('user_options');
-  var code = "User";
-  return code;
-};
-
-SolidityGenerator['block_user'] = function(block) {
-  var code = "struct User {\n" + SolidityGenerator.statementToCode(block, 'user_values') + "}" + "\n";
+  var code = options;
   return code;
 };
 
 SolidityGenerator['type_Company'] = function(block) {
   var options = block.getFieldValue('companyoptions');
   var code = options;
-  return code;
-};
-
-SolidityGenerator['block_company'] = function(block) {
-  var code = "struct Company {\n" + SolidityGenerator.statementToCode(block, 'company_values') + "}" + "\n";
-  return code;
-};
-
-SolidityGenerator['block_struct'] = function(block) {
-  var name = block.getFieldValue('name');
-  var code = "struct " + name + "{\n" + SolidityGenerator.statementToCode(block, 'struct_values') + "}" + "\n";
   return code;
 };
 
@@ -1298,4 +1567,3 @@ SolidityGenerator['dynamic_array'] = function(block) {
   var code = "[]" + dimension;
   return code;
 };
-

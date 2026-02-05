@@ -2,7 +2,7 @@
 "use strict";
 
 
-var SolidityGenerator = new Blockly.Generator('Solidity');
+var SolidityGenerator = new Blockly.Generator('Fabric');
 
 SolidityGenerator.ORDER_ATOMIC = 0;
 SolidityGenerator.ORDER_NONE = 0;
@@ -30,7 +30,7 @@ Párametro de salidad: El código generado almacenado en la variable code
 SolidityGenerator['file'] = function(block) {
   var version = SolidityGenerator.statementToCode(block, 'version_file');
   var statements_content = SolidityGenerator.statementToCode(block, 'elements_file');
-  var code =  "// SPDX-License-Identifier: MIT" + '\n' + version + '\n' + statements_content + '\n';
+  var code =  code = version + '\n' + statements_content + '\n';
   return code;
 };
 
@@ -190,22 +190,21 @@ SolidityGenerator['input_param'] = function(block) {
   var property_array =  SolidityGenerator.statementToCode(block,'arraydimension');
   property_array = property_array.trim();
   var code;
-
-  if(inputparam_type != "uint" && inputparam_type != "int"){
+  if(inputparam_indexed == "TRUE"){
+    if(property_array == ""){
+      code = inputparam_type + " " +  'indexed' + " "+ inputparam_storagedata_values + " " +  inputparam_name;
+    }
+    else{
+      code = inputparam_type + " " + property_array + " " + 'indexed' + " " + inputparam_storagedata_values + " " +  inputparam_name;     
+    }
+  }
+  else{
     if(property_array == ""){
       code = inputparam_type + " " + inputparam_storagedata_values + " " +  inputparam_name;
     }
     else{
       code = inputparam_type + " " + property_array + inputparam_storagedata_values + " " +  inputparam_name;
     }
-  }
-  else{
-	if(property_array == ""){
-      code = inputparam_type + " " +  inputparam_name;
-    }
-    else{
-      code = inputparam_type + " " + property_array  + " " +  inputparam_name;
-    } 
   }
   return code;
 };
@@ -218,10 +217,10 @@ var property_array =  SolidityGenerator.statementToCode(block,'arraydimension');
 property_array = property_array.trim();
 var code;
 if(property_array != ""){
-  code =  inputparam_type + " " + property_array  + " " + inputparam_name;
+  code =  inputparam_type + property_array +  inputparam_name;
 }
 else{
-  code =  inputparam_type + " " +  inputparam_name;
+  code =  inputparam_type +  inputparam_name;
 }
 return code;
 };
@@ -253,16 +252,17 @@ SolidityGenerator['abstract_contract'] = function(block) {
 
 
 SolidityGenerator['contract'] = function(block) {
+  var labelContract = "@Contract" + '\n';
   var contract_name = block.getFieldValue('name');
   var statements_content = SolidityGenerator.statementToCode(block, 'contract_elements');
   var inheritance_contract = SolidityGenerator.statementToCode(block, 'namecontractfather');
   var code;
   if(inheritance_contract != ""){
-    inheritance_contract = "is " + inheritance_contract;
-    code = 'contract ' + contract_name + " " + inheritance_contract + "{\n" + statements_content + '}\n';
+    inheritance_contract = "inmplements" + inheritance_contract;
+    code = labelContract + 'public class ' + contract_name + " " + inheritance_contract + "{\n" + statements_content + '}\n';
   }
   else{
-    code = 'contract ' + contract_name + " {\n" + statements_content + '}\n';
+    code = labelContract + 'public class ' + contract_name + " {\n" + statements_content + '}\n';
   }
   return code;
 };
@@ -290,18 +290,18 @@ SolidityGenerator['contract_constructor'] = function(block) {
   var code;
   if(constructor_payable != "TRUE"){
     if(inherance_constructor == ""){
-      code = "constructor(" + inputparams_content + ') ' + constructor_visibility + "{\n" + statements_content + '}\n';
+      code = "public (" + inputparams_content + ') ' + constructor_visibility + "{\n" + statements_content + '}\n';
     }
     else{
-      code = "constructor(" + inputparams_content + ') ' + inherance_constructor + ' ' + constructor_visibility + "{\n" + statements_content + '}\n';
+      code = "public(" + inputparams_content + ') ' + inherance_constructor + ' ' + constructor_visibility + "{\n" + statements_content + '}\n';
     }
   }
   else{
     if(inherance_constructor == ""){
-     code = "constructor(" + inputparams_content + ') ' + constructor_visibility + " payable" +  "{\n" + statements_content + '}\n';
+     code = "public(" + inputparams_content + ') ' + constructor_visibility + " payable" +  "{\n" + statements_content + '}\n';
     }
     else{
-      code = "constructor(" + inputparams_content + ') ' + inherance_constructor + ' ' + constructor_visibility  + " payable" + "{\n" + statements_content + '}\n';
+      code = "public(" + inputparams_content + ') ' + inherance_constructor + ' ' + constructor_visibility  + " payable" + "{\n" + statements_content + '}\n';
     }
  }
   return code;
@@ -315,6 +315,7 @@ SolidityGenerator['block_constructor_contract_inherance'] = function(block) {
 };
 
 SolidityGenerator['clause'] = function(block) {
+  var labelTransaction = "@Transaction()" + '\n';
   var function_name = block.getFieldValue('name');
   var inputparams_content = SolidityGenerator.statementToCode(block,'inputparams_function');
   inputparams_content = inputparams_content.trim();
@@ -323,18 +324,15 @@ SolidityGenerator['clause'] = function(block) {
   var function_valuesinputmodifier = block.getFieldValue('values_inputmodifier');
   var function_personalizedmodifier = SolidityGenerator.statementToCode(block,'modifiers');
   var outputparam = SolidityGenerator.statementToCode(block,'returns_values');
-  outputparam = outputparam.replace("returns","").trim();
-  if(outputparam != "" && outputparam != ''){
-	  outputparam = "returns(" + outputparam + ")"	
-  }
+  outputparam = outputparam.trim();
   var function_statements_content = SolidityGenerator.statementToCode(block,'elements_function');
   var code;
   if(function_personalizedmodifier == null){
-    code = 'function ' + function_name + '(' + inputparams_content + ') ' + function_visibility + ' ' + function_valuesinputmodifier + ' ' + outputparam + "{\n" + 
+    code = labelTransaction + function_visibility  + function_name + '(' + inputparams_content + ') '  + ' ' + function_valuesinputmodifier + ' ' + outputparam + "{\n" + 
     function_statements_content + "}\n";
   }
   else{
-    code = 'function ' + function_name + '(' + inputparams_content + ') ' + function_visibility + ' ' + function_valuesinputmodifier+ ' ' + function_personalizedmodifier + ' ' + outputparam + "{\n" + 
+    code = labelTransaction + function_visibility + function_name + '(' + inputparams_content + ') ' + ' ' + function_valuesinputmodifier+ ' ' + function_personalizedmodifier + ' ' + outputparam + "{\n" + 
     function_statements_content + "}\n";
   }
   return code;
@@ -367,6 +365,7 @@ SolidityGenerator['block_inputmodifier'] = function(block) {
 //Generador de propiedades largas
 
 SolidityGenerator['text_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n';
   var property_name = block.getFieldValue('name');
   var property_type = block.getFieldValue('type');
   if(property_type == "char_type"){
@@ -387,24 +386,25 @@ SolidityGenerator['text_property'] = function(block) {
   }
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['byte_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n';
   var property_name = block.getFieldValue('name');
   var property_type = block.getFieldValue('byte_type');
   var property_constant = block.getFieldValue('constant');
@@ -419,24 +419,25 @@ SolidityGenerator['byte_property'] = function(block) {
   }
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['identifier_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n'; 
   var property_name = block.getFieldValue('name');
   var property_type = block.getFieldValue('type');
   var property_constant = block.getFieldValue('constant');
@@ -451,24 +452,25 @@ SolidityGenerator['identifier_property'] = function(block) {
   }
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['boolean_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n';  
   var property_name = block.getFieldValue('name');
   var property_constant = block.getFieldValue('constant');
   var property_visibility = block.getFieldValue('values_visibility');
@@ -482,24 +484,25 @@ SolidityGenerator['boolean_property'] = function(block) {
   }
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = "boolean" + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "boolean" + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = "boolean" + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "boolean" + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = "boolean" + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "boolean" + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = "boolean" + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "boolean" + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['address_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n';  
   var property_name = block.getFieldValue('name');
   var property_type = block.getFieldValue('addresstype_values');
   var property_constant = block.getFieldValue('constant');
@@ -511,24 +514,25 @@ SolidityGenerator['address_property'] = function(block) {
   var code;
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['number_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n';  
   var property_name = block.getFieldValue('name');
   var property_type = block.getFieldValue('numbertype_property');
   var property_constant = block.getFieldValue('constant');
@@ -543,24 +547,25 @@ SolidityGenerator['number_property'] = function(block) {
   var code;
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + property_type + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['user_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n';  
   var property_name = block.getFieldValue('name');
   var property_constant = block.getFieldValue('constant');
   var property_visibility = block.getFieldValue('values_visibility');
@@ -574,24 +579,25 @@ SolidityGenerator['user_property'] = function(block) {
   var code;
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = "User" + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "User" + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = "User" + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "User" + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = "User" + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "User" + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = "User" + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "User" + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['company_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n';  
   var property_name = block.getFieldValue('name');
   var property_constant = block.getFieldValue('constant');
   var property_visibility = block.getFieldValue('values_visibility');
@@ -602,49 +608,38 @@ SolidityGenerator['company_property'] = function(block) {
   var code;
   if(property_array == ""){
     if(property_constant == "TRUE"){
-      code = "Company" + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "Company" + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = "Company" + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "Company" + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   else{
     if(property_constant == "TRUE"){
-      code = "Company" + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "Company" + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
     else{
-      code = "Company" + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+      code = labelProperty + "Company" + " "  + property_array + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
     }
   }
   return code;
 };
 
 SolidityGenerator['mapping_property'] = function(block) {
+  var labelProperty = "@Property()" + '\n'; 
   var property_name = block.getFieldValue('name');
   var property_constant = block.getFieldValue('constant');
   var property_visibility = block.getFieldValue('values_visibility');
   var property_storagedata_values =  block.getFieldValue('storagedata_values');
   var property_valueproperty = SolidityGenerator.statementToCode(block,'valueproperty');
-  var property_array =  SolidityGenerator.statementToCode(block,'arraydimension');
   var property_type = SolidityGenerator.statementToCode(block,'key') + "=>" + SolidityGenerator.statementToCode(block,'value');
   var code;
-  if(property_array == ""){
-    if(property_constant == "TRUE"){
-      code = "mapping " +  property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }
-    else{
-      code = "mapping " + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }   
+  if(property_constant == "TRUE"){
+    code = labelProperty + "mapping " +  property_type + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
   }
   else{
-    if(property_constant == "TRUE"){
-      code = "mapping " +  property_type + " " + property_array + ' ' + property_visibility + ' ' + "constant" + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }
-    else{
-      code = "mapping " + property_type + " " + property_array + ' '  + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
-    }  
-  }
-  return code;
+    code = labelProperty + "mapping " + property_type + ' ' + property_visibility + ' ' + property_storagedata_values + ' ' + property_name + ' ' + property_valueproperty +";\n";
+  }   return code;
 };
 
 
@@ -682,7 +677,7 @@ SolidityGenerator['identifier_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -701,7 +696,7 @@ SolidityGenerator['number_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -711,6 +706,7 @@ SolidityGenerator['number_shortproperty'] = function(block) {
 };
 
 SolidityGenerator['text_shortproperty'] = function(block) {
+  var labelProperty = "@Property()" + '\n';  
   var property_name = block.getFieldValue('name');
   var property_valueproperty = SolidityGenerator.statementToCode(block,'valueproperty');
   var property_type = block.getFieldValue('type');
@@ -726,7 +722,7 @@ SolidityGenerator['text_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -736,6 +732,7 @@ SolidityGenerator['text_shortproperty'] = function(block) {
 };
 
 SolidityGenerator['address_shortproperty'] = function(block) {
+  var labelProperty = "@Property()" + '\n';  
   var property_name = block.getFieldValue('name');
   var property_valueproperty = SolidityGenerator.statementToCode(block,'valueproperty');
   var property_type = block.getFieldValue('addresstype_values');
@@ -745,7 +742,7 @@ SolidityGenerator['address_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -764,7 +761,7 @@ SolidityGenerator['byte_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -782,7 +779,7 @@ SolidityGenerator['user_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = "User" + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -800,7 +797,7 @@ SolidityGenerator['company_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
+  if(property_array != null){
     code = "Company" + ' ' + property_name + ' ' + property_valueproperty +";\n"; 
   }
   else {
@@ -819,11 +816,11 @@ SolidityGenerator['mapping_shortproperty'] = function(block) {
     property_valueproperty = "";
   }
   var code;
-  if(property_array == null){
-     code = "mapping " + property_type + ' ' + property_name + ' ' + property_valueproperty +";\n";
+  if(property_array != null){
+     code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n";
   }
   else{
-    code = "mapping " + property_type + ' ' + property_array + ' ' + property_name + ' ' + property_valueproperty +";\n";
+    code = property_type + ' ' + property_array + ' ' + property_name + ' ' + property_valueproperty +";\n";
   }
   return code;
 };
@@ -1221,29 +1218,13 @@ SolidityGenerator['type_float'] = function(block) {
 
 SolidityGenerator['type_User'] = function(block) {
   var options = block.getFieldValue('user_options');
-  var code = "User";
-  return code;
-};
-
-SolidityGenerator['block_user'] = function(block) {
-  var code = "struct User {\n" + SolidityGenerator.statementToCode(block, 'user_values') + "}" + "\n";
+  var code = options;
   return code;
 };
 
 SolidityGenerator['type_Company'] = function(block) {
   var options = block.getFieldValue('companyoptions');
   var code = options;
-  return code;
-};
-
-SolidityGenerator['block_company'] = function(block) {
-  var code = "struct Company {\n" + SolidityGenerator.statementToCode(block, 'company_values') + "}" + "\n";
-  return code;
-};
-
-SolidityGenerator['block_struct'] = function(block) {
-  var name = block.getFieldValue('name');
-  var code = "struct " + name + "{\n" + SolidityGenerator.statementToCode(block, 'struct_values') + "}" + "\n";
   return code;
 };
 

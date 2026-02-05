@@ -4,63 +4,18 @@
 body { /* ref: https://stackoverflow.com/questions/1719452/how-to-make-a-div-always-full-screen */
   background-color: #fff;
   font-family: sans-serif;
-  overflow: auto;
+  overflow: hidden;
 }
 
 #logo{
   width: 130px;
   height: 130px; 
   margin-top:-10px;
+  display:block;
   position: fixed;
-  grid-row-start: 1;
-  grid-row-end: 2;
 }
 
-.wrapper {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top:-6px;
-  margin-bottom:0px;
-  font-weight: normal;
-  font-size: 200%; 
-  color: rgb(0, 0, 0);
-  background-color:rgb(135, 143, 223);
-  border-radius:0px;
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-}
 
-.pointsAndToogleOptions{
-  grid-column-start: 2;
-  grid-column-end: 3;
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-}
-
-.playgroundToggleOptions{
-  grid-column-start: 2;
-  grid-column-end: 4;
-}
-
-.points-label {
-  display: block;
-  align-content: center;
-  background-color: #f9f9f934;
-  padding: 8px;
-  color: #333;
-  font-size: 60%;
-  grid-column-start: 1;
-  grid-column-end: 1;
-}
-
-.points-icon {
-  margin-right: 10px;
-  color: #853008;
-}
-
-.points-value {
-  font-weight: bold;
-}
 
 h1 {
   margin-left: auto;
@@ -78,11 +33,11 @@ ul{
   font-size: 60%;
   text-align: center;
 }
-
 li{
   list-style: none;
   font-family: 'Saira', sans-serif;
-  display: inline;  
+  display: inline;
+  
 }
 
 #title {
@@ -100,8 +55,6 @@ li{
   text-align: center;
   display: block;
   margin-bottom:0px;
-  grid-column-start: 1;
-  grid-column-end: 4;
 }
 
 .button {
@@ -143,9 +96,3 @@ textarea {
   position:relative;
   top:1px;
 }
-
-#success{background: green;}
-#error{background: red;}
-#warning{background: coral;}
-#info{background: cornflowerblue;}
-#question{background: grey;}
