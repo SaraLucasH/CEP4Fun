@@ -5,19 +5,22 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Language" content="en-us">
   <title>SmaCly</title>
-  <script src="js\blocks_compressed.js"></script>
-  <script src="js\blockly_compressed.js"></script>
-  <script src="js\javascript_compressed.js"></script>
-  <script src="js\blocks.js"></script>
-  <script src="js\standard_categories.js"></script>
-  <script src="js\customblocklibrary.js"></script>
-  <script src="js\htmlGenerator.js"></script>
-  <script src="js\en.js"></script>
-  <script src="js\es.js"></script>
+  <!--script src="/js/locks_compressed.js"></script-->
+  <script src="/js/blockly_compressed.js"></script>
+  <script src="/js/javascript_compressed.js"></script>
+  <script src="/js/blocks.js"></script>
+  <script src="/js/standard_categories.js"></script>
+  <script src="/js/customblocklibrary.js"></script>
+  <script src="/js/htmlGenerator.js"></script>
+  <script src="/js/en.js"></script>
+  <script src="/js/es.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-  <script src="js\personalizedfunctions.js"></script>
-  <script src="js\http_request.js"></script>
-  <script src="js\lowCodePlatform.js"></script>
+  <script src="/js/cep4fun/models.js"></script>
+  <script src="/js/cep4fun/functions.js"></script>
+  <script src="/js/personalizedfunctions.js"></script>
+  <script src="/js/fabricGenerator.js"></script>
+  <script src="/js/http_request.js"></script>
+  <script src="/js/lowCodePlatform.js"></script>
   <link rel="stylesheet" href="/resources/styles.css">
   <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
   <!-- Incluir los estilos de express-toastr -->
@@ -26,16 +29,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+  <script src="/js/cep4fun/main.js"></script>
 </head>
 
-<body>  
+<body>
   <div class="wrapper">
     <div>
       <img id="logo" src="/resources/logo.png" />
     </div>
     <div>
-      <p id="title">SmaCly : Design your smart contract using blockly</p>
-    </div>    
+      <p id="title" data-i18n="app.title"></p>
+    </div>
     <div></div>
 
     <div class="pointsAndToogleOptions">
@@ -43,85 +47,36 @@
         <i class="fa-solid fa-medal points-icon"></i>
         <span class="points-value" id="points">0</span>
       </div>
-      <div class="playgroundToggleOptions">      
+      <div class="playgroundToggleOptions">
         <ul>
           <li>
-            <label for="logCheck">Register log events:</label>
+            <label for="logCheck" data-i18n="logs.enable"></label>
             <input type="checkbox" class="casilla" onclick="registerLogs(this.checked)" id="logCheck">
           </li>
         </ul>
       </div>
-    </div>   
-
-    
-    <script>
-      var socket = io();
-
-      socket.on('Points', (newPoints) => {
-        var points = parseInt(document.getElementById('points').innerHTML);
-        if(points == NaN){
-          points = 0;
-        }else{
-          points = newPoints + points;
-          if(points < 0){
-            points = 0;
-          }
-        }
-        document.getElementById('points').textContent = points;
-      });
-    </script>
-    
-    
-    <div>
-      <script>
-        var socket = io();
-        toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": true,
-        "progressBar": true,
-        "positionClass": "toast-top-right",
-        "preventDuplicates": true,
-        "onclick": null,
-        "timeOut": "15000",
-        "extendedTimeOut": "6000",
-        "resetTimeoutOnDuplicate":true,
-        "showEasing": "swing",
-        "showMethod": "fadeIn"
-      }
-    
-        // Escuchar por el evento 'mensaje' emitido por el servidor
-        socket.on('Toasts', function (data) {
-    
-          if (data.type && data.message) {
-            if (data.type == 'Warning') {
-              toastr.warning(data.message);
-            } else if(data.type == 'Info') {
-              toastr.info(data.message);
-            }else if(data.type == 'Error') {
-              toastr.error(data.message);
-            }
-            else {
-              toastr.success(data.message);
-            }
-          }
-        });
-      </script>
     </div>
 
+    <script src="/js/cep4fun/socket.js"></script>
+    <div></div>
     <div id="botonera">
-      <input type="button" id="seeXMLButton" value="🔎See XML" onclick="toXml()" class="button">
-      <input type="button" id="saveXMLButton" value="💾Save XML" onclick="saveXml()" class="button" disabled>
-      <input type="button" id="saveLogButton" value="💾Save Log Events" onclick="saveLog()" class="button" disabled>
-      <input type="button" id="cleanBlockButton" value="🗑️ Clean blocks" onclick="cleanWorkspace()" class="button">
+      <input type="button" id="seeXMLButton" data-i18n="buttons.seeXML" onclick="toXml()" class="button">
+      <input type="button" id="saveXMLButton" data-i18n="buttons.saveXML" onclick="saveXml()" class="button" disabled>
+      <input type="button" id="saveLogButton" data-i18n="buttons.saveLogs" onclick="saveLog()" class="button" disabled>
+      <input type="button" id="cleanBlockButton" data-i18n="buttons.clean" onclick="cleanWorkspace()" class="button">
       <input type="file" id="loadFileButton" class="button">
-      <!--<input type="button" id="loadFileAreaButtom" value="📥Import to see" onclick=loadFileAsText() class="button">-->
-      <!--<input type="button" id="tranformButton" value="🧩Transform Blockly to HTML" onclick="saveHtmlToDownload()" class="button">-->
-      <input type="button" id="tranformButton" value="🧩Transform XML to Blockly" onclick="fromXml()" class="button">
+      <!--<input type="button" id="toggleButton" class="button" onclick="toggleVoiceRecognition()" value="🎙️Enable voice recognition"></input>-->
+      <!--<input type="button" id="saveLogVoiceButton" class="button" onclick="saveVoiceLogs()" value="💾Save Voice Log"></input>-->
+
+      <input type="button" id="seeSolidityCode" data-i18n="buttons.toSolidity" onclick="seeSolidityToDownload()"
+        class="button">
+      <input type="button" id="saveSolidityCode" data-i18n="buttons.saveSolidity" onclick="saveSolidityToDownload()"
+        class="button">
+      <input type="button" id="tranformButton" data-i18n="buttons.fromXML" onclick="fromXml()" class="button">
+      <input type="button" id="toggle-lang-btn" data-i18n="language.switch" onclick="changeLanguage()" class="button">
     </div>
 
   </div>
-
   <table>
     <tr>
       <td>
