@@ -1,23 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Staatliches&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Saira&family=Staatliches&display=swap');
 
-body { /* ref: https://stackoverflow.com/questions/1719452/how-to-make-a-div-always-full-screen */
+body {
+  /* ref: https://stackoverflow.com/questions/1719452/how-to-make-a-div-always-full-screen */
   background-color: #fff;
   font-family: sans-serif;
-  overflow: hidden;
+  overflow: auto;
 }
 
-#logo{
+#logo {
   width: 130px;
-  height: 130px; 
-  margin-top:-10px;
-  display:block;
+  height: 130px;
+  margin-top: -10px;
   position: fixed;
+  grid-row-start: 1;
+  grid-row-end: 2;
 }
 
-
-
-h1 {
+.wrapper {
   margin-left: auto;
   margin-right: auto;
   margin-top:-6px;
@@ -27,17 +27,63 @@ h1 {
   color: rgb(0, 0, 0);
   background-color:rgb(135, 143, 223);
   border-radius:0px;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
 }
 
-ul{
+.pointsAndToogleOptions{
+  grid-column-start: 2;
+  grid-column-end: 3;
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+}
+
+.playgroundToggleOptions{
+  grid-column-start: 2;
+  grid-column-end: 4;
+}
+
+.points-label {
+  display: block;
+  align-content: center;
+  background-color: #f9f9f934;
+  padding: 8px;
+  color: #333;
+  font-size: 60%;
+  grid-column-start: 1;
+  grid-column-end: 1;
+}
+
+.points-icon {
+  margin-right: 10px;
+  color: #853008;
+}
+
+.points-value {
+  font-weight: bold;
+}
+
+h1 {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: -6px;
+  margin-bottom: 0px;
+  font-weight: normal;
+  font-size: 200%;
+  color: rgb(0, 0, 0);
+  background-color: rgb(135, 143, 223);
+  border-radius: 0px;
+}
+
+ul {
   font-size: 60%;
   text-align: center;
 }
-li{
+
+li {
   list-style: none;
   font-family: 'Saira', sans-serif;
   display: inline;
-  
 }
 
 #title {
@@ -46,53 +92,67 @@ li{
   margin-right: auto;
   text-align: center;
   display: block;
-  font-family: 'Saira', sans-serif,'Staatliches', cursive;
+  font-family: 'Saira', sans-serif, 'Staatliches', cursive;
 }
 
 #botonera {
+  margin-top:5px;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
-  display: block;
-  margin-bottom:0px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+
+  grid-column: 1 / 4;
 }
 
 .button {
   box-shadow: 0px 1px 0px 0px #f0f7fa;
   /* background:linear-gradient(to bottom, #33bdef 5%, #019ad2 100%);*/
-  background-color:rgb(75, 86, 185);
-  border-radius:6px;
-  border:1px solid #057fd0;
-  display:inline-block;
-  cursor:pointer;
-  color:#ffffff;
+  background-color: rgb(75, 86, 185);
+  border-radius: 6px;
+  border: 1px solid #057fd0;
+  display: inline-block;
+  cursor: pointer;
+  color: #ffffff;
   font-family: 'Saira', sans-serif;
-  font-size:14px;
-  font-weight:bold;
-  padding:6px 24px;
-  text-decoration:none;
-  text-shadow:0px -1px 0px #5b6178;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 6px 24px;
+  text-decoration: none;
+  text-shadow: 0px -1px 0px #5b6178;
 }
+
 textarea {
-  background-color:black;
+  background-color: black;
   color: lightgreen;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   overflow: scroll;
 }
+
 .button:hover {
-  background:linear-gradient(to bottom, #019ad2 5%, #33bdef 100%);
-  background-color:#019ad2;
+  background: linear-gradient(to bottom, #019ad2 5%, #33bdef 100%);
+  background-color: #019ad2;
 }
+
 .button:disabled:hover {
   background: rgb(241, 9, 9);
 }
 
 .button:enabled:hover {
-  background:linear-gradient(to bottom, #019ad2 5%, #33bdef 100%);
-  background-color:#019ad2;
+  background: linear-gradient(to bottom, #019ad2 5%, #33bdef 100%);
+  background-color: #019ad2;
 }
 
 .button:active {
-  position:relative;
-  top:1px;
+  position: relative;
+  top: 1px;
 }
+
+#success{background: green;}
+#error{background: red;}
+#warning{background: coral;}
+#info{background: cornflowerblue;}
+#question{background: grey;}

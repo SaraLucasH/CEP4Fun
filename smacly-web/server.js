@@ -39,9 +39,13 @@ console.error = function (...args) {
 app.use(bodyparser.json());
 
 app.use(toastr());
-app.use(express.static(path.join(__dirname)));
-app.use('/scripts', express.static(__dirname + '/node_modules/http/'));
+//app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/scripts', express.static(__dirname + '/node_modules/http/'));
+// Otros recursos si están fuera de public
+app.use('/js', express.static(path.join(__dirname, 'js')));
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
 //Toaster
 app.use(cookieParser('secret'));
@@ -76,7 +80,10 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.set('Cache-Control', 'no-store'); // evitar cache
+  const stringIndex = path.join(__dirname, 'public', 'index.html');
+  console.log(stringIndex);
+  res.sendFile(stringIndex);
 });
 
 //************DEP001************************** */
