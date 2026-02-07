@@ -1,0 +1,41 @@
+{
+    "app": {
+        "title": "SmaCly : Design your Smart Contract using Blockly"
+    },
+    "language": {
+        "switch": "🇪🇸 Switch to Spanish"
+    },
+    "buttons": {
+        "save": "Save",
+        "load": "Load",
+        "export": "Export",
+        "clear": "Clear",
+        "generate": "Generate contract",
+        "download": "Download",
+        "close": "Close",
+        "seeXML": "🔎 See XML",
+        "saveXML": "💾 Save XML",
+        "saveLogs": "💾 Save Log Events",
+        "clean": "🗑️ Clean Workspace",
+        "toSolidity": "⚙️ Transform Blockly to Solidity",
+        "saveSolidity": "💾 Save Solidity Code",
+        "fromXML": "🧩 Transform XML to Blockly"
+    },
+    "workspace": {
+        "title": "Workspace",
+        "empty": "Drag blocks here"
+    },
+    "messages": {
+        "contractGenerated": "Contract generated successfully",
+        "error": "An error has occurred",
+        "confirmClear": "Are you sure you want to clear the workspace?"
+    },
+    "logs": {
+        "title": "Event log",
+        "empty": "No events logged",
+        "enable": "Register Log Events"
+    },
+    "footer": {
+        "copyright": "All rights reserved"
+    }
+}
