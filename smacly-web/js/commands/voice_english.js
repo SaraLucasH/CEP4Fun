@@ -1,5 +1,7 @@
-let voiceRecognitionEnabled = false;
-const voiceLogs = [];
+window.VOICE = window.VOICE || {};
+VOICE.recognitionEnabled = false;
+
+VOICE.voiceLogs = [];
 function enableVoiceRecognition() {
 	if (annyang) {
 		let commands = {
@@ -426,7 +428,7 @@ function enableVoiceRecognition() {
 			console.log('Other possible phrases:', phrases);
 
 			// Almacena el log de voz en el array
-			voiceLogs.push({
+			VOICE.voiceLogs.push({
 				id:  ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)),
 				type: 'match',
 				userSaid,
@@ -441,7 +443,7 @@ function enableVoiceRecognition() {
 			console.log('No command matched:', phrases);
 
 			// Almacena el log de voz en el array
-			voiceLogs.push({
+			VOICE.voiceLogs.push({
 				id: ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)),
 				type: 'no_match',
 				phrases,
@@ -458,13 +460,13 @@ function enableVoiceRecognition() {
 
 // Función para descargar los logs de voz en un archivo JSON
 function saveVoiceLogs() {
-	if (voiceLogs.length === 0) {
+	if (VOICE.voiceLogs.length === 0) {
 		alert('No hay registros de voz para descargar.');
 		return;
 	}
 	else{
 		// Convierte el array de logs de voz en una cadena JSON
-		const voiceLogsJSON = JSON.stringify(voiceLogs, null, 2);
+		const voiceLogsJSON = JSON.stringify(VOICE.voiceLogs, null, 2);
 		
 		// Crea un Blob con los datos del archivo JSON
 		const blob = new Blob([voiceLogsJSON], { type: 'application/json' });
@@ -490,9 +492,9 @@ function disableVoiceRecognition() {
 }
 
 function toggleVoiceRecognition() {
-	voiceRecognitionEnabled = !voiceRecognitionEnabled;
+	VOICE.recognitionEnabled = !VOICE.recognitionEnabled;
 	let button = document.getElementById("toggleButton");
-	if (voiceRecognitionEnabled) {
+	if (VOICE.recognitionEnabled) {
 		button.value = "🔇Disable voice recognition";
 		let buttonSaveLog =  document.getElementById("saveLogVoiceButton");
 		buttonSaveLog.disabled = false;
