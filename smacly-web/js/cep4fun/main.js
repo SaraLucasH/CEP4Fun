@@ -71,6 +71,16 @@ function loadLanguageJSTemplate(lang) {
   document.body.appendChild(script);
 }
 
+function translate(key, params = {}) {
+  let text = getNestedValue(window.I18N, key) || key;
+
+  Object.keys(params).forEach(p => {
+    text = text.replaceAll(`{${p}}`, params[p]);
+  });
+
+  return text;
+}
+
 // Initialize language
 loadLanguage(currentLang).then(() => {
   loadVoiceCommands(currentLang);

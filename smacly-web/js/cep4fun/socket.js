@@ -29,17 +29,17 @@ toastr.options = {
 
 // Escuchar por el evento 'mensaje' emitido por el servidor
 socket.on('Toasts', function (data) {
-
     if (data.type && data.message) {
+        const translatedMessage = translate(data.message, data.params);
         if (data.type == 'Warning') {
-            toastr.warning(window.I18N.data.message);
+            toastr.warning(translatedMessage);
         } else if (data.type == 'Info') {
-            toastr.info(window.I18N.data.message);
+            toastr.info(translatedMessage);
         } else if (data.type == 'Error') {
-            toastr.error(window.I18N.data.message);
+            toastr.error(translatedMessage);
         }
         else {
-            toastr.success(window.I18N.data.message);
+            toastr.success(translatedMessage);
         }
     }
 });

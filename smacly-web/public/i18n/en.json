@@ -37,5 +37,22 @@
     },
     "footer": {
         "copyright": "All rights reserved"
+    },
+    "toasts": {
+        "dep001_deprecatedCompiler": "Compiler version is deprecated! Please use one greater than 0.5.0.",
+        "ntd001_varWithoutValue": "Var expression \"{name}\" does not have a value assigned. Please, assign a value to it.",
+        "ntd002_tooManyPublicFunctions": "More than 4 public functions. Please, review if they should be public.",
+        "ntd003_interfaceInheritance": "Contract is not properly inheriting from interface.",
+        "ntd004_abstractInheritance": "Contract is not properly inheriting from abstract contract.",
+        "prg001_areYouThere": "Are you still there? Please, review the documentation or ask your tutor if you have any questions.",
+        "prg002_compilerNotDefined": "Compiler version should be defined.",
+        "prg003_functionWithoutBody": "Function \"{name}\" does not have a body assigned. Please, assign a value to it.",
+        "prg004_modifierWithoutBody": "Modifier \"{name}\" does not have a body assigned. Please, assign a value to it.",
+        "sye001_invalidCompiler": "Invalid compiler version. Please, you should define one.",
+        "sye_duplicateItem": "\"{name}\" {type} is duplicated. Please, rename these items.",
+        "sce002_missingErrorHandling": "Missing error handling in \"{name}\". Please, add any require or modifier block.",
+        "sce003_missingModifiers": "Function \"{name}\" should have modifiers. Please, add modifiers as \"onlyOwner()\".",
+        "sce005_compilerTooLow": "Compiler version should be upper than 0.8.0 to avoid integer overflow.",
+        "sce006_useSafeMath": "Use libraries like SafeMath to avoid integer overflow."
     }
 }

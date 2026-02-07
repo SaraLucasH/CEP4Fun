@@ -21,7 +21,7 @@ const io = socketIo(server);
 // Log
 const fs = require('fs');
 
-const logStream = fs.createWriteStream(path.join(__dirname+ '/logs/', `${new Date().toISOString().split('T')[0]}_server.log`), { flags: 'a', autoClose: true });
+const logStream = fs.createWriteStream(path.join(__dirname + '/logs/', `${new Date().toISOString().split('T')[0]}_server.log`), { flags: 'a', autoClose: true });
 
 const originalLog = console.log;
 const originalError = console.error;
@@ -103,10 +103,10 @@ app.post('/validation-dep001', (req, res) => {
     );
     cache = null;
     return retVal;
-  };  
-  var postBody = req.body;  
-  
-  Dep001_PostProcess(postBody); 
+  };
+  var postBody = req.body;
+
+  Dep001_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -125,9 +125,14 @@ class PostProcessEventDep001 {
 function Dep001_PostProcess(jsonObj) {
   var result = new PostProcessEventDep001(jsonObj);
 
-  console.log('Dep001 received: '+ JSON.stringify(result));
+  console.log('Dep001 received: ' + JSON.stringify(result));
   // Emitir el mensaje a todos los clientes conectados
-  if (result.VersionDeprecated == 1) io.emit('Toasts', { type : 'Warning', message:  'Compiler version is deprecated! Please use one greater than 0.5.0'});
+  if (result.VersionDeprecated == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.dep001_deprecatedCompiler'
+    });
+  }
 }
 
 //************ntd001************************** */
@@ -149,8 +154,8 @@ app.post('/validation-ntd001', (req, res) => {
     return retVal;
   };
   var postBody = req.body;
-  
-  Ntd001_PostProcess(postBody); 
+
+  Ntd001_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -158,14 +163,18 @@ app.post('/validation-ntd001', (req, res) => {
 
 function Ntd001_PostProcess(jsonObj) {
   var result = new PostProcessEventNtd001(jsonObj);
-  console.log('Ntd001 received: '+ JSON.stringify(result));
+  console.log('Ntd001 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){    
-    io.emit('Toasts', { type : 'Warning', message:  'Var expression "'+ result.Name +'" does not have a value assigned. Please, assign a value to it.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.ntd001_varWithoutValue',
+      params: { name: result.Name }
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 20);
-  }    
+  }
 }
 
 class PostProcessEventNtd001 {
@@ -197,7 +206,7 @@ app.post('/validation-ntd002', (req, res) => {
   };
   var postBody = req.body;
 
-  Ntd002_PostProcess(postBody); 
+  Ntd002_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -215,13 +224,16 @@ class PostProcessEventNtd002 {
 
 function Ntd002_PostProcess(jsonObj) {
   var result = new PostProcessEventNtd002(jsonObj);
-  console.log('Ntd002 received: '+  JSON.stringify(result));
+  console.log('Ntd002 received: ' + JSON.stringify(result));
 
   // Emitir el mensaje a todos los clientes conectados
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Info', message:  'More than 4 public functions. Please, review if they should be public.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Info',
+      message: 'toasts.ntd002_tooManyPublicFunctions'
+    });
     io.emit('Points', -10);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 50);
   }
 }
@@ -246,7 +258,7 @@ app.post('/validation-ntd003', (req, res) => {
   };
   var postBody = req.body;
 
-  Ntd003_PostProcess(postBody); 
+  Ntd003_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -264,13 +276,16 @@ class PostProcessEventNtd003 {
 }
 
 function Ntd003_PostProcess(jsonObj) {
-  var result = new PostProcessEventNtd003(jsonObj);  
-  console.log('Ntd003 received: '+ JSON.stringify(result));
+  var result = new PostProcessEventNtd003(jsonObj);
+  console.log('Ntd003 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Error', message:  'Contract is not properly inheriting from interface.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Error',
+      message: 'toasts.ntd003_interfaceInheritance'
+    });
     io.emit('Points', -10);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 50);
   }
 }
@@ -295,7 +310,7 @@ app.post('/validation-ntd004', (req, res) => {
   };
   var postBody = req.body;
 
-  Ntd004_PostProcess(postBody); 
+  Ntd004_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -313,15 +328,18 @@ class PostProcessEventNtd004 {
 }
 
 function Ntd004_PostProcess(jsonObj) {
-  var result = new PostProcessEventNtd004(jsonObj);  
-  console.log('Ntd004 received: '+ JSON.stringify(result));
+  var result = new PostProcessEventNtd004(jsonObj);
+  console.log('Ntd004 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){    
-    io.emit('Toasts', { type : 'Error', message:  'Contract is not properly inheriting from abstract contract.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Error',
+      message: 'toasts.ntd004_abstractInheritance'
+    });
     io.emit('Points', -10);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 50);
-  }   
+  }
 }
 
 //************prg001************************** */
@@ -343,10 +361,13 @@ app.post('/validation-prg001', (req, res) => {
     return retVal;
   };
   var postBody = req.body;
-  if(postBody.Response == '1'){
-    io.emit('Toasts', { type : 'Info', message:  'Are you still there?. Please, review the documentation or ask your tutor if you have any questions.'});
+  if (postBody.Response == '1') {
+    io.emit('Toasts', {
+      type: 'Info',
+      message: 'toasts.prg001_areYouThere'
+    });
   }
-  
+
   //Response to external app
   res.sendStatus(200);
 });
@@ -371,8 +392,8 @@ app.post('/validation-prg002', (req, res) => {
   };
 
   var postBody = req.body;
-  
-  Prg002_PostProcess(postBody.SmaCly_prg002); 
+
+  Prg002_PostProcess(postBody.SmaCly_prg002);
 
   //Response to external app
   res.sendStatus(200);
@@ -380,14 +401,17 @@ app.post('/validation-prg002', (req, res) => {
 
 function Prg002_PostProcess(jsonObj) {
   var result = new PostProcessEventPrg00X(jsonObj);
-  console.log('Prg002 received: '+ JSON.stringify(result));
+  console.log('Prg002 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){    
-    io.emit('Toasts', { type : 'Info', message:  'Compiler version should be defined.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Info',
+      message: 'toasts.prg002_compilerNotDefined'
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 20);
-  }  
+  }
 }
 
 
@@ -412,7 +436,7 @@ app.post('/validation-prg003', (req, res) => {
 
   var postBody = req.body;
 
-  Prg003_PostProcess(postBody.SmaCly_prg003); 
+  Prg003_PostProcess(postBody.SmaCly_prg003);
 
   //Response to external app
   res.sendStatus(200);
@@ -420,14 +444,18 @@ app.post('/validation-prg003', (req, res) => {
 
 function Prg003_PostProcess(jsonObj) {
   var result = new PostProcessEventPrg00X(jsonObj);
-  console.log('Prg003 received: '+ JSON.stringify(result));
+  console.log('Prg003 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Warning', message:  'Function "'+ result.Name +'" does not have a body assigned. Please, assign a value to it.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.prg003_functionWithoutBody',
+      params: { name: result.Name }
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 30);
-  }  
+  }
 }
 
 class PostProcessEventPrg00X {
@@ -459,7 +487,7 @@ app.post('/validation-prg004', (req, res) => {
   };
   var postBody = req.body;
 
-  Prg004_PostProcess(postBody.SmaCly_prg004); 
+  Prg004_PostProcess(postBody.SmaCly_prg004);
 
   //Response to external app
   res.sendStatus(200);
@@ -467,14 +495,18 @@ app.post('/validation-prg004', (req, res) => {
 
 function Prg004_PostProcess(jsonObj) {
   var result = new PostProcessEventPrg00X(jsonObj);
-  console.log('Prg004 received: '+ JSON.stringify(result));
+  console.log('Prg004 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Warning', message:  'Modifier "'+ result.Name +'" does not have a body assigned. Please, assign a value to it.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.prg004_modifierWithoutBody',
+      params: { name: result.Name }
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 30);
-  }    
+  }
 }
 
 //************ SYE001 SYE002 SYE003 SYE004 ************************** */
@@ -497,22 +529,25 @@ app.post('/validation-sye001', (req, res) => {
   };
   var postBody = req.body;
 
-  Sye001_PostProcess(postBody); 
+  Sye001_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
 });
 
 function Sye001_PostProcess(jsonObj) {
-  var result = new PostProcessEventSye001(jsonObj);  
-  console.log('Sye001 received: '+ JSON.stringify(result));
+  var result = new PostProcessEventSye001(jsonObj);
+  console.log('Sye001 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){    
-    io.emit('Toasts', { type : 'Error', message:  'Invalid compiler version. Please you should define one.'});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Error',
+      message: 'toasts.sye001_invalidCompiler'
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 20);
-  }    
+  }
 }
 
 class PostProcessEventSye001 {
@@ -541,8 +576,8 @@ app.post('/validation-sye002', (req, res) => {
     return retVal;
   };
   var postBody = req.body;
-  
-  SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye002, "interface", "Sye002"); 
+
+  SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye002, "interface", "Sye002");
 
   //Response to external app
   res.sendStatus(200);
@@ -566,7 +601,7 @@ app.post('/validation-sye003', (req, res) => {
   };
   var postBody = req.body;
 
-  SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye003, "library", "Sye003"); 
+  SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye003, "library", "Sye003");
 
   //Response to external app
   res.sendStatus(200);
@@ -590,7 +625,7 @@ app.post('/validation-sye004', (req, res) => {
   };
   var postBody = req.body;
 
-  SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye004, "contract","Sye004"); 
+  SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye004, "contract", "Sye004");
 
   //Response to external app
   res.sendStatus(200);
@@ -600,10 +635,14 @@ function SyeEvent_ItemDuplicated_PostProcess(jsonObj, type, topic) {
   var result = new PostProcessEventSyeDuplicatedItem(jsonObj);
   console.log(`${topic} received: ` + JSON.stringify(result));
 
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Warning', message:  `"${result.Name}" ${type} is duplicated. Please, rename these items.`});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.sye_duplicateItem',
+      params: { name: result.Name, type }
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 30);
   }
 }
@@ -638,7 +677,7 @@ app.post('/validation-sce002', (req, res) => {
   };
   var postBody = req.body;
 
-  Sce002_PostProcess(postBody); 
+  Sce002_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -646,18 +685,22 @@ app.post('/validation-sce002', (req, res) => {
 
 function Sce002_PostProcess(jsonObj, type) {
   var result = new PostProcessEventSce002(jsonObj);
-  console.log('Sce002 received: '+ JSON.stringify(result));
+  console.log('Sce002 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Warning', message:  `Missing error handling in "${result.Name}" ${type}. Please, add any require or modifier block.`});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.sce002_missingErrorHandling',
+      params: { name: result.Name }
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 40);
   }
 }
 
 //TODO - Make this part of a different module
-class PostProcessEventSce002{
+class PostProcessEventSce002 {
   constructor(e) {
     this.Timestamp = e.SmaCly_sce002.Timestamp;
     this.IdSession = e.SmaCly_sce002.IdSession;
@@ -684,7 +727,7 @@ app.post('/validation-sce003', (req, res) => {
   };
   var postBody = req.body;
 
-  Sce003_PostProcess(postBody); 
+  Sce003_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -703,13 +746,17 @@ class PostProcessEventSce003 {
 
 function Sce003_PostProcess(jsonObj) {
   var result = new PostProcessEventSce003(jsonObj);
-  console.log('Ntd002 received: '+  JSON.stringify(result));
+  console.log('Ntd002 received: ' + JSON.stringify(result));
 
   // Emitir el mensaje a todos los clientes conectados
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Warning', message:  `Function "${result.Name}" should have modifiers. Please, add modifiers as "onlyOwner()"`});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.sce003_missingModifiers',
+      params: { name: result.Name }
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 40);
   }
 }
@@ -732,7 +779,7 @@ app.post('/validation-sce005', (req, res) => {
   };
   var postBody = req.body;
 
-  Sce005_PostProcess(postBody); 
+  Sce005_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -740,18 +787,21 @@ app.post('/validation-sce005', (req, res) => {
 
 function Sce005_PostProcess(jsonObj) {
   var result = new PostProcessEventSce005(jsonObj);
-  console.log('Sce005 received: '+ JSON.stringify(result));
+  console.log('Sce005 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Warning', message:  `Compiler version should be upper than 0.8.0 to avoid integer overflow.`});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.sce005_compilerTooLow'
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 40);
   }
 }
 
 //TODO - Make this part of a different module
-class PostProcessEventSce005{
+class PostProcessEventSce005 {
   constructor(e) {
     this.Timestamp = e.SmaCly_sce005.Timestamp;
     this.IdSession = e.SmaCly_sce005.IdSession;
@@ -778,7 +828,7 @@ app.post('/validation-sce006', (req, res) => {
   };
   var postBody = req.body;
 
-  Sce006_PostProcess(postBody); 
+  Sce006_PostProcess(postBody);
 
   //Response to external app
   res.sendStatus(200);
@@ -786,18 +836,21 @@ app.post('/validation-sce006', (req, res) => {
 
 function Sce006_PostProcess(jsonObj) {
   var result = new PostProcessEventSce006(jsonObj);
-  console.log('Sce006 received: '+ JSON.stringify(result));
+  console.log('Sce006 received: ' + JSON.stringify(result));
 
-  if (result.State == 1){
-    io.emit('Toasts', { type : 'Warning', message:  `Use libraries like SafeMath to avoid integer overflow.`});
+  if (result.State == 1) {
+    io.emit('Toasts', {
+      type: 'Warning',
+      message: 'toasts.sce006_useSafeMath'
+    });
     io.emit('Points', -5);
-  } else if (result.State == 2){
+  } else if (result.State == 2) {
     io.emit('Points', 40);
   }
 }
 
 //TODO - Make this part of a different module
-class PostProcessEventSce006{
+class PostProcessEventSce006 {
   constructor(e) {
     this.Timestamp = e.SmaCly_sce006.Timestamp;
     this.IdSession = e.SmaCly_sce006.IdSession;

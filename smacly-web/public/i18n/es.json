@@ -37,5 +37,22 @@
     },
     "footer": {
         "copyright": "Todos los derechos reservados"
+    },
+    "toasts": {
+        "dep001_deprecatedCompiler": "La versión del compilador está obsoleta. Usa una superior a la 0.5.0.",
+        "ntd001_varWithoutValue": "La variable \"{name}\" no tiene un valor asignado. Por favor, asígnale uno.",
+        "ntd002_tooManyPublicFunctions": "Hay más de 4 funciones públicas. Revisa si realmente deben ser públicas.",
+        "ntd003_interfaceInheritance": "El contrato no hereda correctamente de la interfaz.",
+        "ntd004_abstractInheritance": "El contrato no hereda correctamente del contrato abstracto.",
+        "prg001_areYouThere": "¿Sigues ahí? Revisa la documentación o pregunta a tu tutor si tienes dudas.",
+        "prg002_compilerNotDefined": "Debe definirse la versión del compilador.",
+        "prg003_functionWithoutBody": "La función \"{name}\" no tiene cuerpo. Por favor, asígnale uno.",
+        "prg004_modifierWithoutBody": "El modificador \"{name}\" no tiene cuerpo. Por favor, asígnale uno.",
+        "sye001_invalidCompiler": "Versión de compilador inválida. Debes definir una.",
+        "sye_duplicateItem": "\"{name}\" ({type}) está duplicado. Por favor, renombra estos elementos.",
+        "sce002_missingErrorHandling": "Falta manejo de errores en \"{name}\". Añade require o modifiers.",
+        "sce003_missingModifiers": "La función \"{name}\" debería tener modifiers como \"onlyOwner()\".",
+        "sce005_compilerTooLow": "El compilador debería ser superior a la versión 0.8.0 para evitar overflow.",
+        "sce006_useSafeMath": "Usa librerías como SafeMath para evitar desbordamientos de enteros."
     }
 }
