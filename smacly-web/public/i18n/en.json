@@ -19,6 +19,10 @@
         "clean": "🗑️ Clean Workspace",
         "toSolidity": "⚙️ Transform Blockly to Solidity",
         "saveSolidity": "💾 Save Solidity Code",
+        "compileSolidity": "🛠️ Compile Solidity",
+        "toVyper": "⚙️ Transform Blockly to Vyper",
+        "saveVyper": "💾 Save Vyper Code",
+        "compileVyper": "🛠️ Compile Vyper",
         "fromXML": "🧩 Transform XML to Blockly"
     },
     "workspace": {
