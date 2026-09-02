@@ -672,3 +672,216 @@ function checkBlocksAmount() {
   }
 }
 
+
+/// SMACLY V2 
+function seeVyperToDownload() {
+  var logEvento = new LogEventButtonBlockly("transformBlockToVyper", workspace);
+  logsEventos.push(logEvento);
+  if (typeof comprobarGuardadoAutomaticoPorCantidad === "function") {
+    comprobarGuardadoAutomaticoPorCantidad();
+  }
+  var code = VyperGenerator.workspaceToCode(workspace);
+  if (typeof establecerContenidoEditorCodigo === "function") {
+    establecerContenidoEditorCodigo(code);
+  }
+  else {
+    var output = document.getElementById('XmlArea');
+    output.value = code;
+  }
+
+  var output = document.getElementById('XmlArea');
+  output.focus();
+  output.select();
+}
+
+function saveVyperToDownload() {
+  var logEvento = new LogEventButtonBlockly("downloadVyperCode", workspace);
+  logsEventos.push(logEvento);
+  if (typeof comprobarGuardadoAutomaticoPorCantidad === "function") {
+    comprobarGuardadoAutomaticoPorCantidad();
+  }
+  var code = VyperGenerator.workspaceToCode(workspace);
+  var logAnalisisCorrespondenciasVyper = obtenerLogElementosNoContempladosVyper();//Se obtienen los elementos que al pasar de Solidity a Vyper no se contemplaron
+  newWindow = window.open("data:application/octet-stream," + encodeURIComponent(code), getVyperFilenameFromWorkspace());
+  download("VyperConversionLog.txt", logAnalisisCorrespondenciasVyper);
+}
+
+function getVyperFilenameFromWorkspace() {
+    const DEFAULT_FILENAME = "output";
+    const FILE_BLOCK_PLACEHOLDER = "Insert here file's name";
+    try {
+      if (!window.workspace) return DEFAULT_FILENAME + ".vy";
+      // Se busca el bloque "file" que es el que contiene el nombre del archivo que queremos definir para el modelo construido con bloques
+      const fileBlock = window.workspace.getAllBlocks(false).find(b => b.type === "file");
+      if (!fileBlock) return DEFAULT_FILENAME + ".vy";
+      let rawName = fileBlock.getFieldValue("name");
+      rawName = (rawName ?? "").trim();
+      // PARA CONTROLAR SI EL USUARIO NO CAMBIÓ EL VALOR POR DEFECTO DEL BLOQUE FILE
+      if (!rawName || rawName === FILE_BLOCK_PLACEHOLDER) {
+        return DEFAULT_FILENAME + ".vy";
+      }
+      // Evitar caracteres inválidos para el nombre del archivo
+      let safeName = rawName
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_") 
+        .replace(/\s+/g, "_")                   
+        .replace(/\.+$/g, "")                  
+        .trim();
+
+      if(!safeName){
+        return DEFAULT_FILENAME + ".vy";
+      }
+      // Para que el contrato no pueda duplicar extensión
+      if (!safeName.toLowerCase().endsWith(".vy")) {
+        safeName += ".vy";
+      }
+
+      return safeName;
+    }
+    catch (error) {
+      console.error("Error getting Vyper filename:", e);
+      return DEFAULT_FILENAME + ".vy";
+    }
+}
+
+function getSolidityFilenameFromWorkspace() {
+  const DEFAULT_FILENAME = "output";
+  const FILE_BLOCK_PLACEHOLDER = "Insert here file's name";
+  try {
+    if (!window.workspace) return DEFAULT_FILENAME + ".sol";
+    const fileBlock = window.workspace.getAllBlocks(false).find(b => b.type === "file");
+    if (!fileBlock) return DEFAULT_FILENAME + ".sol";
+    let rawName = fileBlock.getFieldValue("name");
+    rawName = (rawName ?? "").trim();
+    if (!rawName || rawName === FILE_BLOCK_PLACEHOLDER) {
+      return DEFAULT_FILENAME + ".sol";
+    }
+    let safeName = rawName
+      .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
+      .replace(/\s+/g, "_")
+      .replace(/\.+$/g, "")
+      .trim();
+    if (!safeName) {
+      return DEFAULT_FILENAME + ".sol";
+    }
+    if (!safeName.toLowerCase().endsWith(".sol")) {
+      safeName += ".sol";
+    }
+    return safeName;
+  }
+  catch (error) {
+    console.error("Error getting Solidity filename:", error);
+    return DEFAULT_FILENAME + ".sol";
+  }
+}
+
+/*
+Descripción: Construye un mensaje legible a partir de la respuesta de compilación del backend
+(PeticionCompilar/SalidaCompilacion de smac.compiler.compilador), para mostrarlo en un toast.
+*/
+function construirMensajeCompilacion(resultado, lenguaje) {
+  var lineas = [];
+  var compilacionCorrecta = resultado && resultado.resultadoCompilacion === true;
+  lineas.push(lenguaje + (compilacionCorrecta ? " compiled successfully." : " compilation failed."));
+  if (resultado && resultado.mensaje) {
+    lineas.push(String(resultado.mensaje));
+  }
+  var informacion = (resultado && Array.isArray(resultado.informacion)) ? resultado.informacion : [];
+  for (var i = 0; i < informacion.length; i++) {
+    var item = informacion[i];
+    if (typeof item === "string") {
+      lineas.push(item);
+    }
+    else if (item) {
+      var detalle = item.mensajeFormateado || item.mensaje || JSON.stringify(item);
+      lineas.push((item.claseMensaje || item.tipo || "Information") + ": " + detalle);
+    }
+  }
+  return { compilacionCorrecta: compilacionCorrecta, texto: lineas.join("\n") };
+}
+
+/*
+Descripción: Envía el código Solidity generado desde Blockly al backend Java "compilador"
+(vía el proxy /api/compilarSolidity de este servidor) y muestra el resultado con toastr.
+*/
+async function compileSolidity() {
+  var logEvento = new LogEventButtonBlockly("compileSolidity", workspace);
+  logsEventos.push(logEvento);
+  try {
+    var code = SolidityGenerator.workspaceToCode(workspace);
+    if (!code || !code.trim()) {
+      toastr.warning("No Solidity code was generated");
+      return;
+    }
+    var output = document.getElementById('XmlArea');
+    output.value = code;
+
+    var payload = {
+      codigoFuenteContrato: code,
+      nombreArchivoContrato: getSolidityFilenameFromWorkspace(),
+      optimizadorActivo: true,
+      ejecucionesOptimizador: 200
+    };
+
+    var response = await fetch("/api/compilarSolidity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    var resultado = await response.json();
+    var mensaje = construirMensajeCompilacion(resultado, "Solidity");
+    if (mensaje.compilacionCorrecta) {
+      toastr.success(mensaje.texto);
+    }
+    else {
+      toastr.error(mensaje.texto);
+    }
+  }
+  catch (error) {
+    console.error("Solidity compilation error:", error);
+    toastr.error("Error connecting to the Java compiler: " + error.message);
+  }
+}
+
+/*
+Descripción: Envía el código Vyper generado desde Blockly al backend Java "compilador"
+(vía el proxy /api/compilarVyper de este servidor) y muestra el resultado con toastr.
+*/
+async function compileVyper() {
+  var logEvento = new LogEventButtonBlockly("compileVyper", workspace);
+  logsEventos.push(logEvento);
+  try {
+    var code = VyperGenerator.workspaceToCode(workspace);
+    if (!code || !code.trim()) {
+      toastr.warning("No Vyper code was generated");
+      return;
+    }
+    var output = document.getElementById('XmlArea');
+    output.value = code;
+
+    var payload = {
+      codigoFuenteContrato: code,
+      nombreArchivoContrato: getVyperFilenameFromWorkspace(),
+      optimizadorActivo: true,
+      ejecucionesOptimizador: 200
+    };
+
+    var response = await fetch("/api/compilarVyper", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    var resultado = await response.json();
+    var mensaje = construirMensajeCompilacion(resultado, "Vyper");
+    if (mensaje.compilacionCorrecta) {
+      toastr.success(mensaje.texto);
+    }
+    else {
+      toastr.error(mensaje.texto);
+    }
+  }
+  catch (error) {
+    console.error("Vyper compilation error:", error);
+    toastr.error("Error connecting to the Python compiler: " + error.message);
+  }
+}
+
