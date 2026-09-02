@@ -2321,3 +2321,113 @@ Blockly.Blocks['block_dowhile'] = {
  this.setHelpUrl("");
   }
 };
+
+Blockly.Blocks['error_definition'] = {
+  init: function() {
+    this.appendValueInput("inputparams")
+        .setCheck("inputparam")
+        .appendField("error")
+        .appendField(new Blockly.FieldTextInput("Insert here error's name"),"name")
+        .appendField("Input params?");
+    this.setPreviousStatement(true, ["event","error_definition","contract_constructor","modifier","clause" ]);
+    this.setNextStatement(true, ["event","error_definition","clause","contract_constructor"]);
+    this.setColour(0);
+    this.setTooltip("Defines a custom Solidity error.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['receive_function'] = {
+  init: function() {
+    var payableField = new Blockly.FieldCheckbox("TRUE", function(value) { //ASÍ SIEMPRE ES TRUE AUNQUE DESMARQUE EL USUARIO
+       return "TRUE";
+    });
+    this.appendDummyInput()
+        .appendField("receive")
+        .appendField("visibility")
+        .appendField(new Blockly.FieldDropdown([["external","external"]]), "values_visibility")
+        .appendField("payable")
+        .appendField(payableField, "payable")
+        .appendField("virtual")
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "virtual");
+    this.appendStatementInput("elements_function")
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_try"]);
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause","receive_function","fallback_function"]);
+    this.setNextStatement(true, ["clause","receive_function","fallback_function"]);
+    this.setColour(15);
+    this.setTooltip("Receive function. It is executed when the contract receives Ether without calldata.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#receive-ether-function");
+  }
+};
+
+Blockly.Blocks['fallback_function'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("fallback")
+        .appendField("visibility")
+        .appendField(new Blockly.FieldDropdown([["external","external"]]), "values_visibility")
+        .appendField("payable")
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "payable")
+        .appendField("virtual")
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "virtual");
+
+    this.appendStatementInput("elements_function")
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_try"]);
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause","receive_function","fallback_function"]);
+    this.setNextStatement(true, ["clause","receive_function","fallback_function"]);
+    this.setColour(15);
+    this.setTooltip("Fallback function. It is executed when no other function matches the calldata.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#fallback-function");
+  }
+};
+
+Blockly.Blocks['block_unchecked'] = {
+  init: function() {
+    this.appendStatementInput("statements").setCheck([ "restriction_clause","restriction_clausecomment","emit_event", "personalized_expression","assign_value_expression","revert_expression", "deleteexpression","return_clause","block_ifcondition","block_whileloop","block_dowhile","block_for","block_unchecked"]) .appendField("unchecked");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(230);
+    this.setTooltip("Executes arithmetic operations without overflow and underflow checks.");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks["block_try"] = {
+  init: function() {
+    this.appendValueInput("expression")
+    .setCheck(["personalized_inputexpression","casting_expression","block_new"]).appendField("try");
+    this.appendValueInput("returns")
+    .setCheck(["inputparam","outputparam","tuple"]).appendField("returns?");
+    this.appendStatementInput("actions_try").setCheck(null);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, ["block_catch"]);
+    this.setColour(210);
+    this.setTooltip("Executes an external call and handles possible errors using catch blocks.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/latest/control-structures.html#try-catch");
+  }
+};
+
+Blockly.Blocks["block_catch"] = {
+  init: function() {
+    this.appendDummyInput().appendField("catch").appendField(new Blockly.FieldDropdown([["generic","generic"],["Error","Error"],["Panic","Panic"],["bytes","bytes"]]), "catch_type");
+    this.appendValueInput("parameter")
+    .setCheck(["inputparam","inputparamshortidentifier"]).appendField("parameter?");
+    this.appendStatementInput("actions_catch")
+    .setCheck(null);
+    this.setPreviousStatement(true, ["block_try","block_catch"]);
+    this.setNextStatement(true, ["block_catch"]);
+    this.setColour(210);
+    this.setTooltip("Handles an error produced by the try block.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/latest/control-structures.html#try-catch");
+  }
+};

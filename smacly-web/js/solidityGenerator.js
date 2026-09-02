@@ -21,6 +21,192 @@ SolidityGenerator.scrub_ = function(block, code) {
   return code + nextCode;
 };
 
+var contadorElementosGenericos = 0;
+
+function limpiarNombrePorDefecto(nombre) {
+  if (nombre == null) {
+    nombre = "";
+  }
+  nombre = String(nombre).trim();
+  if (nombre.indexOf("Insert here") === 0) {
+    contadorElementosGenericos++;
+    return "element_" + contadorElementosGenericos;
+  }
+
+  return nombre;
+}
+
+/*
+PARÁMETROS Y FUNCIONES AÑADIDAS PARA SOPORTAR: interface_father, abstract_clausedeclaration,
+boolean_shortproperty, error_definition, receive_function, fallback_function, block_unchecked,
+block_try y block_catch (portado desde la versión de compilador)
+*/
+SolidityGenerator["interface_father"] = function(block) {
+  var interface_name = limpiarNombrePorDefecto(block.getFieldValue('name'));
+  var next_interface = SolidityGenerator.statementToCode(block, "interface_inherit");
+  next_interface = (next_interface || "").trim();
+
+  var interfaces_inherit = "";
+  if (next_interface !== "") {
+    interfaces_inherit = ", " + next_interface;
+  }
+
+  return interface_name + interfaces_inherit;
+};
+
+SolidityGenerator["abstract_clausedeclaration"] = function(block) {
+  var function_name = limpiarNombrePorDefecto(block.getFieldValue('name'));
+  var inputparams_content = SolidityGenerator.statementToCode(block, "inputparams_function").trim();
+  var function_visibility = block.getFieldValue("values_visibility").trim();
+  var function_state = block.getFieldValue("values_inputmodifier").trim();
+  var function_modifiers = SolidityGenerator.statementToCode(block, "modifiers").trim();
+  var outputparam = SolidityGenerator.statementToCode(block, "returns_values").trim();
+  if (outputparam !== "") {
+    outputparam = " returns (" + outputparam + ")";
+  }
+
+  var isVirtual = block.getFieldValue("virtual");
+  var virtual = "";
+
+  if (isVirtual === "TRUE") {
+    virtual = " virtual";
+  }
+  var code = "function " + function_name + "(" + inputparams_content + ")";
+  if (function_visibility !== "") {
+    code += " " + function_visibility;
+  }
+  if (function_state !== "") {
+    code += " " + function_state;
+  }
+  if (function_modifiers !== "") {
+    code += " " + function_modifiers;
+  }
+  code += virtual;
+  code += outputparam;
+  code += ";\n";
+  return code;
+};
+
+SolidityGenerator["error_definition"] = function(block) {
+  var error_name = limpiarNombrePorDefecto(block.getFieldValue("name"));
+  var inputparams_content = SolidityGenerator.statementToCode(block, "inputparams");
+  if(inputparams_content == null){
+    inputparams_content = "";
+  }
+  inputparams_content = inputparams_content.trim();
+  return "error " + error_name + "(" + inputparams_content + ");\n";
+};
+
+SolidityGenerator["receive_function"] = function(block) {
+  var visibility = block.getFieldValue("values_visibility");
+  var payable = block.getFieldValue("payable");
+  var virtualValue = block.getFieldValue("virtual");
+  var statements_content = SolidityGenerator.statementToCode(block, "elements_function");
+  var code = "receive()";
+  if(visibility != null && visibility.trim() != ""){
+    code += " " + visibility.trim();
+  }
+  if(payable == "TRUE"){
+    code += " payable";
+  }
+  if(virtualValue == "TRUE"){
+    code += " virtual";
+  }
+  code += " {\n" + statements_content + "}\n";
+  return code;
+};
+
+SolidityGenerator["fallback_function"] = function(block) {
+  var visibility = block.getFieldValue("values_visibility");
+  var payable = block.getFieldValue("payable");
+  var virtualValue = block.getFieldValue("virtual");
+  var statements_content = SolidityGenerator.statementToCode(block, "elements_function");
+  var code = "fallback()";
+  if(visibility != null && visibility.trim() != ""){
+    code += " " + visibility.trim();
+  }
+  if(payable == "TRUE"){
+    code += " payable";
+  }
+  if(virtualValue == "TRUE"){
+    code += " virtual";
+  }
+  code += " {\n" + statements_content + "}\n";
+  return code;
+};
+
+SolidityGenerator["boolean_shortproperty"] = function(block) {
+  var property_name = limpiarNombrePorDefecto(block.getFieldValue('name'));
+  var property_valueproperty = SolidityGenerator.statementToCode(block,"valueproperty");
+  var property_type = "";
+  property_type = "bool";
+  var property_array =  SolidityGenerator.statementToCode(block,"arraydimension");
+  property_array = property_array.trim()
+  if(property_valueproperty != null && property_valueproperty != "" && property_valueproperty != "undefined"  && property_valueproperty != "none"){
+   if(!property_valueproperty.includes("=")){
+      property_valueproperty = "= " + property_valueproperty;
+    }
+  }
+  else{
+    property_valueproperty = "";
+  }
+  var code;
+  if(property_array == null){
+    code = property_type + ' ' + property_name + ' ' + property_valueproperty +";\n";
+  }
+  else {
+    code = property_type + ' ' + property_array  + property_name + ' ' + property_valueproperty +";\n";
+  }
+  return code;
+};
+
+SolidityGenerator["block_unchecked"] = function(block) {
+  var statements_content = SolidityGenerator.statementToCode(block, "statements");
+  if(statements_content == null){ statements_content = ""; }
+  return "unchecked {\n" + statements_content + "}\n";
+};
+
+SolidityGenerator["block_try"] = function(block) {
+  var expression = SolidityGenerator.statementToCode(block, "expression");
+  var devolucion = SolidityGenerator.statementToCode(block, "returns");
+  var actions_try = SolidityGenerator.statementToCode(block, "actions_try");
+  expression = String(expression || "").trim();
+  devolucion = String(devolucion || "").trim();
+  var code = "try " + expression;
+  if(devolucion != ""){
+    code += " returns (" + devolucion + ")";
+  }
+  code += " {\n" + actions_try + "}\n";
+  return code;
+};
+
+SolidityGenerator["block_catch"] = function(block) {
+  var catch_type = block.getFieldValue("catch_type");
+  var parameter = SolidityGenerator.statementToCode(block, "parameter");
+  var actions_catch = SolidityGenerator.statementToCode(block, "actions_catch");
+  parameter = String(parameter || "").trim();
+  var code = "catch";
+  if(catch_type == "Error"){
+    code += " Error";
+    if(parameter != ""){
+      code += "(" + parameter + ")";
+    }
+  }
+  else if(catch_type == "Panic"){
+    code += " Panic";
+    if(parameter != ""){
+      code += "(" + parameter + ")";
+    }
+  }
+  else if(catch_type == "bytes"){
+    if(parameter != ""){
+      code += " (" + parameter + ")";
+    }
+  }
+  code += " {\n" + actions_catch + "}\n";
+  return code;
+};
+
 
 /*
 Parámetro de entrada: El bloque que va a generar su código asociado

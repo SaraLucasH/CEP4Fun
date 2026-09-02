@@ -12,12 +12,15 @@
   <script src="/js/standard_categories.js"></script>
   <script src="/js/customblocklibrary.js"></script>
   <script src="/js/htmlGenerator.js"></script>
+  <script src="/js/solidityGenerator.js"></script>
+  <script src="/js/vyperGenerator.js"></script>
   <script src="/js/en.js"></script>
   <script src="/js/es.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="/js/cep4fun/models.js"></script>
   <script src="/js/cep4fun/functions.js"></script>
   <script src="/js/personalizedfunctions.js"></script>
+  <script src="/js/accountPanel.js"></script>
   <script src="/js/fabricGenerator.js"></script>
   <script src="/js/http_request.js"></script>
   <script src="/js/lowCodePlatform.js"></script>
@@ -33,6 +36,7 @@
 </head>
 
 <body>
+  <div id="accountBar"></div>
   <div class="wrapper">
     <div>
       <img id="logo" src="/resources/logo.png" />
@@ -71,6 +75,14 @@
       <input type="button" id="seeSolidityCode" data-i18n="buttons.toSolidity" onclick="seeSolidityToDownload()"
         class="button">
       <input type="button" id="saveSolidityCode" data-i18n="buttons.saveSolidity" onclick="saveSolidityToDownload()"
+        class="button">
+      <input type="button" id="compileSolidityCode" data-i18n="buttons.compileSolidity" onclick="compileSolidity()"
+        class="button">
+      <input type="button" id="seeVyperCode" data-i18n="buttons.toVyper" onclick="seeVyperToDownload()"
+        class="button">
+      <input type="button" id="saveVyperCode" data-i18n="buttons.saveVyper" onclick="saveVyperToDownload()"
+        class="button">
+      <input type="button" id="compileVyperCode" data-i18n="buttons.compileVyper" onclick="compileVyper()"
         class="button">
       <input type="button" id="tranformButton" data-i18n="buttons.fromXML" onclick="fromXml()" class="button">
       <input type="button" id="toggle-lang-btn" data-i18n="language.switch" onclick="changeLanguage()" class="button">
@@ -136,6 +148,11 @@
         <field name="name">Insert here event's name</field>
       </block>
     </category>
+    <category name="Error">
+      <block type="error_definition">
+        <field name="name">Insert here error's name</field>
+      </block>
+    </category>
     <category name="Modifier">
       <block type="modifier">
         <field name="name">Insert here modifier's name</field>
@@ -177,6 +194,16 @@
       <block type="clause">
         <field name="name">Insert here function's name</field>
         <field name="returns">TRUE</field>
+      </block>
+      <block type="receive_function">
+        <field name="values_visibility">external</field>
+        <field name="payable">TRUE</field>
+        <field name="virtual">FALSE</field>
+      </block>
+      <block type="fallback_function">
+        <field name="values_visibility">external</field>
+        <field name="payable">FALSE</field>
+        <field name="virtual">FALSE</field>
       </block>
       <block type="block_inputmodifier"></block>
       <block type="return_clause"></block>
@@ -356,6 +383,15 @@
       <block type="block_now"></block>
     </category>
     <category name="Expression">
+      <category name="Try Catch">
+        <block type="block_try"></block>
+        <block type="block_catch">
+          <field name="catch_type">generic</field>
+        </block>
+      </category>
+      <category name="Unchecked expression">
+        <block type="block_unchecked"></block>
+      </category>
       <category name="Using library expression">
         <block type="block_usinglibrary">
           <field name="name">Insert here library's name</field>
