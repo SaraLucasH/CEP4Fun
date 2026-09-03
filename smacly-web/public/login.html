@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>SmaCly - Log in</title>
+  <link rel="stylesheet" href="/resources/styles.css">
+  <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+  <style>
+    .authWrapper {
+      max-width: 380px;
+      margin: 80px auto;
+      padding: 24px;
+      border-radius: 10px;
+      background-color: rgb(135, 143, 223);
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    .authWrapper h1 {
+      background: none;
+      font-size: 150%;
+    }
+
+    .authWrapper input[type="text"],
+    .authWrapper input[type="password"],
+    .authWrapper input[type="email"] {
+      width: 90%;
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #057fd0;
+    }
+
+    .authWrapper .button {
+      width: 94%;
+      margin-top: 10px;
+      padding: 10px;
+    }
+
+    .authLink {
+      display: block;
+      margin-top: 14px;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="authWrapper">
+    <img id="logo" src="/resources/logo.png" style="position: static; width: 90px; height: 90px;" />
+    <h1>SmaCly</h1>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username or email" required autocomplete="username">
+      <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+      <input type="submit" class="button" value="Log in">
+    </form>
+    <a class="authLink" href="/register.html">Don't have an account? Register</a>
+  </div>
+
+  <script>
+    toastr.options = { closeButton: true, timeOut: 4000, positionClass: 'toast-top-right' };
+
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value;
+      try {
+        var response = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: username, password: password })
+        });
+        var data = await response.json();
+        if (data.exito) {
+          window.location.href = '/';
+        }
+        else {
+          toastr.error(data.mensaje || 'Invalid username or password');
+        }
+      }
+      catch (error) {
+        toastr.error('Error connecting to the server');
+      }
+    });
+  </script>
+</body>
+
+</html>
