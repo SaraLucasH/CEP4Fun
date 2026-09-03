@@ -14,6 +14,8 @@ const cookieParser = require('cookie-parser');
 const socketIo = require('socket.io');
 const http = require('http');
 
+const compilerProxy = require('./compilerProxy');
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -39,13 +41,6 @@ console.error = function (...args) {
 app.use(bodyparser.json());
 
 app.use(toastr());
-//app.use(express.static(path.join(__dirname)));
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/scripts', express.static(__dirname + '/node_modules/http/'));
-// Otros recursos si están fuera de public
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
 //Toaster
 app.use(cookieParser('secret'));
@@ -55,6 +50,23 @@ app.use(session({
   resave: true
 }));
 app.use(flash());
+
+// La app (index.html) requiere haber iniciado sesión contra el backend "compilador".
+// Se comprueba ANTES del middleware estático para que este no sirva el fichero directamente.
+app.get(['/', '/index.html'], (req, res, next) => {
+  if (!req.session.compiladorCookie) {
+    return res.redirect('/login.html');
+  }
+  next();
+});
+
+//app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/scripts', express.static(__dirname + '/node_modules/http/'));
+// Otros recursos si están fuera de public
+app.use('/js', express.static(path.join(__dirname, 'js')));
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
 app.use((req, res, next) => {
   // Website you wish to allow to connect
@@ -860,6 +872,171 @@ class PostProcessEventSce006 {
 }
 
 /************** END SCE00X */
+
+/************** COMPILADOR: LOGIN / REGISTRO / SESIÓN
+El backend Java "compilador" (puerto 8080 por defecto) tiene su propio login de Spring
+Security con usuarios/roles en MongoDB. En vez de duplicar ese sistema, smacly-web hace de
+fachada: cuando un usuario inicia sesión aquí, este servidor inicia sesión contra compilador
+en su nombre y guarda la cookie de esa sesión (JSESSIONID) en la sesión de Express. Todas las
+llamadas a /api/** de compilador (compilación, workspaces, logs, e3value, administración) se
+reenvían server-to-server usando esa cookie, así el navegador solo habla con este servidor
+(mismo origen, sin CORS) y sigue viendo el resto de la app tal cual está hoy. */
+
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ exito: false, mensaje: 'User and password are required' });
+    }
+    const cookie = await compilerProxy.login(username, password);
+    req.session.compiladorCookie = cookie;
+    const perfil = sanitizeUsuario(await compilerProxy.call(cookie, 'GET', '/api/miPerfil'));
+    req.session.compiladorUser = perfil;
+    res.json({ exito: true, usuario: perfil });
+  } catch (error) {
+    console.error('Login error: ' + error.message);
+    if (error.code) {
+      // Error de red (p.ej. ECONNREFUSED): el servicio "compilador" no está arrancado o
+      // COMPILADOR_URL está mal configurado, no es un problema de credenciales.
+      return res.status(502).json({ exito: false, mensaje: 'Could not reach the compiler service. Please try again later.' });
+    }
+    res.status(error.status || 401).json({ exito: false, mensaje: 'Invalid username or password' });
+  }
+});
+
+app.post('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.json({ exito: true });
+  });
+});
+
+app.get('/api/sesionActual', (req, res) => {
+  if (!req.session.compiladorCookie || !req.session.compiladorUser) {
+    return res.status(401).json({ mensaje: 'Not authenticated' });
+  }
+  res.json(req.session.compiladorUser);
+});
+
+// El registro de usuarios es público en compilador (no requiere sesión previa)
+app.post('/api/registrarUsuario', async (req, res) => {
+  try {
+    const resultado = await compilerProxy.call(null, 'POST', '/api/registrarUsuario', req.body);
+    res.json(resultado);
+  } catch (error) {
+    console.error('Register error: ' + error.message);
+    res.status(error.status || 502).json({ exito: false, mensaje: error.message });
+  }
+});
+
+/************** COMPILADOR: PROXY GENÉRICO DE /api/**
+Todas las rutas de abajo reenvían al compilador con la cookie de sesión del usuario ya
+autenticado en smacly-web. Si la sesión ha caducado (401/403 del compilador) se limpia la
+cookie guardada y se le pide al front que redirija a /login.html otra vez. */
+
+function requireCompiladorSession(req, res, next) {
+  if (!req.session.compiladorCookie) {
+    return res.status(401).json({ mensaje: 'Not authenticated' });
+  }
+  next();
+}
+
+// compilador devuelve el objeto Usuario tal cual, passwordHash incluido - nunca debe llegar
+// al navegador, ni el del propio usuario ni el de los usuarios que gestiona un PROFESSOR/ADMIN.
+function sanitizeUsuario(usuario) {
+  if (!usuario || typeof usuario !== 'object') return usuario;
+  const { passwordHash, ...resto } = usuario;
+  return resto;
+}
+
+function proxyCompilador(method, buildPath) {
+  return async (req, res) => {
+    try {
+      const pathName = typeof buildPath === 'function' ? buildPath(req) : buildPath;
+      const payload = (method === 'GET' || method === 'DELETE') ? undefined : req.body;
+      const resultado = await compilerProxy.call(req.session.compiladorCookie, method, pathName, payload);
+      res.json(resultado);
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) {
+        req.session.compiladorCookie = null;
+        return res.status(401).json({ mensaje: 'Session expired, please log in again' });
+      }
+      console.error('Compilador API error: ' + error.message);
+      res.status(error.status || 502).json({ mensaje: error.message });
+    }
+  };
+}
+
+app.use('/api', requireCompiladorSession);
+
+// Compilación real (solc / vyper)
+app.post('/api/compilarSolidity', proxyCompilador('POST', '/api/compilarSolidity'));
+app.post('/api/compilarVyper', proxyCompilador('POST', '/api/compilarVyper'));
+
+// Parser Solidity -> bloques
+app.post('/api/parsearSolidity', proxyCompilador('POST', '/api/parsearSolidity'));
+
+// Mi perfil
+app.get('/api/miPerfil', async (req, res) => {
+  try {
+    const usuario = await compilerProxy.call(req.session.compiladorCookie, 'GET', '/api/miPerfil');
+    res.json(sanitizeUsuario(usuario));
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      req.session.compiladorCookie = null;
+      return res.status(401).json({ mensaje: 'Session expired, please log in again' });
+    }
+    res.status(error.status || 502).json({ mensaje: error.message });
+  }
+});
+app.put('/api/miPerfil', proxyCompilador('PUT', '/api/miPerfil'));
+
+// Workspaces
+app.post('/api/crearWorkspace', proxyCompilador('POST', '/api/crearWorkspace'));
+app.post('/api/registrarWorkspace', proxyCompilador('POST', '/api/registrarWorkspace'));
+app.post('/api/cargarWorkspace', proxyCompilador('POST', '/api/cargarWorkspace'));
+app.get('/api/listarWorkspaces', proxyCompilador('GET', '/api/listarWorkspaces'));
+app.get('/api/workspaces/visibles', proxyCompilador('GET', '/api/workspaces/visibles'));
+app.get('/api/ultimoWorkspace', proxyCompilador('GET', '/api/ultimoWorkspace'));
+app.delete('/api/workspaces/:id', proxyCompilador('DELETE', (req) => '/api/workspaces/' + encodeURIComponent(req.params.id)));
+app.delete('/api/workspaces', proxyCompilador('DELETE', '/api/workspaces'));
+
+// Logs de actividad
+app.post('/api/registrarLogs', proxyCompilador('POST', '/api/registrarLogs'));
+app.get('/api/logs/mostrarLogs', proxyCompilador('GET', '/api/logs/mostrarLogs'));
+app.delete('/api/logs/sesion/:sessionId', proxyCompilador('DELETE', (req) => '/api/logs/sesion/' + encodeURIComponent(req.params.sessionId)));
+app.delete('/api/logs', proxyCompilador('DELETE', '/api/logs'));
+
+// e3value
+app.post('/api/e3value/contratos', proxyCompilador('POST', '/api/e3value/contratos'));
+app.post('/api/e3value/eventos', proxyCompilador('POST', '/api/e3value/eventos'));
+app.post('/api/e3value/convertirE3Value', proxyCompilador('POST', '/api/e3value/convertirE3Value'));
+app.post('/api/e3value/validar', proxyCompilador('POST', '/api/e3value/validar'));
+app.post('/api/e3value/preguntasObjetos', proxyCompilador('POST', '/api/e3value/preguntasObjetos'));
+
+// Administración de usuarios (el backend exige rol PROFESSOR/ADMIN; si el usuario no lo
+// tiene, compilador devuelve 403 y proxyCompilador lo traslada tal cual)
+app.get('/api/admin/usuarios/gestionables', async (req, res) => {
+  try {
+    const usuarios = await compilerProxy.call(req.session.compiladorCookie, 'GET', '/api/admin/usuarios/gestionables');
+    res.json((usuarios || []).map(sanitizeUsuario));
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      req.session.compiladorCookie = null;
+      return res.status(401).json({ mensaje: 'Session expired, please log in again' });
+    }
+    res.status(error.status || 502).json({ mensaje: error.message });
+  }
+});
+app.post('/api/admin/usuarios', proxyCompilador('POST', (req) => '/api/admin/usuarios?rol=' + encodeURIComponent(req.query.rol || 'USER')));
+app.put('/api/admin/usuarios/:id', proxyCompilador('PUT', (req) => '/api/admin/usuarios/' + encodeURIComponent(req.params.id) + '?rol=' + encodeURIComponent(req.query.rol || 'USER')));
+app.delete('/api/admin/usuarios/:id', proxyCompilador('DELETE', (req) => '/api/admin/usuarios/' + encodeURIComponent(req.params.id)));
+app.delete('/api/admin/usuarios', proxyCompilador('DELETE', '/api/admin/usuarios'));
+app.patch('/api/admin/usuarios/:id/bloqueo', proxyCompilador('PATCH', (req) => '/api/admin/usuarios/' + encodeURIComponent(req.params.id) + '/bloqueo'));
+
+/* NOTA: /api/admin/usuarios/carga-masiva (subida masiva de usuarios por Excel) no se ha
+portado - requiere reenviar un multipart/form-data, que este proxy no maneja todavía. */
+
+/************** END COMPILADOR PROXY */
 
 server.listen(process.env.PORT, () => {
   console.log('Server started on port ' + process.env.PORT);
