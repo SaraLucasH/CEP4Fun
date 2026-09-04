@@ -21,6 +21,10 @@ timeout /t 3 /nobreak
 timeout /t 3 /nobreak
 "%NSSM%" remove Cep4Fun-Mongo confirm
 
+"%NSSM%" stop Cep4Fun-Compilador
+timeout /t 3 /nobreak
+"%NSSM%" remove Cep4Fun-Compilador confirm
+
 timeout /t 5 /nobreak
 
 endlocal
