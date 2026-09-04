@@ -6,7 +6,7 @@ set "BASEDIR=%~dp0"
 set "NSSM=%BASEDIR%tools\nssm.exe"
 set "JAVA=%BASEDIR%runtime\java\bin\java.exe"
 set "JAVA_HOME=%BASEDIR%runtime\java"
-set "SIDDHI_BIN=%BASEDIR%siddhi\bin"
+set "SIDDHI_BIN=%BASEDIR%runtime\siddhi\bin"
 set "SIDDHI_APPS=%BASEDIR%siddhi-app"
 
 REM --- Carpeta de logs ---
