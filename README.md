@@ -25,6 +25,15 @@ Esta carpeta contiene el código fuente original de **Smacly**, una plataforma w
 - Comunicar con Node-RED y recibir los eventos generados por Siddhi.
 - Mostrar feedback dinámico al usuario dentro de la interfaz web.
 
+### 4. `compiler/` (no versionado en git)
+
+Backend Java **compilador** (Spring Boot) ya compilado. En esta carpeta se incluyen los binarios `solc` y `vyper`, necesarios para compilar los contratos Solidity/Vyper generados desde SmaclyWeb. Este backend también gestiona login, usuarios, workspaces, logs de actividad y la conversión a e3value. No se versiona en este repositorio porque son binarios generados/de terceros - se genera y se coloca siguiendo la sección [Despliegue con instalador (Windows)](#despliegue-con-instalador-windows).
+
+### 5. `installer/`, `runtime/`
+
+- `installer/installer.iss` es el proyecto de Inno Setup, y `installer/Scripts/*.bat` los scripts que instalan/desinstalan todo el sistema (MongoDB, compilador, Node-RED, Siddhi y smacly-web) como servicios de Windows mediante NSSM.
+- `runtime/` contiene todos los runtimes portables de terceros (Java, Node, MongoDB, Siddhi, NSSM). Esta carpeta no se versiona en git debido a las limitación de espacio en este repositorio. Consultar [Despliegue con instalador (Windows)](#despliegue-con-instalador-windows).
+
 ## Instrucciones de instalación de prerrequisitos
 ### Instalación de NodeJs
 1. Descargar el instalador desde el enlace oficial.
@@ -62,5 +71,47 @@ Esta carpeta contiene el código fuente original de **Smacly**, una plataforma w
 
    <img width="1008" height="174" alt="image" src="https://github.com/user-attachments/assets/4257adf5-06fb-46b7-8fdd-25133d22033d" />
 
-   
+Desde que smacly-web integra el backend `compilador`, además necesita **MongoDB** y el propio `compilador` corriendo (ver siguiente sección) para ciertas funcionalidades clave como compilación de contratos, iniciar sesión, guardar workspaces, ver logs o convertir a e3value. Sin ellos, a pesar de arrancar el servicio, la aplicación tan solo tendra accesible la pagina de login.html.
+
+## Despliegue con instalador (Windows)
+
+Como alternativa al arranque manual de la sección anterior: desplegar todo (MongoDB, compilador, Node-RED, Siddhi y smacly-web) como servicios de Windows mediante [NSSM](https://nssm.cc/), empaquetados en un instalador con [Inno Setup 6](https://jrsoftware.org/isinfo.php).
+
+### Runtimes necesarios (no versionados en git)
+
+`runtime/` y `compiler/` están en `.gitignore` porque son binarios de terceros o generados, no código propio. Antes de generar el instalador hay que descargar los runtimes **portables** (el `.zip`, sin instalador tradicional) y colocarlos en estas rutas:
+
+| Carpeta | Contenido | Usado por |
+|---|---|---|
+| `runtime/java/` | JRE 8 portable | Siddhi |
+| `runtime/java17/` | JDK 17 portable | compilador (Spring Boot 4 exige Java 17+; **tiene que ser JDK, no JRE**, para poder compilar el jar con `mvnw`) |
+| `runtime/node/` | Node.js portable, con Node-RED instalado dentro (`node_modules/node-red`) | Node-RED |
+| `runtime/mongodb/` | MongoDB Community Server portable - solo `mongod.exe` | compilador (usuarios, workspaces, logs) |
+| `runtime/siddhi/` | Distribución de Siddhi Runner (`bin/`, `conf/`, `deployment/`, `lib/`) | Siddhi |
+| `runtime/tools/nssm.exe` | NSSM, gestor de servicios de Windows | Todos los servicios |
+
+### Backend `compilador`
+
+1. Compilar el backend Java (proyecto `compilador`, fuera de este repo) con un JDK 17+ en el `PATH`/`JAVA_HOME` (no un JRE): `mvnw clean package`.
+2. Copiar `target/compilador-*.jar` a `compiler/compilador.jar`.
+3. Copiar los binarios de `solc` y `vyper` a `compiler/solc/` y `compiler/vyper/`.
+
+> Para no depender de rutas especificadas en `application.properties`: las rutas de `solc`/`vyper` se pasan como argumentos al arrancar el servicio (`install_compilador_service.bat`, propiedades `--compilador.solc.ruta=...`/`--compilador.vyper.ruta=...`), y se corresponden con las descritas en el punto 3 de esta sección.
+
+### Instalar / desinstalar los servicios
+
+Los scripts se encuentran en `installer/Scripts/`:
+- `install_services.bat`: instala y arranca, en este orden, `Cep4Fun-Mongo`, `Cep4Fun-Compilador`, `Cep4Fun-Siddhi`, `Cep4Fun-NodeRED` y `Cep4Fun-Web`.
+- `remove_services.bat`: para y desinstala todos los anteriores.
+
+### Generar el instalador
+
+Con Inno Setup 6 instalado, compilar `installer/installer.iss` (GUI: Build → Compile, o `ISCC.exe installer/installer.iss`). 
+- El instalador copia todo a `{app}` (por defecto `C:\Program Files\CEP4Fun`), manteniendo la misma estructura que en el repositorio, y ejecuta `installer\Scripts\install_services.bat` al terminar.
+- El desinstalador ejecuta `installer\Scripts\remove_services.bat`.
+- `installer/Output/` (el `.exe` generado) tampoco se versiona en este repositorio.
+
+### Primer arranque
+
+smacly-web exige haber iniciado sesión contra `compilador` para entrar al editor. La primera vez, es necesario registrar un usuario para poder usar la herramienta. En el formulario de login se encuentra el botón para este propósito.
 
