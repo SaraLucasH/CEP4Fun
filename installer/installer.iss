@@ -20,17 +20,10 @@ Source: "..\node-red\*"; DestDir: "{app}\node-red"; Flags: recursesubdirs
 Source: "..\siddhi-app\*"; DestDir: "{app}\siddhi-app"; Flags: recursesubdirs
 Source: "..\compiler\*"; DestDir: "{app}\compiler"; Flags: recursesubdirs
 Source: "..\runtime\*"; DestDir: "{app}\runtime"; Flags: recursesubdirs
-Source: "..\tools\*"; DestDir: "{app}\tools"; Flags: recursesubdirs
-Source: "..\install_services.bat"; DestDir: "{app}"
-Source: "..\remove_services.bat"; DestDir: "{app}"
-Source: "..\install_mongo_service.bat"; DestDir: "{app}"
-Source: "..\install_siddhi_service.bat"; DestDir: "{app}"
-Source: "..\install_nodered_service.bat"; DestDir: "{app}"
-Source: "..\install_compilador_service.bat"; DestDir: "{app}"
-Source: "..\install_smacly_service.bat"; DestDir: "{app}"
+Source: "Scripts\*"; DestDir: "{app}\installer\Scripts"; Flags: recursesubdirs
 
 [Run]
-Filename: {app}\install_services.bat; Flags: runhidden waituntilterminated; StatusMsg:Instalando servicios de CEP4Fun...
+Filename: {app}\installer\Scripts\install_services.bat; Flags: runhidden waituntilterminated; StatusMsg:Instalando servicios de CEP4Fun...
 
 [UninstallRun]
-Filename: {app}\remove_services.bat; Flags: runhidden waituntilterminated
+Filename: {app}\installer\Scripts\remove_services.bat; Flags: runhidden waituntilterminated
