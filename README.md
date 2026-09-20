@@ -9,6 +9,8 @@ Incluye:
 
 - `flows.json`: el archivo principal que define los nodos y la lógica de procesamiento que conecta los flujos CEP con la interfaz web y otros servicios.
 
+> **En evaluación**: sustitucion del enrutado por **n8n** (ver `n8n/` más abajo)
+
 ### 2. `siddhi-app/`
 
 Aquí se encuentran los flujos de **Siddhi** para procesamiento de eventos complejos (CEP).  
@@ -31,8 +33,15 @@ Backend Java **compilador** (Spring Boot) ya compilado. En esta carpeta se inclu
 
 ### 5. `installer/`, `runtime/`
 
-- `installer/installer.iss` es el proyecto de Inno Setup, y `installer/Scripts/*.bat` los scripts que instalan/desinstalan todo el sistema (MongoDB, compilador, Node-RED, Siddhi y smacly-web) como servicios de Windows mediante NSSM.
+- `installer/installer.iss` es el proyecto de Inno Setup, y `installer/Scripts/*.bat` los scripts que instalan/desinstalan todo el sistema (MongoDB, compilador, n8n, Node-RED, Siddhi y smacly-web) como servicios de Windows mediante NSSM.
 - `runtime/` contiene todos los runtimes portables de terceros (Java, Node, MongoDB, Siddhi, NSSM). Esta carpeta no se versiona en git debido a las limitación de espacio en este repositorio. Consultar [Despliegue con instalador (Windows)](#despliegue-con-instalador-windows).
+
+### 6. `n8n/`
+
+Workflows de **n8n** exportados como `.json` (Sustituto del enrutado de eventos de Node-RED, presente en versiones anteriores. (ver aviso en `node-red/` arriba):
+
+- `receive-log-event.json`: "Receive Log Event Json" de Node-RED (`POST /events-log`).
+- `event-state.json`: "Event state" (los 15 `POST /event-state/<código>`).
 
 ## Instrucciones de instalación de prerrequisitos
 ### Instalación de NodeJs
@@ -75,7 +84,7 @@ Desde que smacly-web integra el backend `compilador`, además necesita **MongoDB
 
 ## Despliegue con instalador (Windows)
 
-Como alternativa al arranque manual de la sección anterior: desplegar todo (MongoDB, compilador, Node-RED, Siddhi y smacly-web) como servicios de Windows mediante [NSSM](https://nssm.cc/), empaquetados en un instalador con [Inno Setup 6](https://jrsoftware.org/isinfo.php).
+Como alternativa al arranque manual de la sección anterior: desplegar todo (MongoDB, compilador, n8n, Node-RED, Siddhi y smacly-web) como servicios de Windows mediante [NSSM](https://nssm.cc/), empaquetados en un instalador con [Inno Setup 6](https://jrsoftware.org/isinfo.php).
 
 ### Runtimes necesarios (no versionados en git)
 
@@ -89,6 +98,7 @@ Como alternativa al arranque manual de la sección anterior: desplegar todo (Mon
 | `runtime/mongodb/` | MongoDB Community Server portable - solo `mongod.exe` | compilador (usuarios, workspaces, logs) |
 | `runtime/siddhi/` | Distribución de Siddhi Runner (`bin/`, `conf/`, `deployment/`, `lib/`) | Siddhi |
 | `runtime/tools/nssm.exe` | NSSM, gestor de servicios de Windows | Todos los servicios |
+| `runtime/node/node_modules/n8n/` | n8n instalado dentro del mismo Node portable (no es un `.zip` aparte) | n8n |
 
 ### Backend `compilador`
 
@@ -101,7 +111,7 @@ Como alternativa al arranque manual de la sección anterior: desplegar todo (Mon
 ### Instalar / desinstalar los servicios
 
 Los scripts se encuentran en `installer/Scripts/`:
-- `install_services.bat`: instala y arranca, en este orden, `Cep4Fun-Mongo`, `Cep4Fun-Compilador`, `Cep4Fun-Siddhi`, `Cep4Fun-NodeRED` y `Cep4Fun-Web`.
+- `install_services.bat`: instala y arranca, en este orden, `Cep4Fun-Mongo`, `Cep4Fun-Compilador`, `Cep4Fun-Siddhi`, `Cep4Fun-N8N`, `Cep4Fun-NodeRED` y `Cep4Fun-Web`.
 - `remove_services.bat`: para y desinstala todos los anteriores.
 
 ### Generar el instalador
