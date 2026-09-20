@@ -1,0 +1,1265 @@
+{
+  "name": "event-state",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/ntd002",
+        "options": {}
+      },
+      "id": "7fd6e432-3c17-40ea-b9ee-3d6f40e20fa4",
+      "name": "POST /event-state/ntd002",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -784
+      ],
+      "webhookId": "4e7e83ec-d182-4b1a-9d61-d9820dfc6223"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "365058aa-92de-4937-9332-d33d349cbdd1",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "256be39c-65f4-4a39-be02-c35ff8c3a690",
+      "name": "Unwrap payload (ntd002)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -784
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "89644f52-b47b-48e7-8b8a-13ae0b6a5ded",
+      "name": "Forward ntd002 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        -784
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/ntd003",
+        "options": {}
+      },
+      "id": "1113a2b3-5460-45eb-b253-c1e648b3881d",
+      "name": "POST /event-state/ntd003",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -608
+      ],
+      "webhookId": "01945f3d-50ce-4a61-8d7f-713f498764b8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82c16a46-cd6e-4857-b09b-c552c90d1897",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9b8a2778-435f-4b84-8999-c82e82e60c8f",
+      "name": "Unwrap payload (ntd003)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -608
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "ac806fdc-01d1-4c42-99bd-c5941d170af2",
+      "name": "Forward ntd003 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        -608
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sye003",
+        "options": {}
+      },
+      "id": "06406b40-a538-4922-a8c7-42d990665950",
+      "name": "POST /event-state/sye003",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -160
+      ],
+      "webhookId": "c0a515aa-ddab-4ed1-8fc1-22ca797099ac"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "51b78948-2779-48ce-a304-7d5632ec1360",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cb034f3c-0fed-479e-b8ae-44680282a140",
+      "name": "Unwrap payload (sye003)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "977fd306-1dc8-466a-a3b8-7a89e6fe5073",
+      "name": "Forward sye003 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sye002",
+        "options": {}
+      },
+      "id": "ffcb2d25-5e21-48df-9df6-245ea44112ee",
+      "name": "POST /event-state/sye002",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        0
+      ],
+      "webhookId": "9a52d24c-bb4d-49af-86e5-87673cdc33af"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6873f03d-eb12-4f50-9dab-6baffe2636b0",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7a10a1af-1ec4-4810-8a82-673e66456e93",
+      "name": "Unwrap payload (sye002)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "71f49e3c-d526-48ea-867f-7e85d14aaf95",
+      "name": "Forward sye002 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sye004",
+        "options": {}
+      },
+      "id": "9ed75772-4833-460c-bb08-35197d108551",
+      "name": "POST /event-state/sye004",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        176
+      ],
+      "webhookId": "988240b8-097b-4cc5-8f09-8a757fd292fa"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "66ae6888-7749-4fa6-afce-a95d546eac2e",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fc55d7ff-483a-45a8-8b74-0b1df00b4ec3",
+      "name": "Unwrap payload (sye004)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "4a9f4b18-311a-42e9-a0f4-7c2784df8559",
+      "name": "Forward sye004 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/prg002",
+        "options": {}
+      },
+      "id": "c101a9be-9f38-41a2-9501-6b190bbc2be0",
+      "name": "POST /event-state/prg002",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -960
+      ],
+      "webhookId": "3120c718-2b5b-4597-8a80-4594a5a21542"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82adda96-dc69-4e19-92ed-b4391c69f3dd",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "65e868fc-3d5f-449f-9edf-4e6272bb3263",
+      "name": "Unwrap payload (prg002)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        -960
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "3c3a739b-f1c5-4880-8b15-907883e6bfbd",
+      "name": "Forward prg002 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        -960
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/prg003",
+        "options": {}
+      },
+      "id": "95787e1d-c187-485b-a79e-f05f05f15368",
+      "name": "POST /event-state/prg003",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -784
+      ],
+      "webhookId": "5ffb76a3-63a7-449d-beec-8d86d1237b15"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a0b4e0c-de7b-4770-bb7d-5eabd0f6f681",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8f95c8ef-0dce-450c-820b-4617de952f22",
+      "name": "Unwrap payload (prg003)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        -784
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "9f0e8e50-6b10-4714-8166-198d22cf03ff",
+      "name": "Forward prg003 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        -784
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/prg004",
+        "options": {}
+      },
+      "id": "1850d162-a5ec-4b14-b115-f78b21ac7c4a",
+      "name": "POST /event-state/prg004",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -608
+      ],
+      "webhookId": "9fb704b7-d9af-48b0-92d8-843faea99afe"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d24c7859-b388-4f96-80ca-a8468455d536",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0cf632e2-9970-41f5-a2f8-7b260744f7bf",
+      "name": "Unwrap payload (prg004)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        -608
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "57c9d9be-3842-4b35-8e3d-afd1d1c52f69",
+      "name": "Forward prg004 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        -608
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/ntd001",
+        "options": {}
+      },
+      "id": "f6063b90-5cb0-4187-9110-e37b9ccc0870",
+      "name": "POST /event-state/ntd001",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -960
+      ],
+      "webhookId": "2bc76af4-2b13-4bad-b629-f2c394a4bbd2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b88d5ea-475d-4165-ae66-6d3d706d1aff",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2ba4850d-69b9-4d25-90a6-b4e0f2870e03",
+      "name": "Unwrap payload (ntd001)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -960
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "2cf1d718-6a9d-4a17-873d-8b52ac3d978b",
+      "name": "Forward ntd001 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        -960
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sye001",
+        "options": {}
+      },
+      "id": "5ba2fcb4-8407-45b0-988c-0a1700b2d633",
+      "name": "POST /event-state/sye001",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        352
+      ],
+      "webhookId": "bc738d1c-ccab-4177-8f0d-72d6c4af82eb"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b19dd105-9766-4224-a96c-f2d06a2e3cb2",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5a02e098-a224-4a93-b0df-c8a80c45b9fc",
+      "name": "Unwrap payload (sye001)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "37d49dec-4260-4084-84a4-f210ed853e48",
+      "name": "Forward sye001 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/ntd004",
+        "options": {}
+      },
+      "id": "b12a90d9-34f7-4c5b-9f46-def65940f15f",
+      "name": "POST /event-state/ntd004",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -432
+      ],
+      "webhookId": "7d687349-0da4-4483-bd6f-260844e32c06"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "94d36d37-dfa9-44a4-a921-bc9cc28d823f",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "560571a7-8428-4af0-983f-693ae34eab35",
+      "name": "Unwrap payload (ntd004)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -432
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "e5bfc47e-9236-4709-a3f4-2f910622200c",
+      "name": "Forward ntd004 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        -432
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sce002",
+        "options": {}
+      },
+      "id": "8b01e417-6247-45a8-bc6c-15a8c54306f8",
+      "name": "POST /event-state/sce002",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -288
+      ],
+      "webhookId": "5d2a091c-e017-416b-b805-33478ec4eeb2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3faf2518-1993-465f-b366-5dfbf366672e",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5d4cd398-9bc6-43cd-a852-175980459bd0",
+      "name": "Unwrap payload (sce002)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "9859ce3f-9429-465c-a353-441a5453e873",
+      "name": "Forward sce002 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sce003",
+        "options": {}
+      },
+      "id": "f7401625-31d0-426e-a068-6cf959edafc8",
+      "name": "POST /event-state/sce003",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -112
+      ],
+      "webhookId": "830e86e1-a343-432d-be96-c10f1c1c499b"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1d1ee061-35c0-43bc-ba12-c6e0f39c1ce7",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "324dec48-300d-48d0-8a20-1a29e5942582",
+      "name": "Unwrap payload (sce003)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "9b1d7c25-dff5-403e-a8c0-3658eb95e24a",
+      "name": "Forward sce003 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sce005",
+        "options": {}
+      },
+      "id": "e9d1c585-d2e7-48c1-8e05-bc90a7a83b51",
+      "name": "POST /event-state/sce005",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        704,
+        80
+      ],
+      "webhookId": "babcf80a-db16-400d-87a6-32dda80100a1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f477ceab-17f2-4b4d-b1a5-42526a516bc3",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "94056d27-5213-4feb-9103-2dec936a05b2",
+      "name": "Unwrap payload (sce005)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "a677978a-8e78-4cc1-989a-672ccb796d38",
+      "name": "Forward sce005 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-state/sce006",
+        "options": {}
+      },
+      "id": "5ab4969a-f56f-40cc-bf00-3a8d3220f006",
+      "name": "POST /event-state/sce006",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        704,
+        272
+      ],
+      "webhookId": "373457ee-de14-4689-b483-17eb196a351e"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e88fb66d-b112-40cb-bd51-6b15bae3225c",
+              "name": "=",
+              "type": "object",
+              "value": "={{ $json.payload }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "357fb73b-8a74-4bf1-98ac-737e2f68226f",
+      "name": "Unwrap payload (sce006)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/event-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "4a6cfc5e-8413-4cb6-92d5-41468e3def46",
+      "name": "Forward sce006 -> :1080/event-state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## SYEXXX",
+        "height": 624,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -144
+      ],
+      "id": "05be00d4-fe74-47c7-b650-2911e23ec87d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## NTDXXX",
+        "height": 656,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -944
+      ],
+      "id": "9e6c2e50-71a2-48a5-9f2d-e16ee9ab312a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## PRGXXX",
+        "height": 512,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -960
+      ],
+      "id": "dbba7625-d5c4-4700-a690-447e5e02dadd",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## SCEXXX",
+        "height": 704,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -288
+      ],
+      "id": "c6f870b9-499b-41f8-8e86-6097fa91a5f9",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "POST /event-state/ntd002": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (ntd002)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (ntd002)": {
+      "main": [
+        [
+          {
+            "node": "Forward ntd002 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/ntd003": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (ntd003)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (ntd003)": {
+      "main": [
+        [
+          {
+            "node": "Forward ntd003 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sye003": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sye003)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sye003)": {
+      "main": [
+        [
+          {
+            "node": "Forward sye003 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sye002": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sye002)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sye002)": {
+      "main": [
+        [
+          {
+            "node": "Forward sye002 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sye004": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sye004)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sye004)": {
+      "main": [
+        [
+          {
+            "node": "Forward sye004 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/prg002": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (prg002)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (prg002)": {
+      "main": [
+        [
+          {
+            "node": "Forward prg002 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/prg003": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (prg003)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (prg003)": {
+      "main": [
+        [
+          {
+            "node": "Forward prg003 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/prg004": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (prg004)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (prg004)": {
+      "main": [
+        [
+          {
+            "node": "Forward prg004 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/ntd001": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (ntd001)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (ntd001)": {
+      "main": [
+        [
+          {
+            "node": "Forward ntd001 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sye001": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sye001)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sye001)": {
+      "main": [
+        [
+          {
+            "node": "Forward sye001 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/ntd004": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (ntd004)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (ntd004)": {
+      "main": [
+        [
+          {
+            "node": "Forward ntd004 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sce002": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sce002)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sce002)": {
+      "main": [
+        [
+          {
+            "node": "Forward sce002 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sce003": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sce003)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sce003)": {
+      "main": [
+        [
+          {
+            "node": "Forward sce003 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sce005": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sce005)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sce005)": {
+      "main": [
+        [
+          {
+            "node": "Forward sce005 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /event-state/sce006": {
+      "main": [
+        [
+          {
+            "node": "Unwrap payload (sce006)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap payload (sce006)": {
+      "main": [
+        [
+          {
+            "node": "Forward sce006 -> :1080/event-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4f7ab6b2-fcda-4182-8aa4-9928801ff1e3",
+  "meta": {
+    "instanceId": "d6f18c73412c17700c58df2ef86e91bd10b8fd9f7b3dd0e9122a1e93614029f9"
+  },
+  "id": "x8KSipW0bBOs6OaG",
+  "tags": []
+}

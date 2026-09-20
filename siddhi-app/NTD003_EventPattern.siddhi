@@ -1,7 +1,7 @@
 @App:name('NTD003_EventPattern')
 @App:description('CEP Application for events received from SmaCly')
 
-@sink(type = 'http', publisher.url = "http://localhost:1880/event-state/ntd003", sink.id = "NTD003-validation", method = "POST", 
+@sink(type = 'http', publisher.url = "http://localhost:5678/webhook/event-state/ntd003", sink.id = "NTD003-validation", method = "POST", 
 	@map(type = 'json',
 	    @payload("""{"Timestamp":"{{timestamp}}", "Topic":"ntd003","IdSession":"{{idSession}}","Param1":"{{name}}", "State":{{properInheritance}}, "BlockId":"{{blockId}}"}""")))
 define stream NTD003ValidationStream (timestamp string, idSession string, name string, total long, properInheritance int, blockId string);

@@ -1,7 +1,7 @@
 @App:name('SYE004_EventPattern')
 @App:description('CEP Application for events received from SmaCly')
 
-@sink(type = 'http', publisher.url = "http://localhost:1880/event-state/sye004", sink.id = "SYE004-validation", method = "POST", 
+@sink(type = 'http', publisher.url = "http://localhost:5678/webhook/event-state/sye004", sink.id = "SYE004-validation", method = "POST", 
 	@map(type = 'json',
 	    @payload("""{"Timestamp":"{{timestamp}}", "Topic":"sye004", "IdSession":"{{idSession}}", "Param1":"{{name}}", "State":{{duplicated}}, "BlockId":"{{blockId}}"}""")))
 define stream SYE004ValidationStream (timestamp string, idSession string, name string, total long, blockId string, duplicated int);

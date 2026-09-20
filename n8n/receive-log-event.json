@@ -1,0 +1,602 @@
+{
+  "name": "receive-log-event",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "events-log",
+        "options": {}
+      },
+      "id": "d89894bc-81f7-4ab6-9edd-bc9465f13c82",
+      "name": "POST /events-log",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        112
+      ],
+      "webhookId": "129093ca-0e6d-4a65-886a-5bd392c95fa7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-ntd002",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "0007f25c-0499-441a-b6b8-321fcaeaf1e0",
+      "name": "get-ntd002",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-dep001",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "8c750fc7-c14e-4006-8c6b-76992dcf5dd1",
+      "name": "get-dep001",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-sye002",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "f542c55d-29ae-4f89-91ce-077f455518f0",
+      "name": "get-sye002",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-sye003",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "43d670f9-f2da-4867-b7f9-ccce2ddd9825",
+      "name": "get-sye003",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-sye004",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "6c66c7b7-e59d-4225-a90d-3bf497f26628",
+      "name": "get-sye004",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-ntd003",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "270fb0b4-5dd3-449f-aea2-cd41964dda55",
+      "name": "get-ntd003",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-ntd004",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "319861f4-3a62-4489-bba9-895e2c95d03f",
+      "name": "get-ntd004",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:1080/get-sce003",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "9419902b-3de7-499b-97ac-b72d1d3f0085",
+      "name": "get-sce003",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/validation-prg001",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\"Response\": \"1\"} }}",
+        "options": {}
+      },
+      "id": "a847864e-0925-4e5c-9d10-dcd2de31c7c2",
+      "name": "PRG001 TO smacly-web",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cada /events-log, de cualquier topic, reinicia el contador de inactividad de 2 min\nconst data = $getWorkflowStaticData('global');\ndata.lastEventAt = Date.now();\ndata.prg001AlreadyFired = false;\nreturn $input.all();"
+      },
+      "id": "b2197cba-43da-49f7-a9f7-3a33b2be7e38",
+      "name": "Raise PRG001",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $getWorkflowStaticData('global');\nconst now = Date.now();\nconst last = data.lastEventAt || now; \nconst idleMs = now - last;\nconst TWO_MINUTES = 2 * 60 * 1000;\nlet fire = false;\nif (idleMs >= TWO_MINUTES && !data.prg001AlreadyFired) {\n  fire = true;\n  data.prg001AlreadyFired = true; //Dont repeat. Fixing bug from node-red\n}\nreturn [{ json: { fire, idleMs } }];"
+      },
+      "id": "86269018-d64f-4fe4-8ff2-a900d5f78176",
+      "name": "Check inactivity - 2 min",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -688,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "82fcd306-bc37-436a-a5ff-4d06dc47e4d6",
+              "leftValue": "={{ $json.fire }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "820566e1-e68e-49be-80dc-3c1264f8d16d",
+      "name": "Inactive during 2 min?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "e20fb719-43ac-437f-b3cd-c75380423752",
+      "name": "EachMinute",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -960,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "89ba76a6-a77e-4102-a11d-6b0471b781d6",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "ntd002",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ntd002"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1918186c-604a-4d81-be4a-cfc0201947af",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "dep001",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "dep001"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ba4b9d73-6db9-45cd-9838-1179e3a03249",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "sye002",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sye002"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4e811cef-aa42-4031-9d18-58bdfd96a198",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "sye003",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sye003"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f92135c9-15b9-4676-9849-9e54a895112a",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "sye004",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sye004"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "29a64d0f-07f4-4755-9c5b-f6e8059eb380",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "ntd003",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ntd003"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "eca15ca8-3e27-4183-a97e-cb9b3cacd57e",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "ntd004",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ntd004"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b658d429-6ff1-4f17-b1c4-18dda65dcf54",
+                    "leftValue": "={{ $json.payload.Topic }}",
+                    "rightValue": "sce003",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sce003"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "68ccb93e-b0b6-429e-bc46-82236f5f827d",
+      "name": "Switch by Topic",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -160,
+        16
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "POST /events-log": {
+      "main": [
+        [
+          {
+            "node": "Raise PRG001",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Raise PRG001": {
+      "main": [
+        [
+          {
+            "node": "Switch by Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check inactivity - 2 min": {
+      "main": [
+        [
+          {
+            "node": "Inactive during 2 min?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inactive during 2 min?": {
+      "main": [
+        [
+          {
+            "node": "PRG001 TO smacly-web",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EachMinute": {
+      "main": [
+        [
+          {
+            "node": "Check inactivity - 2 min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch by Topic": {
+      "main": [
+        [
+          {
+            "node": "get-ntd002",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get-dep001",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get-sye002",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get-sye003",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get-sye004",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get-ntd003",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get-ntd004",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get-sce003",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "56fdf88e-5f5c-4769-9dab-1a3a896b42ac",
+  "meta": {
+    "instanceId": "d6f18c73412c17700c58df2ef86e91bd10b8fd9f7b3dd0e9122a1e93614029f9"
+  },
+  "id": "u60sL1y7swYvTU7y",
+  "tags": []
+}

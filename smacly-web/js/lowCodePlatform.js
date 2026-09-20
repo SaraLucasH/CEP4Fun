@@ -1,5 +1,5 @@
 const HostName = "127.0.0.1";
-const Port = "1880";
+const Port = "5678"; // n8n (antes: 1880, Node-RED)
 
 var LowCodePlatformURIs = {
     Send_Log_Events : '/events-log'

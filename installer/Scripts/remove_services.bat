@@ -1,7 +1,6 @@
 @echo off
 setlocal
 
-REM El script vive en installer\Scripts\, dos niveles por debajo de la raíz del proyecto
 set "BASEDIR=%~dp0..\..\"
 set "NSSM=%BASEDIR%runtime\tools\nssm.exe"
 
@@ -10,9 +9,9 @@ set "NSSM=%BASEDIR%runtime\tools\nssm.exe"
 timeout /t 3 /nobreak
 "%NSSM%" remove Cep4Fun-Web confirm
 
-"%NSSM%" stop Cep4Fun-NodeRED
+"%NSSM%" stop Cep4Fun-N8N
 timeout /t 3 /nobreak
-"%NSSM%" remove Cep4Fun-NodeRED confirm
+"%NSSM%" remove Cep4Fun-N8N confirm
 
 "%NSSM%" stop Cep4Fun-Siddhi
 timeout /t 3 /nobreak

@@ -32,7 +32,8 @@ function buildHttpGet(hostName, port, topic, path){
 function buildhttpRequest(httpMethod, hostName, path, port, topic, jsonFile){
   
   var xhr = new XMLHttpRequest();
-  var url = 'http://'.concat(hostName,':', port, path);
+  // n8n expone sus webhooks bajo /webhook/<path> (antes: Node-RED, sin prefijo)
+  var url = 'http://'.concat(hostName,':', port, '/webhook', path);
   
   xhr.open(httpMethod, url, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
