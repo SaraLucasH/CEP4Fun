@@ -2,7 +2,6 @@
 setlocal
 
 REM ----- Configuración de paths base --------------
-REM El script vive en installer\Scripts\, dos niveles por debajo de la raíz del proyecto
 set "BASEDIR=%~dp0..\..\"
 set "NSSM=%BASEDIR%runtime\tools\nssm.exe"
 set "MONGOPATH=%BASEDIR%runtime\mongodb\mongod.exe"
@@ -26,10 +25,6 @@ echo ========================================
 REM Eliminar servicio antiguo
 "%NSSM%" remove Cep4Fun-Mongo confirm >nul 2>&1
 
-REM Instalar servicio solo con el ejecutable; los argumentos van aparte con AppParameters
-REM como una única cadena, porque BASEDIR contiene espacios ("Program Files") y pasarlos
-REM sueltos en la línea de "nssm install" rompe el parseo (nssm install lo intenta como
-REM varios argumentos posicionales, "Files\..." se interpreta como un argumento suelto)
 "%NSSM%" install Cep4Fun-Mongo "%MONGOPATH%"
 "%NSSM%" set Cep4Fun-Mongo AppParameters "--dbpath \"%MONGODATAPATH%\" --port 27017"
 

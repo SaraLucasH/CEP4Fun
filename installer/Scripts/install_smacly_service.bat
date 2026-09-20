@@ -2,7 +2,6 @@
 setlocal
 
 REM === RUTAS BASE ===
-REM El script vive en installer\Scripts\, dos niveles por debajo de la raíz del proyecto
 set "BASEDIR=%~dp0..\..\"
 set "NSSM=%BASEDIR%runtime\tools\nssm.exe"
 set "NODE=%BASEDIR%runtime\node\node.exe"

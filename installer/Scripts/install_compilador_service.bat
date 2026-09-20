@@ -2,7 +2,6 @@
 setlocal
 
 REM ----- Configuración de paths base --------------
-REM El script vive en installer\Scripts\, dos niveles por debajo de la raíz del proyecto
 set "BASEDIR=%~dp0..\..\"
 set "NSSM=%BASEDIR%runtime\tools\nssm.exe"
 set "JAVA17=%BASEDIR%runtime\java17\bin\java.exe"
@@ -34,11 +33,6 @@ netsh advfirewall firewall add rule ^
 REM Eliminar servicio antiguo
 "%NSSM%" remove Cep4Fun-Compilador confirm >nul 2>&1
 
-REM Instalar servicio solo con el ejecutable; los argumentos van aparte con AppParameters
-REM como una única cadena (BASEDIR contiene espacios - "Program Files" - y pasarlos
-REM sueltos en la línea de "nssm install" rompe el parseo). Las rutas de solc/vyper se
-REM pasan como argumentos de Spring Boot (--propiedad=valor) para no depender de
-REM application.properties, que trae rutas de otra máquina, ni recompilar el jar.
 "%NSSM%" install Cep4Fun-Compilador "%JAVA17%"
 "%NSSM%" set Cep4Fun-Compilador AppParameters "-jar \"%COMPILER_JAR%\" --compilador.solc.ruta=\"%SOLC_PATH%\" --compilador.vyper.ruta=\"%VYPER_PATH%\""
 
