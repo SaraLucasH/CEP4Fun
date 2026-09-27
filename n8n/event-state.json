@@ -7,37 +7,27 @@
         "path": "event-state/ntd002",
         "options": {}
       },
-      "id": "7fd6e432-3c17-40ea-b9ee-3d6f40e20fa4",
+      "id": "2c0a461e-c3ca-4174-a935-3d462f3fff79",
       "name": "POST /event-state/ntd002",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -400,
-        -784
+        2352,
+        -208
       ],
       "webhookId": "4e7e83ec-d182-4b1a-9d61-d9820dfc6223"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "365058aa-92de-4937-9332-d33d349cbdd1",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "256be39c-65f4-4a39-be02-c35ff8c3a690",
+      "id": "4c259978-1e8b-4fd1-9f9f-5a2b5cc574ca",
       "name": "Unwrap payload (ntd002)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -80,
-        -784
+        2672,
+        -208
       ]
     },
     {
@@ -49,13 +39,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "89644f52-b47b-48e7-8b8a-13ae0b6a5ded",
+      "id": "9efeb289-282f-4d8a-9c56-8f40dfe413e8",
       "name": "Forward ntd002 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        224,
-        -784
+        2976,
+        -208
       ]
     },
     {
@@ -64,37 +54,27 @@
         "path": "event-state/ntd003",
         "options": {}
       },
-      "id": "1113a2b3-5460-45eb-b253-c1e648b3881d",
+      "id": "5c030c06-ddfa-4a74-9bbe-69b26a2cb32f",
       "name": "POST /event-state/ntd003",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -400,
-        -608
+        2352,
+        -32
       ],
       "webhookId": "01945f3d-50ce-4a61-8d7f-713f498764b8"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "82c16a46-cd6e-4857-b09b-c552c90d1897",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "9b8a2778-435f-4b84-8999-c82e82e60c8f",
+      "id": "36cb09f5-a68f-4a11-a663-c4d0649330c8",
       "name": "Unwrap payload (ntd003)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -80,
-        -608
+        2672,
+        -32
       ]
     },
     {
@@ -106,13 +86,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "ac806fdc-01d1-4c42-99bd-c5941d170af2",
+      "id": "50403b65-9ab0-4fad-8668-480f9769fe6c",
       "name": "Forward ntd003 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        224,
-        -608
+        2976,
+        -32
       ]
     },
     {
@@ -121,37 +101,27 @@
         "path": "event-state/sye003",
         "options": {}
       },
-      "id": "06406b40-a538-4922-a8c7-42d990665950",
+      "id": "8e721834-58ca-4554-96fc-851b5f92da6a",
       "name": "POST /event-state/sye003",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -416,
-        -160
+        2336,
+        416
       ],
       "webhookId": "c0a515aa-ddab-4ed1-8fc1-22ca797099ac"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "51b78948-2779-48ce-a304-7d5632ec1360",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "cb034f3c-0fed-479e-b8ae-44680282a140",
+      "id": "85af3ba7-a9e5-4bfb-a7dd-9f9f121b6568",
       "name": "Unwrap payload (sye003)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -96,
-        -160
+        2656,
+        416
       ]
     },
     {
@@ -163,13 +133,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "977fd306-1dc8-466a-a3b8-7a89e6fe5073",
+      "id": "bb80945a-b7e0-48e3-a1f9-cc4a8d1d7d15",
       "name": "Forward sye003 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        208,
-        -160
+        2960,
+        416
       ]
     },
     {
@@ -178,37 +148,27 @@
         "path": "event-state/sye002",
         "options": {}
       },
-      "id": "ffcb2d25-5e21-48df-9df6-245ea44112ee",
+      "id": "ec1c007d-85a7-4a7a-b7da-e9b0871caf0c",
       "name": "POST /event-state/sye002",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -416,
-        0
+        2336,
+        576
       ],
       "webhookId": "9a52d24c-bb4d-49af-86e5-87673cdc33af"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "6873f03d-eb12-4f50-9dab-6baffe2636b0",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "7a10a1af-1ec4-4810-8a82-673e66456e93",
+      "id": "b022526a-fbfa-4f34-8259-4187d4e5cd61",
       "name": "Unwrap payload (sye002)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -96,
-        0
+        2656,
+        576
       ]
     },
     {
@@ -220,13 +180,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "71f49e3c-d526-48ea-867f-7e85d14aaf95",
+      "id": "6b5bcb7e-460b-45ac-beba-b335c4e4b5b6",
       "name": "Forward sye002 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        208,
-        0
+        2960,
+        576
       ]
     },
     {
@@ -235,37 +195,27 @@
         "path": "event-state/sye004",
         "options": {}
       },
-      "id": "9ed75772-4833-460c-bb08-35197d108551",
+      "id": "f242d412-9a16-46c2-a607-b12ebeec64ae",
       "name": "POST /event-state/sye004",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -416,
-        176
+        2336,
+        752
       ],
       "webhookId": "988240b8-097b-4cc5-8f09-8a757fd292fa"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "66ae6888-7749-4fa6-afce-a95d546eac2e",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "fc55d7ff-483a-45a8-8b74-0b1df00b4ec3",
+      "id": "82db0506-b7b7-4f00-8bde-9dfdeee02890",
       "name": "Unwrap payload (sye004)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -96,
-        176
+        2656,
+        752
       ]
     },
     {
@@ -277,13 +227,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "4a9f4b18-311a-42e9-a0f4-7c2784df8559",
+      "id": "a45d7296-d1c8-4ff7-824c-66821112cb07",
       "name": "Forward sye004 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        208,
-        176
+        2960,
+        752
       ]
     },
     {
@@ -292,37 +242,27 @@
         "path": "event-state/prg002",
         "options": {}
       },
-      "id": "c101a9be-9f38-41a2-9501-6b190bbc2be0",
+      "id": "d1000525-b7dd-4dcd-a6ba-1ad60d3588ff",
       "name": "POST /event-state/prg002",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        672,
-        -960
+        3424,
+        -384
       ],
       "webhookId": "3120c718-2b5b-4597-8a80-4594a5a21542"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "82adda96-dc69-4e19-92ed-b4391c69f3dd",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "65e868fc-3d5f-449f-9edf-4e6272bb3263",
+      "id": "c6464315-76ca-48d8-bad9-22b1dffe4674",
       "name": "Unwrap payload (prg002)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        992,
-        -960
+        3744,
+        -384
       ]
     },
     {
@@ -334,13 +274,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "3c3a739b-f1c5-4880-8b15-907883e6bfbd",
+      "id": "c7216016-178f-4ad5-9bff-78cd6d84ff96",
       "name": "Forward prg002 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1296,
-        -960
+        4048,
+        -384
       ]
     },
     {
@@ -349,37 +289,27 @@
         "path": "event-state/prg003",
         "options": {}
       },
-      "id": "95787e1d-c187-485b-a79e-f05f05f15368",
+      "id": "05ed269c-3f41-475f-8762-f29a0c022b48",
       "name": "POST /event-state/prg003",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        672,
-        -784
+        3424,
+        -208
       ],
       "webhookId": "5ffb76a3-63a7-449d-beec-8d86d1237b15"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "5a0b4e0c-de7b-4770-bb7d-5eabd0f6f681",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "8f95c8ef-0dce-450c-820b-4617de952f22",
+      "id": "66ee5006-d39d-446d-b2c7-6ef5a6ae4941",
       "name": "Unwrap payload (prg003)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        992,
-        -784
+        3744,
+        -208
       ]
     },
     {
@@ -391,13 +321,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "9f0e8e50-6b10-4714-8166-198d22cf03ff",
+      "id": "6cea1ad2-3736-4276-8e41-8d8e2ce85cb7",
       "name": "Forward prg003 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1296,
-        -784
+        4048,
+        -208
       ]
     },
     {
@@ -406,37 +336,27 @@
         "path": "event-state/prg004",
         "options": {}
       },
-      "id": "1850d162-a5ec-4b14-b115-f78b21ac7c4a",
+      "id": "5de216e8-6783-4d55-a77f-b75488e42ce6",
       "name": "POST /event-state/prg004",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        672,
-        -608
+        3424,
+        -32
       ],
       "webhookId": "9fb704b7-d9af-48b0-92d8-843faea99afe"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "d24c7859-b388-4f96-80ca-a8468455d536",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "0cf632e2-9970-41f5-a2f8-7b260744f7bf",
+      "id": "33c0bca8-c80f-4164-99ec-5e44e03ac4f9",
       "name": "Unwrap payload (prg004)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        992,
-        -608
+        3744,
+        -32
       ]
     },
     {
@@ -448,13 +368,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "57c9d9be-3842-4b35-8e3d-afd1d1c52f69",
+      "id": "5985a95d-e394-4cc8-bb70-8def3529483f",
       "name": "Forward prg004 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1296,
-        -608
+        4048,
+        -32
       ]
     },
     {
@@ -463,37 +383,27 @@
         "path": "event-state/ntd001",
         "options": {}
       },
-      "id": "f6063b90-5cb0-4187-9110-e37b9ccc0870",
+      "id": "57bbca6f-39e3-440c-8997-3f860a71ca2c",
       "name": "POST /event-state/ntd001",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -400,
-        -960
+        2352,
+        -384
       ],
       "webhookId": "2bc76af4-2b13-4bad-b629-f2c394a4bbd2"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "1b88d5ea-475d-4165-ae66-6d3d706d1aff",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "2ba4850d-69b9-4d25-90a6-b4e0f2870e03",
+      "id": "8cbaae34-7e4d-44f0-ac09-edeedd1ae779",
       "name": "Unwrap payload (ntd001)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -80,
-        -960
+        2672,
+        -384
       ]
     },
     {
@@ -505,13 +415,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "2cf1d718-6a9d-4a17-873d-8b52ac3d978b",
+      "id": "9f25a065-ddd2-4489-8df9-99bb8dd22b1d",
       "name": "Forward ntd001 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        224,
-        -960
+        2976,
+        -384
       ]
     },
     {
@@ -520,37 +430,27 @@
         "path": "event-state/sye001",
         "options": {}
       },
-      "id": "5ba2fcb4-8407-45b0-988c-0a1700b2d633",
+      "id": "f84eb7cb-e3e5-4330-b661-51122c85b462",
       "name": "POST /event-state/sye001",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -416,
-        352
+        2336,
+        928
       ],
       "webhookId": "bc738d1c-ccab-4177-8f0d-72d6c4af82eb"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "b19dd105-9766-4224-a96c-f2d06a2e3cb2",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "5a02e098-a224-4a93-b0df-c8a80c45b9fc",
+      "id": "7f49971c-fb16-4b37-b60f-00cc985eeab7",
       "name": "Unwrap payload (sye001)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -96,
-        352
+        2656,
+        928
       ]
     },
     {
@@ -562,13 +462,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "37d49dec-4260-4084-84a4-f210ed853e48",
+      "id": "7a363c23-2fb9-47ef-8c57-d7478c3f1ef3",
       "name": "Forward sye001 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        208,
-        352
+        2960,
+        928
       ]
     },
     {
@@ -577,37 +477,27 @@
         "path": "event-state/ntd004",
         "options": {}
       },
-      "id": "b12a90d9-34f7-4c5b-9f46-def65940f15f",
+      "id": "e1f06407-9579-4810-b6cb-755cbf4cf0da",
       "name": "POST /event-state/ntd004",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -400,
-        -432
+        2352,
+        144
       ],
       "webhookId": "7d687349-0da4-4483-bd6f-260844e32c06"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "94d36d37-dfa9-44a4-a921-bc9cc28d823f",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "560571a7-8428-4af0-983f-693ae34eab35",
+      "id": "482f3e74-fc30-42d5-8b41-b5dacea17b54",
       "name": "Unwrap payload (ntd004)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -80,
-        -432
+        2672,
+        144
       ]
     },
     {
@@ -619,13 +509,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "e5bfc47e-9236-4709-a3f4-2f910622200c",
+      "id": "f2c94fee-6530-46f2-96c0-fcb4050d3401",
       "name": "Forward ntd004 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        224,
-        -432
+        2976,
+        144
       ]
     },
     {
@@ -634,37 +524,27 @@
         "path": "event-state/sce002",
         "options": {}
       },
-      "id": "8b01e417-6247-45a8-bc6c-15a8c54306f8",
+      "id": "3df1f80c-ce47-4191-aee2-0e94761b7395",
       "name": "POST /event-state/sce002",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        704,
-        -288
+        3456,
+        288
       ],
       "webhookId": "5d2a091c-e017-416b-b805-33478ec4eeb2"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "3faf2518-1993-465f-b366-5dfbf366672e",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "5d4cd398-9bc6-43cd-a852-175980459bd0",
+      "id": "0a3be7e4-c995-4963-bb3b-763b53af7100",
       "name": "Unwrap payload (sce002)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1024,
-        -288
+        3776,
+        288
       ]
     },
     {
@@ -676,13 +556,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "9859ce3f-9429-465c-a353-441a5453e873",
+      "id": "c809eb9c-984c-4b42-aa15-3ace907704ab",
       "name": "Forward sce002 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1328,
-        -288
+        4080,
+        288
       ]
     },
     {
@@ -691,37 +571,27 @@
         "path": "event-state/sce003",
         "options": {}
       },
-      "id": "f7401625-31d0-426e-a068-6cf959edafc8",
+      "id": "6bc4384f-132f-4433-9b80-d60bda32d07e",
       "name": "POST /event-state/sce003",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        704,
-        -112
+        3456,
+        464
       ],
       "webhookId": "830e86e1-a343-432d-be96-c10f1c1c499b"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "1d1ee061-35c0-43bc-ba12-c6e0f39c1ce7",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "324dec48-300d-48d0-8a20-1a29e5942582",
+      "id": "109ea1b0-ff03-465c-ba0b-439019857627",
       "name": "Unwrap payload (sce003)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1024,
-        -112
+        3776,
+        464
       ]
     },
     {
@@ -733,13 +603,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "9b1d7c25-dff5-403e-a8c0-3658eb95e24a",
+      "id": "3d7224c1-dfd7-425f-9f0a-b7d8cbec57db",
       "name": "Forward sce003 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1328,
-        -112
+        4080,
+        464
       ]
     },
     {
@@ -748,37 +618,27 @@
         "path": "event-state/sce005",
         "options": {}
       },
-      "id": "e9d1c585-d2e7-48c1-8e05-bc90a7a83b51",
+      "id": "8273874b-9038-481a-b467-612f6cac07c0",
       "name": "POST /event-state/sce005",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        704,
-        80
+        3456,
+        656
       ],
       "webhookId": "babcf80a-db16-400d-87a6-32dda80100a1"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "f477ceab-17f2-4b4d-b1a5-42526a516bc3",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "94056d27-5213-4feb-9103-2dec936a05b2",
+      "id": "4842586a-d115-47b4-8f13-49d0009df672",
       "name": "Unwrap payload (sce005)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1024,
-        80
+        3776,
+        656
       ]
     },
     {
@@ -790,13 +650,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "a677978a-8e78-4cc1-989a-672ccb796d38",
+      "id": "ca1c7461-e15c-4762-8312-6a7f273f06da",
       "name": "Forward sce005 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1328,
-        80
+        4080,
+        656
       ]
     },
     {
@@ -805,37 +665,27 @@
         "path": "event-state/sce006",
         "options": {}
       },
-      "id": "5ab4969a-f56f-40cc-bf00-3a8d3220f006",
+      "id": "31db2dc3-6df0-490e-ac8a-a585b2434f0c",
       "name": "POST /event-state/sce006",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        704,
-        272
+        3456,
+        848
       ],
       "webhookId": "373457ee-de14-4689-b483-17eb196a351e"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "e88fb66d-b112-40cb-bd51-6b15bae3225c",
-              "name": "=",
-              "type": "object",
-              "value": "={{ $json.payload }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const body = $json.body;\nlet items;\nif (Array.isArray(body)) {\n  // Some cases from siddhi\n  items = body;\n} else if (body && typeof body === \"object\" && \"payload\" in body && \"topic\" in body) {\n  // Topc + payload - call from smacly\n  items = [body.payload];\n} else {\n  // Call from siddhi\n  items = [body];\n}\nreturn items.map(it => ({ json: it }));"
       },
-      "id": "357fb73b-8a74-4bf1-98ac-737e2f68226f",
+      "id": "4c21b19a-30e0-44dc-bf4f-dcee0e479b2f",
       "name": "Unwrap payload (sce006)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1024,
-        272
+        3776,
+        848
       ]
     },
     {
@@ -847,13 +697,13 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "4a6cfc5e-8413-4cb6-92d5-41468e3def46",
+      "id": "160c3da7-0637-415c-af9e-edb53a62f2f0",
       "name": "Forward sce006 -> :1080/event-state",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1328,
-        272
+        4080,
+        848
       ]
     },
     {
@@ -865,10 +715,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -640,
-        -144
+        2112,
+        432
       ],
-      "id": "05be00d4-fe74-47c7-b650-2911e23ec87d",
+      "id": "c25cb9c1-47fa-4492-9a6b-266830305852",
       "name": "Sticky Note"
     },
     {
@@ -880,10 +730,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -624,
-        -944
+        2128,
+        -368
       ],
-      "id": "9e6c2e50-71a2-48a5-9f2d-e16ee9ab312a",
+      "id": "05fe9b21-9819-404a-ab46-461e5984bac3",
       "name": "Sticky Note2"
     },
     {
@@ -895,10 +745,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        480,
-        -960
+        3232,
+        -384
       ],
-      "id": "dbba7625-d5c4-4700-a690-447e5e02dadd",
+      "id": "32103e29-2cb2-4241-badc-7dca38103439",
       "name": "Sticky Note3"
     },
     {
@@ -910,10 +760,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        496,
-        -288
+        3248,
+        288
       ],
-      "id": "c6f870b9-499b-41f8-8e86-6097fa91a5f9",
+      "id": "165b74ad-48c9-4aa9-b0f1-948ab6e30338",
       "name": "Sticky Note4"
     }
   ],
@@ -1256,9 +1106,9 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "4f7ab6b2-fcda-4182-8aa4-9928801ff1e3",
+  "versionId": "f81801a8-82cf-41e2-aca0-4bebad56db53",
   "meta": {
-    "instanceId": "d6f18c73412c17700c58df2ef86e91bd10b8fd9f7b3dd0e9122a1e93614029f9"
+    "instanceId": "4f202aa4abfaef12c32660f52db13720be5a35241df218ee03f20c5b12ebec68"
   },
   "id": "x8KSipW0bBOs6OaG",
   "tags": []

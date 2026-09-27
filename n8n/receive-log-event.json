@@ -23,7 +23,7 @@
         "url": "http://127.0.0.1:1080/get-ntd002",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "0007f25c-0499-441a-b6b8-321fcaeaf1e0",
@@ -41,7 +41,7 @@
         "url": "http://127.0.0.1:1080/get-dep001",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "8c750fc7-c14e-4006-8c6b-76992dcf5dd1",
@@ -59,7 +59,7 @@
         "url": "http://127.0.0.1:1080/get-sye002",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "f542c55d-29ae-4f89-91ce-077f455518f0",
@@ -77,7 +77,7 @@
         "url": "http://127.0.0.1:1080/get-sye003",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "43d670f9-f2da-4867-b7f9-ccce2ddd9825",
@@ -95,7 +95,7 @@
         "url": "http://127.0.0.1:1080/get-sye004",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "6c66c7b7-e59d-4225-a90d-3bf497f26628",
@@ -113,7 +113,7 @@
         "url": "http://127.0.0.1:1080/get-ntd003",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "270fb0b4-5dd3-449f-aea2-cd41964dda55",
@@ -131,7 +131,7 @@
         "url": "http://127.0.0.1:1080/get-ntd004",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "319861f4-3a62-4489-bba9-895e2c95d03f",
@@ -149,7 +149,7 @@
         "url": "http://127.0.0.1:1080/get-sce003",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($json.body.payload) }}",
         "options": {}
       },
       "id": "9419902b-3de7-499b-97ac-b72d1d3f0085",
@@ -274,7 +274,7 @@
                 "conditions": [
                   {
                     "id": "89ba76a6-a77e-4102-a11d-6b0471b781d6",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "ntd002",
                     "operator": {
                       "type": "string",
@@ -298,7 +298,7 @@
                 "conditions": [
                   {
                     "id": "1918186c-604a-4d81-be4a-cfc0201947af",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "dep001",
                     "operator": {
                       "type": "string",
@@ -322,7 +322,7 @@
                 "conditions": [
                   {
                     "id": "ba4b9d73-6db9-45cd-9838-1179e3a03249",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "sye002",
                     "operator": {
                       "type": "string",
@@ -346,7 +346,7 @@
                 "conditions": [
                   {
                     "id": "4e811cef-aa42-4031-9d18-58bdfd96a198",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "sye003",
                     "operator": {
                       "type": "string",
@@ -370,7 +370,7 @@
                 "conditions": [
                   {
                     "id": "f92135c9-15b9-4676-9849-9e54a895112a",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "sye004",
                     "operator": {
                       "type": "string",
@@ -394,7 +394,7 @@
                 "conditions": [
                   {
                     "id": "29a64d0f-07f4-4755-9c5b-f6e8059eb380",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "ntd003",
                     "operator": {
                       "type": "string",
@@ -418,7 +418,7 @@
                 "conditions": [
                   {
                     "id": "eca15ca8-3e27-4183-a97e-cb9b3cacd57e",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "ntd004",
                     "operator": {
                       "type": "string",
@@ -442,7 +442,7 @@
                 "conditions": [
                   {
                     "id": "b658d429-6ff1-4f17-b1c4-18dda65dcf54",
-                    "leftValue": "={{ $json.payload.Topic }}",
+                    "leftValue": "={{ $json.body.topic }}",
                     "rightValue": "sce003",
                     "operator": {
                       "type": "string",
