@@ -19,7 +19,9 @@ Source: "..\smacly-web\*"; DestDir: "{app}\smacly-web"; Flags: recursesubdirs
 Source: "..\n8n\*"; DestDir: "{app}\n8n"; Flags: recursesubdirs
 Source: "..\siddhi-app\*"; DestDir: "{app}\siddhi-app"; Flags: recursesubdirs
 Source: "..\compiler\*"; DestDir: "{app}\compiler"; Flags: recursesubdirs
-Source: "..\runtime\*"; DestDir: "{app}\runtime"; Flags: recursesubdirs
+; node_modules\n8n excluido: too many files inside directory. MaxPath has been reached
+; See installer\Scripts\pack-n8n-runtime.bat
+Source: "..\runtime\*"; DestDir: "{app}\runtime"; Flags: recursesubdirs; Excludes: "node\node_modules\n8n\*"
 Source: "Scripts\*"; DestDir: "{app}\installer\Scripts"; Flags: recursesubdirs
 
 [Run]
