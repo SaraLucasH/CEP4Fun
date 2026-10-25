@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmaCly - My profile</title>
+  <link rel="stylesheet" href="/resources/styles.css">
+  <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
+  <style>
+    body.pantalla-perfil {
+      background: #f3f4f8;
+      min-height: 100vh;
+      overflow: auto;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: center;
+      background-color: rgb(75, 86, 185);
+      color: #fff;
+    }
+
+    .app-header__inner {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 20px;
+      box-sizing: border-box;
+    }
+
+    /* #logo y h1 tienen reglas globales en styles.css pensadas para el editor;
+       se anulan con selectores más específicos en vez de renombrar id/etiqueta. */
+    .app-header__inner #logo { position: static; width: 44px; height: 44px; margin-top: 0; }
+    .app-header__text { flex: 1; }
+    .app-header__text h1#title { margin: 0; font-size: 16px; background: none; font-weight: normal; color: inherit; }
+
+    .app-header__actions { display: flex; align-items: center; gap: 10px; }
+    #salirSesion { width: 36px; height: 36px; object-fit: contain; cursor: pointer; opacity: 0.9; }
+    #salirSesion:hover { opacity: 1; transform: scale(1.08); }
+
+    .botonera_navegacion { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; padding: 8px 20px; background: #eef2ff; }
+    .botonera_navegacion a {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #243388; text-decoration: none; background: #fff;
+      border: 1px solid #bcc6ee; border-radius: 6px; padding: 4px 9px;
+    }
+    .botonera_navegacion a img { width: 18px; height: 18px; object-fit: contain; }
+    .botonera_navegacion a:hover { background: #dde4ff; }
+
+    .perfil-contenedor {
+      width: calc(100% - 40px);
+      max-width: 560px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      padding: 30px;
+      box-sizing: border-box;
+    }
+
+    .perfil-contenedor h2 { margin-top: 0; }
+
+    .campo { margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .campo label { font-weight: 600; }
+    .campo input {
+      border: 1px solid #cfd7f5; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: #fff; color: #222;
+    }
+
+    .mensaje-ok { color: #188038; font-weight: 600; }
+    .mensaje-error { color: #c5221f; font-weight: 600; }
+    .aviso { min-height: 22px; margin-top: 10px; }
+
+    .texto-ayuda { font-size: 13px; color: #5c6788; margin-top: -4px; margin-bottom: 12px; line-height: 1.4; }
+
+    .switch_password { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+    .switch_password input { display: none; }
+    .slider_password {
+      position: relative; width: 54px; height: 28px; background: #cfd7f5; border-radius: 999px; transition: 0.2s; display: inline-block;
+    }
+    .slider_password::before {
+      content: ""; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px;
+      background: white; border-radius: 50%; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    }
+    .switch_password input:checked + .slider_password { background: rgb(75, 86, 185); }
+    .switch_password input:checked + .slider_password::before { transform: translateX(26px); }
+    .texto_switch_password { font-size: 14px; font-weight: 600; color: #243388; }
+    .fila_switch_password { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; }
+    .texto-ayuda-switch { font-size: 13px; color: #5c6788; line-height: 1.3; }
+
+    .button { border-radius: 12px; }
+  </style>
+</head>
+<body class="pantalla-perfil">
+
+  <header class="app-header">
+    <div class="app-header__inner">
+      <img id="logo" src="/resources/logoSmaCly2.png" alt="SmaCly logo"/>
+      <div class="app-header__text">
+        <h1 id="title">SmaCly : Design your smart contract using Blockly</h1>
+      </div>
+      <div class="app-header__actions">
+        <img id="salirSesion" src="/resources/iconoApagado.svg" alt="Close session" title="Close session" />
+        <form id="formLogout" action="/logout" method="post" style="display:none;">
+          <button type="submit">Close session</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <div id="botoneraNavegacion" class="botonera_navegacion"></div>
+
+  <main class="perfil-contenedor">
+    <h2>My user profile</h2>
+    <p class="texto-ayuda">Update your personal information and change your password if necessary</p>
+
+    <form id="perfilForm">
+      <div class="campo">
+        <label for="user">User account name</label>
+        <input type="text" id="user" name="user" placeholder="Insert here your user name" required>
+      </div>
+      <div class="campo">
+        <label for="nombre">User personal name</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Insert here your user name">
+      </div>
+      <div class="campo">
+        <label for="apellido">Surname</label>
+        <input type="text" id="apellido" name="apellido" placeholder="Insert here your surname">
+      </div>
+      <div class="campo">
+        <label for="institucion">Institution</label>
+        <input type="text" id="institucion" name="institucion" placeholder="University, enterprise ...">
+      </div>
+      <div class="campo">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="user@email.com" required>
+      </div>
+
+      <div class="campo">
+        <label for="cambiarPasswordSwitch">Would you like to change your password?</label>
+        <div class="fila_switch_password">
+          <label class="switch_password">
+            <input type="checkbox" id="cambiarPasswordSwitch">
+            <span class="slider_password"></span>
+            <span id="textoSwitchPassword" class="texto_switch_password">No</span>
+          </label>
+          <span id="ayudaCambioPassword" class="texto-ayuda-switch" style="display:none;">
+            If you enable this option, you must fill in all three password fields
+          </span>
+        </div>
+      </div>
+
+      <div id="bloqueCambioPassword" style="display:none;">
+        <div class="campo">
+          <label for="password">Current password</label>
+          <input type="password" id="password" name="password" placeholder="Your current password">
+        </div>
+        <div class="campo">
+          <label for="passwordNueva">New password</label>
+          <input type="password" id="passwordNueva" name="passwordNueva" placeholder="Insert here the new password">
+        </div>
+        <div class="campo">
+          <label for="password2">Re-enter new password</label>
+          <input type="password" id="password2" name="password2" placeholder="Enter the new password again">
+        </div>
+      </div>
+
+      <button type="submit" class="button">Save changes</button>
+    </form>
+
+    <p id="mensaje" class="aviso"></p>
+  </main>
+
+  <script>
+    async function pintarNav() {
+      var nav = document.getElementById('botoneraNavegacion');
+      var rol = 'USER';
+      try {
+        var respuesta = await fetch('/api/miPerfil');
+        if (respuesta.ok) {
+          var usuario = await respuesta.json();
+          rol = (usuario && usuario.rol) || 'USER';
+        }
+      } catch (error) {}
+
+      var html = '<a href="/home.html">Home</a>' +
+        '<a href="/"><img src="/resources/iconoEditorSmaCly.png" alt="">Editor</a>' +
+        '<a href="/workspaces.html"><img src="/resources/iconoWorkspace.png" alt="">Workspaces</a>' +
+        '<a href="/logs.html"><img src="/resources/iconoLogs.png" alt="">Activity logs</a>';
+      if (rol === 'PROFESSOR' || rol === 'ADMIN') {
+        html += '<a href="/gestion_usuarios.html"><img src="/resources/iconoUsuarios.png" alt="">Users</a>';
+      }
+      nav.innerHTML = html;
+
+      document.getElementById('salirSesion').addEventListener('click', async function () {
+        if (!confirm('Would you like to log out?')) return;
+        try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
+        window.location.href = '/login.html';
+      });
+    }
+
+    var mensaje = document.getElementById('mensaje');
+    var perfilForm = document.getElementById('perfilForm');
+
+    function mostrarMensaje(texto, ok) {
+      mensaje.textContent = texto;
+      mensaje.className = ok ? 'aviso mensaje-ok' : 'aviso mensaje-error';
+    }
+
+    function actualizarCambioPassword() {
+      var switchPassword = document.getElementById('cambiarPasswordSwitch');
+      var textoSwitch = document.getElementById('textoSwitchPassword');
+      var bloquePassword = document.getElementById('bloqueCambioPassword');
+      var ayudaPassword = document.getElementById('ayudaCambioPassword');
+      if (!switchPassword || !textoSwitch || !bloquePassword || !ayudaPassword) return;
+      if (switchPassword.checked) {
+        bloquePassword.style.display = 'block';
+        ayudaPassword.style.display = 'inline';
+        textoSwitch.textContent = 'Yes';
+      } else {
+        bloquePassword.style.display = 'none';
+        ayudaPassword.style.display = 'none';
+        textoSwitch.textContent = 'No';
+        document.getElementById('password').value = '';
+        document.getElementById('passwordNueva').value = '';
+        document.getElementById('password2').value = '';
+      }
+    }
+
+    async function cargarDatosUsuario() {
+      try {
+        var res = await fetch('/api/miPerfil');
+        if (!res.ok) throw new Error('The profile could not be loaded');
+        var datosUsuario = await res.json();
+        document.getElementById('user').value = datosUsuario.user || '';
+        document.getElementById('nombre').value = datosUsuario.nombre || '';
+        document.getElementById('apellido').value = datosUsuario.apellidos || datosUsuario.apellido || '';
+        document.getElementById('institucion').value = datosUsuario.institucion || '';
+        document.getElementById('email').value = datosUsuario.email || '';
+      } catch (error) {
+        mostrarMensaje('The user data could not be loaded', false);
+      }
+    }
+
+    function validarPasswords() {
+      var cambiarPasswordActivado = document.getElementById('cambiarPasswordSwitch').checked;
+      var passwordActual = document.getElementById('password').value;
+      var passwordNueva = document.getElementById('passwordNueva').value;
+      var password2 = document.getElementById('password2').value;
+      if (!cambiarPasswordActivado) return true;
+      if (passwordActual === '') { mostrarMensaje('You must enter your current password', false); return false; }
+      if (passwordNueva === '') { mostrarMensaje('You must enter your new password', false); return false; }
+      if (password2 === '') { mostrarMensaje('You must re-enter your new password', false); return false; }
+      if (passwordActual === passwordNueva) { mostrarMensaje('The new password cannot be the same as your current one', false); return false; }
+      if (passwordNueva !== password2) { mostrarMensaje('The passwords do not match', false); return false; }
+      return true;
+    }
+
+    async function guardarPerfil(e) {
+      e.preventDefault();
+      if (!validarPasswords()) return;
+      var cambiarPasswordActivado = document.getElementById('cambiarPasswordSwitch').checked;
+      var passwordEnviar = cambiarPasswordActivado ? document.getElementById('passwordNueva').value : '';
+
+      var payload = {
+        user: document.getElementById('user').value,
+        nombre: document.getElementById('nombre').value,
+        apellidos: document.getElementById('apellido').value,
+        institucion: document.getElementById('institucion').value,
+        email: document.getElementById('email').value,
+        password: passwordEnviar
+      };
+
+      try {
+        var res = await fetch('/api/miPerfil', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        var respuesta = await res.json();
+        if (respuesta.exito) {
+          mostrarMensaje(respuesta.mensaje || 'User information has been successfully updated', true);
+          document.getElementById('password').value = '';
+          document.getElementById('passwordNueva').value = '';
+          document.getElementById('password2').value = '';
+          document.getElementById('cambiarPasswordSwitch').checked = false;
+          actualizarCambioPassword();
+          cargarDatosUsuario();
+        } else {
+          mostrarMensaje(respuesta.mensaje || 'The changes could not be saved', false);
+        }
+      } catch (error) {
+        mostrarMensaje('Error saving changes', false);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      pintarNav();
+      perfilForm.addEventListener('submit', guardarPerfil);
+      var switchPassword = document.getElementById('cambiarPasswordSwitch');
+      if (switchPassword) {
+        switchPassword.checked = false;
+        switchPassword.addEventListener('change', actualizarCambioPassword);
+        actualizarCambioPassword();
+      }
+      cargarDatosUsuario();
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,3 @@
-const HostName = "127.0.0.1";
-const Port = "5678"; // n8n (antes: 1880, Node-RED)
-
 var LowCodePlatformURIs = {
     Send_Log_Events : '/events-log'
 }
@@ -11,7 +8,7 @@ function sendPostDep001(jsonLogEvents){
 }
 
 function sendPostNtd001(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'ntd001', jsonLogEvents, '/event-state/ntd001');
+    buildHttpPost('ntd001', jsonLogEvents, '/event-state/ntd001');
 }
 
 function sendPostNtd002(jsonLogEvents){
@@ -31,7 +28,7 @@ function sendPostNtd004(jsonLogEvents){
 }
 
 function sendPostSye001(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'sye001', jsonLogEvents, '/event-state/sye001');
+    buildHttpPost('sye001', jsonLogEvents, '/event-state/sye001');
 }
 
 function sendPostSye002(jsonLogEvents){
@@ -51,30 +48,30 @@ function sendPostPrg001(jsonLogEvents){
 }
 
 function sendPostPrg002(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'prg002', jsonLogEvents, '/event-state/prg002');
+    buildHttpPost('prg002', jsonLogEvents, '/event-state/prg002');
 }
 
 function sendPostPrg003(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'prg003', jsonLogEvents, '/event-state/prg003');
+    buildHttpPost('prg003', jsonLogEvents, '/event-state/prg003');
 }
 
 function sendPostPrg004(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'prg004', jsonLogEvents, '/event-state/prg004');
+    buildHttpPost('prg004', jsonLogEvents, '/event-state/prg004');
 }
 
 function sendPostSce002(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'sce002', jsonLogEvents, '/event-state/sce002');
+    buildHttpPost('sce002', jsonLogEvents, '/event-state/sce002');
 }
 
 function sendPostSce005(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'sce005', jsonLogEvents, '/event-state/sce005');
+    buildHttpPost('sce005', jsonLogEvents, '/event-state/sce005');
 }
 
 function sendPostSce006(jsonLogEvents){
-    buildHttpPost(HostName, Port, 'sce006', jsonLogEvents, '/event-state/sce006');
+    buildHttpPost('sce006', jsonLogEvents, '/event-state/sce006');
 }
 
 function sendPostRequest(jsonLogEvents, topic){
-    buildHttpPost(HostName, Port, topic, jsonLogEvents, LowCodePlatformURIs.Send_Log_Events);
+    buildHttpPost(topic, jsonLogEvents, LowCodePlatformURIs.Send_Log_Events);
 }
 

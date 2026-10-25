@@ -1,8 +1,11 @@
 /*
-Panel de cuenta de SmaCly: barra superior con el usuario autenticado y modales para perfil,
-workspaces, logs de actividad, administración de usuarios y conversión a e3value. Todo habla
-con el backend Java "compilador" a través de los endpoints /api/** que proxya server.js
-(ver server.js y compilerProxy.js) usando la sesión del usuario ya logueado.
+Panel de cuenta de SmaCly: barra superior con el usuario autenticado, enlaces a
+las páginas de gestión (workspaces, logs, perfil, administración de usuarios -
+cada una un port directo de su .html equivalente en
+compilador/src/main/resources/static/) y el modal de conversión a e3value, que
+no tiene página equivalente en el original. Todo habla con el backend Java
+"compilador" a través de los endpoints /api/** que proxya server.js (ver
+server.js y compilerProxy.js) usando la sesión del usuario ya logueado.
 */
 
 var currentAccountUser = null;
@@ -16,8 +19,9 @@ var currentAccountUser = null;
     'background-color:rgb(75,86,185);color:#fff;padding:6px 14px;font-family:sans-serif;font-size:14px;}' +
     '#accountBar .accountUser{font-weight:bold;}' +
     '#accountBar .accountRole{opacity:0.8;font-size:12px;border:1px solid #fff;border-radius:10px;padding:1px 8px;}' +
-    '#accountBar button{cursor:pointer;background-color:#057fd0;color:#fff;border:1px solid #f0f7fa;border-radius:6px;padding:5px 10px;font-size:13px;}' +
-    '#accountBar button:hover{background-color:#019ad2;}' +
+    '#accountBar a,#accountBar button{cursor:pointer;background-color:#057fd0;color:#fff;border:1px solid #f0f7fa;' +
+    'border-radius:6px;padding:5px 10px;font-size:13px;text-decoration:none;}' +
+    '#accountBar a:hover,#accountBar button:hover{background-color:#019ad2;}' +
     '.smaclyModalOverlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;' +
     'background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;}' +
     '.smaclyModalOverlay.open{display:flex;}' +
@@ -33,9 +37,7 @@ var currentAccountUser = null;
     '.smaclyModalBox textarea{min-height:120px;font-family:monospace;}' +
     '.smaclyModalActions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;}' +
     '.smaclyModalActions .button{padding:6px 12px;}' +
-    '.smaclyModalActions .secondary{background-color:#888;}' +
-    '.smaclyBadgeBlocked{color:#c0392b;font-weight:bold;}' +
-    '.smaclyBadgeOk{color:#1e8449;font-weight:bold;}';
+    '.smaclyModalActions .secondary{background-color:#888;}';
   document.head.appendChild(style);
 })();
 
@@ -102,15 +104,6 @@ async function apiFetch(url, options) {
 function apiPost(url, body) {
   return apiFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 }
-function apiPut(url, body) {
-  return apiFetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-}
-function apiPatch(url, body) {
-  return apiFetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-}
-function apiDelete(url) {
-  return apiFetch(url, { method: 'DELETE' });
-}
 function apiGet(url) {
   return apiFetch(url);
 }
@@ -132,19 +125,14 @@ async function inicializarAccountBar() {
   barra.innerHTML =
     '<span class="accountUser">👤 ' + escapeHtml(currentAccountUser.user || currentAccountUser.email) + '</span>' +
     '<span class="accountRole">' + escapeHtml(currentAccountUser.rol || 'USER') + '</span>' +
-    '<button id="btnAbrirPerfil">My profile</button>' +
-    '<button id="btnAbrirWorkspaces">📂 Workspaces</button>' +
-    '<button id="btnAbrirLogs">📋 Activity logs</button>' +
-    (esGestor ? '<button id="btnAbrirAdmin">👥 Users</button>' : '') +
+    '<a href="/home.html">🏠 Home</a>' +
+    '<a href="/edicion_datos_usuario.html">My profile</a>' +
+    '<a href="/workspaces.html">📂 Workspaces</a>' +
+    '<a href="/logs.html">📋 Activity logs</a>' +
+    (esGestor ? '<a href="/gestion_usuarios.html">👥 Users</a>' : '') +
     '<button id="btnAbrirE3Value">🧮 e3value</button>' +
     '<button id="btnCerrarSesion">🚪 Log out</button>';
 
-  document.getElementById('btnAbrirPerfil').addEventListener('click', abrirPanelPerfil);
-  document.getElementById('btnAbrirWorkspaces').addEventListener('click', abrirPanelWorkspaces);
-  document.getElementById('btnAbrirLogs').addEventListener('click', abrirPanelLogs);
-  if (esGestor) {
-    document.getElementById('btnAbrirAdmin').addEventListener('click', abrirPanelAdmin);
-  }
   document.getElementById('btnAbrirE3Value').addEventListener('click', function () {
     iniciarConversionE3Value();
   });
@@ -160,403 +148,6 @@ async function cerrarSesionUsuario() {
   }
   catch (error) { /* seguimos igualmente al login */ }
   window.location.href = '/login.html';
-}
-
-/* -------------------------------------------------------------- MI PERFIL --- */
-
-async function abrirPanelPerfil() {
-  var overlay = crearModalBase('modalPerfil', 'My profile');
-  var contenido = overlay.querySelector('.smaclyModalContent');
-  contenido.innerHTML = '<p>Loading...</p>';
-  abrirModal(overlay);
-
-  try {
-    var usuario = await apiGet('/api/miPerfil');
-    contenido.innerHTML =
-      '<label>Username</label><input type="text" id="perfilUser" value="' + escapeHtml(usuario.user) + '">' +
-      '<label>First name</label><input type="text" id="perfilNombre" value="' + escapeHtml(usuario.nombre) + '">' +
-      '<label>Last name</label><input type="text" id="perfilApellidos" value="' + escapeHtml(usuario.apellido) + '">' +
-      '<label>Institution</label><input type="text" id="perfilInstitucion" value="' + escapeHtml(usuario.institucion) + '">' +
-      '<label>Email</label><input type="email" id="perfilEmail" value="' + escapeHtml(usuario.email) + '">' +
-      '<label>New password (leave blank to keep it)</label><input type="password" id="perfilPassword">' +
-      '<div class="smaclyModalActions">' +
-      '<button type="button" class="button secondary" onclick="cerrarModal(\'modalPerfil\')">Close</button>' +
-      '<button type="button" class="button" id="btnGuardarPerfil">Save</button>' +
-      '</div>';
-
-    document.getElementById('btnGuardarPerfil').addEventListener('click', async function () {
-      try {
-        var payload = {
-          user: document.getElementById('perfilUser').value.trim(),
-          nombre: document.getElementById('perfilNombre').value.trim(),
-          apellidos: document.getElementById('perfilApellidos').value.trim(),
-          institucion: document.getElementById('perfilInstitucion').value.trim(),
-          email: document.getElementById('perfilEmail').value.trim(),
-          password: document.getElementById('perfilPassword').value
-        };
-        var resultado = await apiPut('/api/miPerfil', payload);
-        if (resultado.exito) {
-          toastr.success(resultado.mensaje || 'Profile updated successfully');
-          cerrarModal('modalPerfil');
-          inicializarAccountBar();
-        }
-        else {
-          toastr.error(resultado.mensaje || 'The profile could not be updated');
-        }
-      }
-      catch (error) {
-        toastr.error(error.message);
-      }
-    });
-  }
-  catch (error) {
-    contenido.innerHTML = '<p>Error loading profile: ' + escapeHtml(error.message) + '</p>';
-  }
-}
-
-/* ------------------------------------------------------------ WORKSPACES ---- */
-
-function obtenerCodigoSoliditySiHaceFalta() {
-  if (typeof SolidityGenerator === 'undefined' || !window.workspace) return '';
-  return SolidityGenerator.workspaceToCode(window.workspace);
-}
-function obtenerCodigoVyperSiHaceFalta() {
-  if (typeof VyperGenerator === 'undefined' || !window.workspace) return '';
-  return VyperGenerator.workspaceToCode(window.workspace);
-}
-
-async function abrirPanelWorkspaces() {
-  var overlay = crearModalBase('modalWorkspaces', '📂 Workspaces');
-  var contenido = overlay.querySelector('.smaclyModalContent');
-  contenido.innerHTML = '<p>Loading...</p>';
-  abrirModal(overlay);
-
-  var workspaceActualId = localStorage.getItem('workspaceIdActual') || '';
-  var workspaceActualNombre = localStorage.getItem('nombreWorkspaceActual') || '';
-
-  try {
-    var propios = await apiGet('/api/listarWorkspaces');
-    var visibles = await apiGet('/api/workspaces/visibles');
-
-    var filasPropios = (propios || []).map(function (workspace) {
-      return filaWorkspace(workspace, workspaceActualId);
-    }).join('');
-
-    var filasPlantillas = (visibles || []).filter(function (w) { return w.isTemplate; }).map(function (workspace) {
-      return filaWorkspace(workspace, workspaceActualId);
-    }).join('');
-
-    contenido.innerHTML =
-      '<h3>Save current workspace</h3>' +
-      '<label>Name</label><input type="text" id="wsNombreNuevo" placeholder="My workspace" value="' + escapeHtml(workspaceActualNombre) + '">' +
-      '<label><input type="checkbox" id="wsIncluirSolidity"> Include generated Solidity code</label><br>' +
-      '<label><input type="checkbox" id="wsIncluirVyper"> Include generated Vyper code</label><br>' +
-      (currentAccountUser && (currentAccountUser.rol === 'PROFESSOR' || currentAccountUser.rol === 'ADMIN')
-        ? '<label><input type="checkbox" id="wsEsPlantilla"> Save as template (visible to your users)</label><br>'
-        : '') +
-      '<div class="smaclyModalActions">' +
-      '<button type="button" class="button" id="btnGuardarWorkspaceNuevo">Save as new</button>' +
-      (workspaceActualId ? '<button type="button" class="button" id="btnSobreescribirWorkspace">Overwrite current</button>' : '') +
-      '</div>' +
-      '<h3>My workspaces</h3>' +
-      '<table><thead><tr><th>Name</th><th>Updated</th><th>Actions</th></tr></thead><tbody>' +
-      (filasPropios || '<tr><td colspan="3">No saved workspaces</td></tr>') +
-      '</tbody></table>' +
-      (filasPlantillas ? '<h3>Templates</h3><table><thead><tr><th>Name</th><th>Updated</th><th>Actions</th></tr></thead><tbody>' + filasPlantillas + '</tbody></table>' : '') +
-      '<div class="smaclyModalActions"><button type="button" class="button secondary" onclick="cerrarModal(\'modalWorkspaces\')">Close</button></div>';
-
-    document.getElementById('btnGuardarWorkspaceNuevo').addEventListener('click', function () { guardarWorkspace(false); });
-    var btnSobreescribir = document.getElementById('btnSobreescribirWorkspace');
-    if (btnSobreescribir) {
-      btnSobreescribir.addEventListener('click', function () { guardarWorkspace(true); });
-    }
-
-    contenido.querySelectorAll('[data-cargar-workspace]').forEach(function (boton) {
-      boton.addEventListener('click', function () { cargarWorkspacePorId(boton.getAttribute('data-cargar-workspace')); });
-    });
-    contenido.querySelectorAll('[data-borrar-workspace]').forEach(function (boton) {
-      boton.addEventListener('click', function () { borrarWorkspace(boton.getAttribute('data-borrar-workspace')); });
-    });
-  }
-  catch (error) {
-    contenido.innerHTML = '<p>Error loading workspaces: ' + escapeHtml(error.message) + '</p>';
-  }
-}
-
-function filaWorkspace(workspace, workspaceActualId) {
-  var actualizado = workspace.fechaActualizacion ? new Date(workspace.fechaActualizacion).toLocaleString() : '';
-  var esActual = workspace.id === workspaceActualId;
-  return '<tr>' +
-    '<td>' + escapeHtml(workspace.nombreWorkspace) + (esActual ? ' <b>(current)</b>' : '') + (workspace.isTemplate ? ' 🧩' : '') + '</td>' +
-    '<td>' + escapeHtml(actualizado) + '</td>' +
-    '<td>' +
-    '<button type="button" class="button" data-cargar-workspace="' + escapeHtml(workspace.id) + '">Load</button> ' +
-    '<button type="button" class="button secondary" data-borrar-workspace="' + escapeHtml(workspace.id) + '">Delete</button>' +
-    '</td></tr>';
-}
-
-async function guardarWorkspace(sobreescribir) {
-  if (!window.workspace) {
-    toastr.error('The editor is not ready yet');
-    return;
-  }
-  var nombre = document.getElementById('wsNombreNuevo').value.trim();
-  if (!nombre) {
-    toastr.error('You must enter a name for the workspace');
-    return;
-  }
-  var xmlDom = Blockly.Xml.workspaceToDom(window.workspace);
-  var xmlTexto = Blockly.Xml.domToText(xmlDom);
-  var incluirSolidity = document.getElementById('wsIncluirSolidity').checked;
-  var incluirVyper = document.getElementById('wsIncluirVyper').checked;
-  var checkPlantilla = document.getElementById('wsEsPlantilla');
-
-  var payload = {
-    nombreWorkspace: nombre,
-    xml: xmlTexto,
-    codigoSolidity: incluirSolidity ? obtenerCodigoSoliditySiHaceFalta() : '',
-    codigoVyper: incluirVyper ? obtenerCodigoVyperSiHaceFalta() : '',
-    isTemplate: !!(checkPlantilla && checkPlantilla.checked)
-  };
-  if (sobreescribir) {
-    payload.workspaceId = localStorage.getItem('workspaceIdActual');
-  }
-
-  try {
-    var workspaceGuardado = await apiPost('/api/registrarWorkspace', payload);
-    if (workspaceGuardado && workspaceGuardado.id) {
-      localStorage.setItem('workspaceIdActual', workspaceGuardado.id);
-      localStorage.setItem('nombreWorkspaceActual', workspaceGuardado.nombreWorkspace || nombre);
-      toastr.success('Workspace saved successfully');
-      abrirPanelWorkspaces();
-    }
-    else {
-      toastr.error('The workspace could not be saved (there may already be another workspace with that name)');
-    }
-  }
-  catch (error) {
-    toastr.error(error.message);
-  }
-}
-
-async function cargarWorkspacePorId(workspaceId) {
-  try {
-    var data = await apiPost('/api/cargarWorkspace', workspaceId);
-    if (!data || !data.xml) {
-      toastr.error('The workspace does not contain any XML content');
-      return;
-    }
-    var xmlDom = Blockly.Xml.textToDom(data.xml);
-    window.workspace.clear();
-    Blockly.Xml.appendDomToWorkspace(xmlDom, window.workspace);
-
-    if (data.templateCopy === true || !data.id) {
-      localStorage.removeItem('workspaceIdActual');
-    }
-    else {
-      localStorage.setItem('workspaceIdActual', data.id);
-    }
-    localStorage.setItem('nombreWorkspaceActual', data.nombreWorkspace || '');
-    toastr.success('Workspace "' + data.nombreWorkspace + '" loaded');
-    cerrarModal('modalWorkspaces');
-  }
-  catch (error) {
-    toastr.error('Error loading the workspace: ' + error.message);
-  }
-}
-
-async function borrarWorkspace(workspaceId) {
-  if (!window.confirm('Delete this workspace? This cannot be undone.')) return;
-  try {
-    var resultado = await apiDelete('/api/workspaces/' + encodeURIComponent(workspaceId));
-    if (resultado.exito) {
-      if (localStorage.getItem('workspaceIdActual') === workspaceId) {
-        localStorage.removeItem('workspaceIdActual');
-        localStorage.removeItem('nombreWorkspaceActual');
-      }
-      toastr.success(resultado.mensaje || 'Workspace deleted');
-      abrirPanelWorkspaces();
-    }
-    else {
-      toastr.error(resultado.mensaje || 'The workspace could not be deleted');
-    }
-  }
-  catch (error) {
-    toastr.error(error.message);
-  }
-}
-
-/* -------------------------------------------------------------- LOGS -------- */
-
-async function abrirPanelLogs() {
-  var overlay = crearModalBase('modalLogs', '📋 Activity logs');
-  var contenido = overlay.querySelector('.smaclyModalContent');
-  contenido.innerHTML = '<p>Loading...</p>';
-  abrirModal(overlay);
-
-  try {
-    var logs = await apiGet('/api/logs/mostrarLogs');
-    var filas = (logs || []).map(function (log) {
-      var fecha = log.fecha ? new Date(log.fecha).toLocaleString() : '';
-      return '<tr><td>' + escapeHtml(fecha) + '</td><td>' + escapeHtml(log.tipoEvento) + '</td>' +
-        '<td>' + escapeHtml(log.user) + '</td><td>' + escapeHtml(log.workspaceName) + '</td></tr>';
-    }).join('');
-
-    contenido.innerHTML =
-      '<div class="smaclyModalActions">' +
-      '<button type="button" class="button" id="btnEnviarLogsPendientes">Send pending logs from this session</button>' +
-      '<button type="button" class="button secondary" id="btnBorrarLogs">Clear all logs</button>' +
-      '</div>' +
-      '<table><thead><tr><th>Date</th><th>Event</th><th>User</th><th>Workspace</th></tr></thead><tbody>' +
-      (filas || '<tr><td colspan="4">No logs recorded</td></tr>') +
-      '</tbody></table>' +
-      '<div class="smaclyModalActions"><button type="button" class="button secondary" onclick="cerrarModal(\'modalLogs\')">Close</button></div>';
-
-    document.getElementById('btnEnviarLogsPendientes').addEventListener('click', enviarLogsPendientes);
-    document.getElementById('btnBorrarLogs').addEventListener('click', async function () {
-      if (!window.confirm('Delete every log entry you are allowed to manage?')) return;
-      try {
-        var resultado = await apiDelete('/api/logs');
-        toastr[resultado.exito ? 'success' : 'error'](resultado.mensaje);
-        abrirPanelLogs();
-      }
-      catch (error) {
-        toastr.error(error.message);
-      }
-    });
-  }
-  catch (error) {
-    contenido.innerHTML = '<p>Error loading logs: ' + escapeHtml(error.message) + '</p>';
-  }
-}
-
-async function enviarLogsPendientes() {
-  if (typeof logsEventos === 'undefined' || logsEventos.length === 0) {
-    toastr.info('There are no pending logs in this session');
-    return;
-  }
-  try {
-    var payload = {
-      workspaceId: localStorage.getItem('workspaceIdActual') || null,
-      logs: logsEventos
-    };
-    var resultado = await apiPost('/api/registrarLogs', payload);
-    if (resultado.exito) {
-      logsEventos.length = 0;
-      toastr.success(resultado.mensaje || 'Logs saved successfully');
-      abrirPanelLogs();
-    }
-    else {
-      toastr.error(resultado.mensaje || 'The logs could not be saved');
-    }
-  }
-  catch (error) {
-    toastr.error(error.message);
-  }
-}
-
-/* ------------------------------------------------------------ ADMINISTRACIÓN */
-
-async function abrirPanelAdmin() {
-  var overlay = crearModalBase('modalAdmin', '👥 User management');
-  var contenido = overlay.querySelector('.smaclyModalContent');
-  contenido.innerHTML = '<p>Loading...</p>';
-  abrirModal(overlay);
-
-  try {
-    var usuarios = await apiGet('/api/admin/usuarios/gestionables');
-    var filas = (usuarios || []).map(filaUsuarioAdmin).join('');
-
-    contenido.innerHTML =
-      '<h3>Create user</h3>' +
-      '<label>Username</label><input type="text" id="adminNuevoUser">' +
-      '<label>First name</label><input type="text" id="adminNuevoNombre">' +
-      '<label>Last name</label><input type="text" id="adminNuevoApellidos">' +
-      '<label>Institution</label><input type="text" id="adminNuevoInstitucion">' +
-      '<label>Email</label><input type="email" id="adminNuevoEmail">' +
-      '<label>Password</label><input type="password" id="adminNuevoPassword">' +
-      '<label>Role</label><select id="adminNuevoRol"><option value="USER">USER</option>' +
-      '<option value="PROFESSOR">PROFESSOR</option><option value="ADMIN">ADMIN</option></select>' +
-      '<div class="smaclyModalActions"><button type="button" class="button" id="btnCrearUsuarioAdmin">Create user</button></div>' +
-      '<h3>Managed users</h3>' +
-      '<table><thead><tr><th>User</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
-      (filas || '<tr><td colspan="6">No manageable users</td></tr>') +
-      '</tbody></table>' +
-      '<div class="smaclyModalActions"><button type="button" class="button secondary" onclick="cerrarModal(\'modalAdmin\')">Close</button></div>';
-
-    document.getElementById('btnCrearUsuarioAdmin').addEventListener('click', crearUsuarioAdmin);
-    contenido.querySelectorAll('[data-bloquear-usuario]').forEach(function (boton) {
-      boton.addEventListener('click', function () {
-        cambiarBloqueoUsuarioAdmin(boton.getAttribute('data-bloquear-usuario'), boton.getAttribute('data-nuevo-estado') === 'true');
-      });
-    });
-    contenido.querySelectorAll('[data-borrar-usuario]').forEach(function (boton) {
-      boton.addEventListener('click', function () { borrarUsuarioAdmin(boton.getAttribute('data-borrar-usuario')); });
-    });
-  }
-  catch (error) {
-    contenido.innerHTML = '<p>Error loading users: ' + escapeHtml(error.message) + '</p>';
-  }
-}
-
-function filaUsuarioAdmin(usuario) {
-  var bloqueada = !!usuario.cuentaBloqueada;
-  return '<tr>' +
-    '<td>' + escapeHtml(usuario.user) + '</td>' +
-    '<td>' + escapeHtml(usuario.nombre) + ' ' + escapeHtml(usuario.apellido) + '</td>' +
-    '<td>' + escapeHtml(usuario.email) + '</td>' +
-    '<td>' + escapeHtml(usuario.rol) + '</td>' +
-    '<td>' + (bloqueada ? '<span class="smaclyBadgeBlocked">Blocked</span>' : '<span class="smaclyBadgeOk">Active</span>') + '</td>' +
-    '<td>' +
-    '<button type="button" class="button" data-bloquear-usuario="' + escapeHtml(usuario.id) + '" data-nuevo-estado="' + (!bloqueada) + '">' +
-    (bloqueada ? 'Unblock' : 'Block') + '</button> ' +
-    '<button type="button" class="button secondary" data-borrar-usuario="' + escapeHtml(usuario.id) + '">Delete</button>' +
-    '</td></tr>';
-}
-
-async function crearUsuarioAdmin() {
-  var payload = {
-    user: document.getElementById('adminNuevoUser').value.trim(),
-    nombre: document.getElementById('adminNuevoNombre').value.trim(),
-    apellidos: document.getElementById('adminNuevoApellidos').value.trim(),
-    institucion: document.getElementById('adminNuevoInstitucion').value.trim(),
-    email: document.getElementById('adminNuevoEmail').value.trim(),
-    password: document.getElementById('adminNuevoPassword').value
-  };
-  var rol = document.getElementById('adminNuevoRol').value;
-  try {
-    var resultado = await apiPost('/api/admin/usuarios?rol=' + encodeURIComponent(rol), payload);
-    toastr[resultado.exito ? 'success' : 'error'](resultado.mensaje);
-    if (resultado.exito) {
-      abrirPanelAdmin();
-    }
-  }
-  catch (error) {
-    toastr.error(error.message);
-  }
-}
-
-async function cambiarBloqueoUsuarioAdmin(userId, nuevoEstado) {
-  try {
-    var resultado = await apiPatch('/api/admin/usuarios/' + encodeURIComponent(userId) + '/bloqueo', { bloqueada: nuevoEstado });
-    toastr[resultado.exito ? 'success' : 'error'](resultado.mensaje);
-    abrirPanelAdmin();
-  }
-  catch (error) {
-    toastr.error(error.message);
-  }
-}
-
-async function borrarUsuarioAdmin(userId) {
-  if (!window.confirm('Delete this user and everything they own (workspaces, logs)?')) return;
-  try {
-    var resultado = await apiDelete('/api/admin/usuarios/' + encodeURIComponent(userId));
-    toastr[resultado.exito ? 'success' : 'error'](resultado.mensaje);
-    abrirPanelAdmin();
-  }
-  catch (error) {
-    toastr.error(error.message);
-  }
 }
 
 /* ---------------------------------------------------------------- E3VALUE --- */

@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmaCly - My workspaces</title>
+  <link rel="stylesheet" href="/resources/styles.css">
+  <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
+  <script>
+    //SCRIPT PARA PODER DESCARGAR LOS ARCHIVOS EN SOLIDITY Y EN VYPER A PARTIR DE LOS ICONOS
+    function download(filename, textInput) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(textInput));
+      element.setAttribute('download', filename);
+      document.body.appendChild(element);
+      element.click();
+    }
+
+    async function descargarCodigoSolidityWorkspace(idWorkspace) {
+      if (!idWorkspace) {
+        mostrarMensajeWorkspaces('The Solidity code could not be downloaded', false);
+        return;
+      }
+      try {
+        var response = await fetch('/api/cargarWorkspace', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(idWorkspace)
+        });
+        if (!response.ok) throw new Error('Error loading the workspace');
+        var workspace = await response.json();
+        if (!workspace || !workspace.codigoSolidity || workspace.codigoSolidity.trim() === '') {
+          mostrarMensajeWorkspaces('This workspace does not have any Solidity code saved', false);
+          return;
+        }
+        var nombreArchivo = 'workspace.sol';
+        if (workspace.nombreWorkspace && workspace.nombreWorkspace.trim() !== '') {
+          nombreArchivo = workspace.nombreWorkspace.trim() + '.sol';
+        }
+        download(nombreArchivo, workspace.codigoSolidity);
+        mostrarMensajeWorkspaces('Solidity code downloaded successfully', true);
+      } catch (e) {
+        console.error(e);
+        mostrarMensajeWorkspaces('Error downloading the Solidity code', false);
+      }
+    }
+
+    async function descargarCodigoVyperWorkspace(idWorkspace) {
+      if (!idWorkspace) {
+        mostrarMensajeWorkspaces('The Vyper code could not be downloaded', false);
+        return;
+      }
+      try {
+        var response = await fetch('/api/cargarWorkspace', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(idWorkspace)
+        });
+        if (!response.ok) throw new Error('Error loading the workspace');
+        var workspace = await response.json();
+        if (!workspace || !workspace.codigoVyper || workspace.codigoVyper.trim() === '') {
+          mostrarMensajeWorkspaces('This workspace does not have any Vyper code saved', false);
+          return;
+        }
+        var nombreArchivo = 'workspace.vy';
+        if (workspace.nombreWorkspace && workspace.nombreWorkspace.trim() !== '') {
+          nombreArchivo = workspace.nombreWorkspace.trim() + '.vy';
+        }
+        download(nombreArchivo, workspace.codigoVyper);
+        mostrarMensajeWorkspaces('Vyper code downloaded successfully', true);
+      }
+      catch (error) {
+        console.error(error);
+        mostrarMensajeWorkspaces('Error downloading the Vyper code', false);
+      }
+    }
+  </script>
+  <style>
+    body.pantalla-workspaces {
+      background: #f3f4f8;
+      min-height: 100vh;
+      overflow: auto;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: center;
+      background-color: rgb(75, 86, 185);
+      color: #fff;
+    }
+
+    .app-header__inner {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 20px;
+      box-sizing: border-box;
+    }
+
+    /* #logo y h1 tienen reglas globales en styles.css pensadas para el editor
+       (position:fixed, fondo morado...); se anulan aquí con selectores más
+       específicos en vez de renombrar id/etiqueta, para no desviarse del
+       original al comparar cambios futuros. */
+    .app-header__inner #logo {
+      position: static;
+      width: 44px;
+      height: 44px;
+      margin-top: 0;
+    }
+
+    .app-header__text {
+      flex: 1;
+    }
+
+    .app-header__text h1#title {
+      margin: 0;
+      font-size: 16px;
+      background: none;
+      font-weight: normal;
+      color: inherit;
+    }
+
+    .app-header__actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #salirSesion {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      cursor: pointer;
+      opacity: 0.9;
+    }
+
+    #salirSesion:hover {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    .botonera_navegacion {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 13px;
+      padding: 8px 20px;
+      background: #eef2ff;
+    }
+
+    .botonera_navegacion a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #243388;
+      text-decoration: none;
+      background: #fff;
+      border: 1px solid #bcc6ee;
+      border-radius: 6px;
+      padding: 4px 9px;
+    }
+
+    .botonera_navegacion a img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+
+    .botonera_navegacion a:hover {
+      background: #dde4ff;
+    }
+
+    .workspaces-contenedor {
+      width: calc(100% - 60px);
+      margin: 28px auto 32px auto;
+      max-width: 1400px;
+      background: #f7f7f7;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+
+    .panel-workspaces {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      padding: 22px;
+    }
+
+    .cabecera-tabla {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .acciones-cabecera {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .subtitulo-panel {
+      margin-top: -6px;
+      color: #58617f;
+      font-size: 14px;
+    }
+
+    .mensaje-panel {
+      margin-top: 0;
+      margin-bottom: 14px;
+      min-height: 22px;
+      font-weight: 600;
+    }
+
+    .mensaje-ok { color: #188038; }
+    .mensaje-error { color: #c5221f; }
+
+    .filtros-tabla {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.5fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(150px, .9fr);
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: end;
+    }
+
+    .campo {
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .campo label {
+      font-weight: 600;
+    }
+
+    .campo input, .campo select {
+      border: 1px solid #cfd7f5;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #fff;
+      color: #222;
+    }
+
+    .tabla-scroll {
+      overflow-x: auto;
+      border: 1px solid #e4e8f7;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    table.tabla-workspaces {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    .tabla-workspaces thead { background: #eef2ff; }
+
+    .tabla-workspaces th, .tabla-workspaces td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid #edf1fb;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .tabla-workspaces th { color: #22317f; }
+
+    .etiqueta-workspace {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #243388;
+    }
+
+    .button { border-radius: 12px; }
+
+    .boton-secundario {
+      box-shadow: none;
+      background: #eef2ff;
+      color: #243388;
+      border: 1px solid #bcc6ee;
+      text-shadow: none;
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+
+    .acciones-tabla {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .paginacion {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .paginacion-acciones {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .icono_descarga_codigo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      cursor: pointer;
+    }
+
+    .icono_descarga_codigo:hover { transform: scale(1.2); }
+
+    @media (max-width: 1000px) {
+      .filtros-tabla { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .workspaces-contenedor { width: calc(100% - 20px); padding: 18px 12px; }
+      .filtros-tabla { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="pantalla-workspaces">
+
+  <header class="app-header">
+    <div class="app-header__inner">
+      <img id="logo" src="/resources/logoSmaCly2.png" alt="SmaCly logo"/>
+      <div class="app-header__text">
+        <h1 id="title">SmaCly : Design your smart contract using Blockly</h1>
+      </div>
+      <div class="app-header__actions">
+        <img id="salirSesion" src="/resources/iconoApagado.svg" alt="Close session" title="Close session" />
+        <form id="formLogout" action="/logout" method="post" style="display:none;">
+          <button type="submit">Close session</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <div id="botoneraNavegacion" class="botonera_navegacion"></div>
+
+  <main class="workspaces-contenedor">
+    <section class="panel-workspaces">
+      <p id="mensajeWorkspaces" class="mensaje-panel"></p>
+
+      <div class="cabecera-tabla">
+        <div>
+          <h2>My workspaces</h2>
+          <p class="subtitulo-panel">List of available workspaces</p>
+        </div>
+        <div class="acciones-cabecera">
+          <button type="button" id="refrescarWorkspacesBtn" class="button boton-secundario">Refresh</button>
+          <button type="button" id="borrarTodosWorkspacesBtn" class="button boton-secundario">Delete all records</button>
+        </div>
+      </div>
+
+      <div class="filtros-tabla">
+        <div class="campo">
+          <label for="filtroTextoWorkspace">Search</label>
+          <input type="text" id="filtroTextoWorkspace" placeholder="Workspace's name, account user or email...">
+        </div>
+        <div class="campo">
+          <label for="filtroTipoWorkspace">Type</label>
+          <select id="filtroTipoWorkspace">
+            <option value="">All</option>
+            <option value="workspace">Workspaces</option>
+            <option value="template">Templates</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="filtroFechaWorkspace">Date</label>
+          <input type="date" id="filtroFechaWorkspace">
+        </div>
+        <div class="campo">
+          <label for="tamPaginaWorkspace">Workspaces per page</label>
+          <select id="tamPaginaWorkspace">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tabla-scroll">
+        <table class="tabla-workspaces">
+          <thead>
+            <tr>
+              <th>Workspace</th>
+              <th>Type</th>
+              <th>User account</th>
+              <th>Email</th>
+              <th>Creation date</th>
+              <th>Last update</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tablaWorkspacesBody"></tbody>
+        </table>
+      </div>
+
+      <div class="paginacion">
+        <div id="resumenPaginacionWorkspaces">Showing 0 workspaces</div>
+        <div class="paginacion-acciones">
+          <button type="button" id="paginaAnteriorWorkspacesBtn" class="button boton-secundario">Back</button>
+          <span id="paginaActualWorkspacesTexto">Page 1</span>
+          <button type="button" id="paginaSiguienteWorkspacesBtn" class="button boton-secundario">Next</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* Barra de navegación simple (equivalente al antiguo botoneraNavegacion),
+       con el enlace a administración de usuarios visible solo para
+       PROFESSOR/ADMIN. */
+    async function pintarNav() {
+      var nav = document.getElementById('botoneraNavegacion');
+      var rol = 'USER';
+      try {
+        var respuesta = await fetch('/api/miPerfil');
+        if (respuesta.ok) {
+          var usuario = await respuesta.json();
+          rol = (usuario && usuario.rol) || 'USER';
+        }
+      } catch (error) { /* se queda con USER por defecto */ }
+
+      var html = '<a href="/home.html">Home</a>' +
+        '<a href="/"><img src="/resources/iconoEditorSmaCly.png" alt="">Editor</a>' +
+        '<a href="/edicion_datos_usuario.html"><img src="/resources/iconoMiPerfil.png" alt="">My profile</a>' +
+        '<a href="/logs.html"><img src="/resources/iconoLogs.png" alt="">Activity logs</a>';
+      if (rol === 'PROFESSOR' || rol === 'ADMIN') {
+        html += '<a href="/gestion_usuarios.html"><img src="/resources/iconoUsuarios.png" alt="">Users</a>';
+      }
+      nav.innerHTML = html;
+
+      document.getElementById('salirSesion').addEventListener('click', async function () {
+        if (!confirm('Would you like to log out?')) return;
+        try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
+        window.location.href = '/login.html';
+      });
+    }
+
+    var paginaActualWorkspace = 1;
+    var tamanioPaginaWorkspace = 10;
+    var listaWorkspaces = [];
+    var listaWorkspacesFiltrados = [];
+    var usuarioActualWorkspaces = null;
+    var tablaWorkspacesBody = document.getElementById('tablaWorkspacesBody');
+    var resumenPaginacionWorkspaces = document.getElementById('resumenPaginacionWorkspaces');
+    var paginaActualWorkspacesTexto = document.getElementById('paginaActualWorkspacesTexto');
+    var mensajeWorkspaces = document.getElementById('mensajeWorkspaces');
+
+    function mostrarMensajeWorkspaces(texto, ok) {
+      mensajeWorkspaces.textContent = texto;
+      mensajeWorkspaces.className = ok ? 'mensaje-panel mensaje-ok' : 'mensaje-panel mensaje-error';
+    }
+
+    function normalizarTexto(_texto) {
+      if (_texto == null) return '';
+      return String(_texto).toLowerCase().trim();
+    }
+
+    function formatearFecha(_valor) {
+      if (!_valor) return '-';
+      try {
+        var fecha = new Date(_valor);
+        if (Number.isNaN(fecha.getTime())) return _valor;
+        return fecha.toLocaleString();
+      } catch (error) { return _valor; }
+    }
+
+    function aplicarFiltrosWorkspaces() {
+      var filtroTexto = document.getElementById('filtroTextoWorkspace');
+      var filtroFecha = document.getElementById('filtroFechaWorkspace');
+      var filtroTipo = document.getElementById('filtroTipoWorkspace');
+
+      var texto = filtroTexto ? normalizarTexto(filtroTexto.value) : '';
+      var fecha = filtroFecha ? filtroFecha.value : '';
+      var tipo = filtroTipo ? filtroTipo.value : '';
+
+      var nuevaLista = [];
+      for (var i = 0; i < listaWorkspaces.length; i++) {
+        var workspace = listaWorkspaces[i];
+        var meter = true;
+        if (texto !== '') {
+          var nombreWorkspace = normalizarTexto(workspace.nombreWorkspace);
+          var user = normalizarTexto(workspace.user);
+          var email = normalizarTexto(workspace.email);
+          if (!nombreWorkspace.includes(texto) && !user.includes(texto) && !email.includes(texto)) meter = false;
+        }
+        if (meter && tipo !== '') {
+          var esPlantilla = workspace.isTemplate === true;
+          if (tipo === 'template' && !esPlantilla) meter = false;
+          if (tipo === 'workspace' && esPlantilla) meter = false;
+        }
+        if (meter && fecha !== '') {
+          var fechaWorkspace = new Date(workspace.fechaActualizacion);
+          if (Number.isNaN(fechaWorkspace.getTime())) {
+            meter = false;
+          } else {
+            var textoFecha = fechaWorkspace.toISOString().slice(0, 10);
+            if (textoFecha !== fecha) meter = false;
+          }
+        }
+        if (meter) nuevaLista.push(workspace);
+      }
+      listaWorkspacesFiltrados = nuevaLista;
+      paginaActualWorkspace = 1;
+      renderizarTablaWorkspaces();
+    }
+
+    function escaparHtml(valor) {
+      if (valor == null) return '';
+      return String(valor).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    }
+
+    function renderizarTablaWorkspaces() {
+      var inicio = (paginaActualWorkspace - 1) * tamanioPaginaWorkspace;
+      var fin = inicio + tamanioPaginaWorkspace;
+      var tablaHTML = '';
+      var i = 0;
+      if (listaWorkspacesFiltrados.length === 0) {
+        tablaWorkspacesBody.innerHTML = '<tr><td colspan="7">There are no workspaces to display</td></tr>';
+      } else {
+        for (i = inicio; i < fin && i < listaWorkspacesFiltrados.length; i++) {
+          var workspace = listaWorkspacesFiltrados[i];
+          var nombreWorkspace = workspace.nombreWorkspace || '-';
+          var user = workspace.user || '-';
+          var email = workspace.email || '-';
+
+          var esPlantilla = workspace.isTemplate === true;
+          var tipoWorkspace = esPlantilla ? 'Template' : 'Workspace';
+          var esPropietario = false;
+          if (usuarioActualWorkspaces && usuarioActualWorkspaces.id && workspace.userId) {
+            esPropietario = String(usuarioActualWorkspaces.id) === String(workspace.userId);
+          }
+
+          var rolUsuarioActual = '';
+          if (usuarioActualWorkspaces && usuarioActualWorkspaces.rol) {
+            rolUsuarioActual = String(usuarioActualWorkspaces.rol).toUpperCase();
+          }
+          var esAdmin = rolUsuarioActual === 'ADMIN';
+          var esProfessor = rolUsuarioActual === 'PROFESSOR';
+          var esUser = rolUsuarioActual === 'USER';
+          var puedeBorrar = false;
+          if (esUser) puedeBorrar = esPropietario && !esPlantilla;
+          else if (esProfessor || esAdmin) puedeBorrar = true;
+
+          var textoBotonCarga = 'Load workspace';
+          if (esPlantilla && esUser && !esPropietario) textoBotonCarga = 'Use template';
+          else if (esPlantilla) textoBotonCarga = 'Load template';
+
+          var idWorkspace = workspace.id ? String(workspace.id) : '';
+
+          tablaHTML += '<tr>';
+          tablaHTML += '<td>' + escaparHtml(nombreWorkspace) + '</td>';
+          tablaHTML += '<td>';
+          if (esPlantilla) {
+            tablaHTML += '<span class="etiqueta-workspace">Template</span>';
+          } else {
+            tablaHTML += '<span class="etiqueta-workspace">Workspace</span>';
+          }
+          tablaHTML += '</td>';
+          tablaHTML += '<td>' + escaparHtml(user) + '</td>';
+          tablaHTML += '<td>' + escaparHtml(email) + '</td>';
+          tablaHTML += '<td>' + escaparHtml(formatearFecha(workspace.fechaCreacion)) + '</td>';
+          tablaHTML += '<td>' + escaparHtml(formatearFecha(workspace.fechaActualizacion)) + '</td>';
+          tablaHTML += '<td><div class="acciones-tabla">';
+          if (idWorkspace !== '') {
+            tablaHTML += '<button type="button" class="button boton-secundario" onclick="cargarWorkspace(\'' + idWorkspace + '\')">' + escaparHtml(textoBotonCarga) + '</button>';
+          }
+          if (idWorkspace !== '' && puedeBorrar) {
+            var textoBotonBorrado = esPlantilla ? 'Delete template' : 'Delete workspace';
+            tablaHTML += '<button type="button" class="button boton-secundario" onclick="borrarWorkspace(\'' + idWorkspace + '\')">' + escaparHtml(textoBotonBorrado) + '</button>';
+          }
+          if (idWorkspace !== '') {
+            tablaHTML += '<img src="/resources/solidity_logo.svg" class="icono_descarga_codigo" title="Click to download the Solidity code" onclick="descargarCodigoSolidityWorkspace(\'' + idWorkspace + '\')">';
+            tablaHTML += '<img src="/resources/Vyper.svg" class="icono_descarga_codigo" title="Click to download the Vyper code" onclick="descargarCodigoVyperWorkspace(\'' + idWorkspace + '\')">';
+          }
+          tablaHTML += '</div></td></tr>';
+        }
+        tablaWorkspacesBody.innerHTML = tablaHTML;
+      }
+
+      var total = listaWorkspacesFiltrados.length;
+      var totalPaginas = Math.ceil(total / tamanioPaginaWorkspace);
+      if (totalPaginas < 1) totalPaginas = 1;
+      if (paginaActualWorkspace > totalPaginas) paginaActualWorkspace = totalPaginas;
+      if (total === 0) {
+        resumenPaginacionWorkspaces.textContent = 'Showing 0 workspaces';
+      } else {
+        resumenPaginacionWorkspaces.textContent = 'Showing ' + (inicio + 1) + '-' + Math.min(fin, total) + ' of ' + total + ' workspaces';
+      }
+      paginaActualWorkspacesTexto.textContent = 'Page ' + paginaActualWorkspace + ' of ' + totalPaginas;
+      document.getElementById('paginaAnteriorWorkspacesBtn').disabled = paginaActualWorkspace <= 1;
+      document.getElementById('paginaSiguienteWorkspacesBtn').disabled = paginaActualWorkspace >= totalPaginas;
+    }
+
+    async function cargarUsuarioActualWorkspaces() {
+      try {
+        var respuesta = await fetch('/api/miPerfil');
+        if (!respuesta.ok) throw new Error('The authenticated user could not be loaded');
+        usuarioActualWorkspaces = await respuesta.json();
+      } catch (error) {
+        console.error(error);
+        usuarioActualWorkspaces = null;
+      }
+    }
+
+    async function cargarWorkspaces() {
+      try {
+        var resultadosWorkspaces = await fetch('/api/workspaces/visibles');
+        if (!resultadosWorkspaces.ok) throw new Error('Error loading workspaces');
+        var data = await resultadosWorkspaces.json();
+        listaWorkspaces = Array.isArray(data) ? data : [];
+        listaWorkspacesFiltrados = listaWorkspaces.slice();
+        renderizarTablaWorkspaces();
+      } catch (error) {
+        listaWorkspaces = [];
+        listaWorkspacesFiltrados = [];
+        renderizarTablaWorkspaces();
+        mostrarMensajeWorkspaces('The visible workspaces could not be loaded', false);
+      }
+    }
+
+    function cargarWorkspace(idWorkspace) {
+      if (!idWorkspace) {
+        mostrarMensajeWorkspaces('The workspace could not be loaded', false);
+        return;
+      }
+      localStorage.setItem('workspaceIdSeleccionado', idWorkspace);
+      window.location.href = '/';
+    }
+
+    async function borrarWorkspace(idWorkspace) {
+      if (!idWorkspace) {
+        mostrarMensajeWorkspaces('The workspace could not be deleted', false);
+        return;
+      }
+      if (!confirm('Are you sure you want to delete this workspace?')) return;
+      try {
+        var respuesta = await fetch('/api/workspaces/' + encodeURIComponent(idWorkspace), { method: 'DELETE' });
+        var data = await respuesta.json();
+        if (data.exito) {
+          mostrarMensajeWorkspaces(data.mensaje || 'Workspace successfully deleted', true);
+          if (localStorage.getItem('workspaceIdActual') === idWorkspace) localStorage.removeItem('workspaceIdActual');
+          if (localStorage.getItem('workspaceIdSeleccionado') === idWorkspace) localStorage.removeItem('workspaceIdSeleccionado');
+          await cargarWorkspaces();
+        } else {
+          mostrarMensajeWorkspaces(data.mensaje || 'The workspace could not be deleted', false);
+        }
+      } catch (error) {
+        console.error(error);
+        mostrarMensajeWorkspaces('Error deleting the workspace', false);
+      }
+    }
+
+    async function borrarTodosWorkspaces() {
+      if (!confirm('Are you sure you want to delete all the workspaces and templates you are allowed to manage? Their related logs will also be deleted.')) return;
+      var boton = document.getElementById('borrarTodosWorkspacesBtn');
+      var textoOriginal = boton.textContent;
+      boton.disabled = true;
+      boton.textContent = 'Deleting...';
+      try {
+        var respuesta = await fetch('/api/workspaces', { method: 'DELETE' });
+        var data = await respuesta.json();
+        if (!respuesta.ok || !data.exito) {
+          mostrarMensajeWorkspaces(data.mensaje || 'The records could not be deleted', false);
+          return;
+        }
+        localStorage.removeItem('workspaceIdActual');
+        localStorage.removeItem('workspaceIdSeleccionado');
+        paginaActualWorkspace = 1;
+        mostrarMensajeWorkspaces(data.mensaje || 'All permitted records were deleted successfully', true);
+        await cargarWorkspaces();
+      } catch (error) {
+        console.error(error);
+        mostrarMensajeWorkspaces('Error deleting all permitted workspace records', false);
+      } finally {
+        boton.disabled = false;
+        boton.textContent = textoOriginal;
+      }
+    }
+
+    function prepararFiltrosYPaginacion() {
+      document.getElementById('filtroTextoWorkspace').addEventListener('input', aplicarFiltrosWorkspaces);
+      document.getElementById('filtroFechaWorkspace').addEventListener('change', aplicarFiltrosWorkspaces);
+      document.getElementById('filtroTipoWorkspace').addEventListener('change', aplicarFiltrosWorkspaces);
+      document.getElementById('tamPaginaWorkspace').addEventListener('change', function (e) {
+        tamanioPaginaWorkspace = Number(e.target.value);
+        paginaActualWorkspace = 1;
+        renderizarTablaWorkspaces();
+      });
+      document.getElementById('paginaAnteriorWorkspacesBtn').addEventListener('click', function () {
+        if (paginaActualWorkspace > 1) { paginaActualWorkspace--; renderizarTablaWorkspaces(); }
+      });
+      document.getElementById('paginaSiguienteWorkspacesBtn').addEventListener('click', function () {
+        var totalPaginas = Math.ceil(listaWorkspacesFiltrados.length / tamanioPaginaWorkspace);
+        if (totalPaginas < 1) totalPaginas = 1;
+        if (paginaActualWorkspace < totalPaginas) { paginaActualWorkspace++; renderizarTablaWorkspaces(); }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      pintarNav();
+      prepararFiltrosYPaginacion();
+      document.getElementById('refrescarWorkspacesBtn').addEventListener('click', cargarWorkspaces);
+      document.getElementById('borrarTodosWorkspacesBtn').addEventListener('click', borrarTodosWorkspaces);
+      await cargarUsuarioActualWorkspaces();
+      await cargarWorkspaces();
+    });
+  </script>
+</body>
+</html>

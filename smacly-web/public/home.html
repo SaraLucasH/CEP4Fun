@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmaCly - Home</title>
+  <link rel="stylesheet" href="/resources/styles.css">
+  <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
+  <style>
+    body.pantalla-home {
+      background: #f3f4f8;
+      min-height: 100vh;
+      overflow: auto;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: center;
+      background-color: rgb(75, 86, 185);
+      color: #fff;
+    }
+
+    .app-header__inner {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 20px;
+    }
+
+    /* #logo y h1 tienen reglas globales en styles.css pensadas para el editor;
+       se anulan con selectores más específicos en vez de renombrar id/etiqueta. */
+    .app-header__inner #logo {
+      position: static;
+      width: 48px;
+      height: 48px;
+      margin-top: 0;
+    }
+
+    .app-header__text {
+      flex: 1;
+    }
+
+    .app-header__text h1#title {
+      margin: 0;
+      font-size: 18px;
+      background: none;
+      font-weight: normal;
+      color: inherit;
+    }
+
+    .app-header__actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #salirSesion {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      cursor: pointer;
+      opacity: 0.9;
+    }
+
+    #salirSesion:hover {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    .home-contenedor {
+      width: calc(100% - 60px);
+      min-height: calc(100vh - 140px);
+      margin: 28px auto 32px auto;
+      max-width: 1200px;
+      padding: 40px 34px;
+      box-sizing: border-box;
+    }
+
+    .home-titulo {
+      text-align: center;
+      margin: 0 0 8px 0;
+      color: #1d1d1d;
+      font-size: 28px;
+    }
+
+    .home-subtitulo {
+      text-align: center;
+      margin: 0 0 34px 0;
+      color: #5d657f;
+      font-size: 15px;
+    }
+
+    .home-mensaje {
+      text-align: center;
+      min-height: 24px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .home-mensaje--error { color: #c5221f; }
+    .home-mensaje--ok { color: #188038; }
+
+    .home-grid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
+
+    .home-card {
+      width: 230px;
+      height: 260px;
+      border: 3px solid #111;
+      border-radius: 28px;
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 18px;
+      box-sizing: border-box;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .home-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 12px 26px rgba(0,0,0,.12);
+      background: #eef2ff;
+    }
+
+    .home-card__texto {
+      font-size: 20px;
+      line-height: 1.3;
+      color: #111;
+      font-weight: 600;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body class="pantalla-home">
+
+  <header class="app-header">
+    <div class="app-header__inner">
+      <img id="logo" src="/resources/logoSmaCly2.png" alt="SmaCly logo" />
+      <div class="app-header__text">
+        <h1 id="title">SmaCly : Design your smart contract using Blockly</h1>
+      </div>
+      <div class="app-header__actions">
+        <img id="salirSesion" src="/resources/iconoApagado.svg" alt="Log out" title="Log out" />
+        <form id="formLogout" action="/logout" method="post" style="display:none;">
+          <button type="submit">Close session</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <main class="home-contenedor">
+    <h2 class="home-titulo">Home</h2>
+    <p class="home-subtitulo">Click on an option to enter</p>
+    <p id="mensajeHome" class="home-mensaje"></p>
+    <div id="homeGrid" class="home-grid"></div>
+  </main>
+
+  <script>
+    var homeGrid = document.getElementById('homeGrid');
+    var mensajeHome = document.getElementById('mensajeHome');
+
+    function mostrarMensajeHome(texto, ok) {
+      mensajeHome.textContent = texto;
+      mensajeHome.className = 'home-mensaje ' + (ok ? 'home-mensaje--ok' : 'home-mensaje--error');
+    }
+
+    function obtenerOpcionesPorRol(rol) {
+      var opciones = [
+        { texto: 'Editor', ruta: '/', icono: 'iconoEditorSmaCly.png' },
+        { texto: 'My workspaces', ruta: '/workspaces.html', icono: 'iconoWorkspace.png' },
+        { texto: 'Activity logs', ruta: '/logs.html', icono: 'iconoLogs.png' },
+        { texto: 'My profile', ruta: '/edicion_datos_usuario.html', icono: 'iconoMiPerfil.png' }
+      ];
+      if (rol === 'PROFESSOR' || rol === 'ADMIN') {
+        opciones.push({ texto: 'My managed users', ruta: '/gestion_usuarios.html', icono: 'iconoUsuarios.png' });
+      }
+      return opciones;
+    }
+
+    function crearTarjeta(opcion) {
+      var tarjeta = document.createElement('div');
+      tarjeta.className = 'home-card';
+      tarjeta.title = 'Click to enter';
+
+      var img = document.createElement('img');
+      img.style.width = '96px';
+      img.style.height = '96px';
+      img.style.objectFit = 'contain';
+      img.src = '/resources/' + opcion.icono;
+
+      var texto = document.createElement('div');
+      texto.className = 'home-card__texto';
+      texto.textContent = opcion.texto;
+
+      var columna = document.createElement('div');
+      columna.appendChild(img);
+      columna.appendChild(texto);
+      tarjeta.appendChild(columna);
+
+      tarjeta.addEventListener('click', function () {
+        window.location.href = opcion.ruta;
+      });
+
+      return tarjeta;
+    }
+
+    function pintarHome(rol) {
+      var opciones = obtenerOpcionesPorRol(rol);
+      homeGrid.innerHTML = '';
+      opciones.forEach(function (opcion) {
+        homeGrid.appendChild(crearTarjeta(opcion));
+      });
+    }
+
+    async function cargarRolUsuario() {
+      try {
+        var respuesta = await fetch('/api/miPerfil');
+        if (respuesta.status === 401) {
+          window.location.href = '/login.html';
+          return;
+        }
+        if (!respuesta.ok) {
+          throw new Error('The user profile could not be loaded');
+        }
+        var data = await respuesta.json();
+        pintarHome(data && data.rol ? data.rol : 'USER');
+      }
+      catch (error) {
+        pintarHome('USER');
+        mostrarMensajeHome('The user role could not be loaded. Only the basic view can be displayed', false);
+      }
+    }
+
+    document.getElementById('salirSesion').addEventListener('click', async function () {
+      if (!window.confirm('Would you like to log out?')) return;
+      try {
+        await fetch('/logout', { method: 'POST' });
+      }
+      catch (error) { /* seguimos igualmente al login */ }
+      window.location.href = '/login.html';
+    });
+
+    document.addEventListener('DOMContentLoaded', cargarRolUsuario);
+  </script>
+</body>
+</html>

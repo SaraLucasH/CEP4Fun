@@ -3,37 +3,31 @@ const HTTPMethod = Object.freeze({
 	GET : 'GET',
 });
 
-/** 
- * @param {string} hostName - Host Name
- * @param {number} port - Port 
- * @param {string} topic - Topic = kind of event 
- * @param {any} requestContent - Request parameter to be converted in JSON 
+/**
+ * @param {string} topic - Topic = kind of event
+ * @param {any} requestContent - Request parameter to be converted in JSON
  */
-function buildHttpPost(hostName, port, topic, requestContent, path){
+function buildHttpPost(topic, requestContent, path){
   //TODO - Use enum for method parameter
-  return buildhttpRequest('POST', hostName, path, port, topic, requestContent);
+  return buildhttpRequest('POST', path, topic, requestContent);
 }
 
-/** 
- * @param {string} hostName - Host Name
- * @param {number} port - Port 
- * @param {string} path - Topic = kind of event  
+/**
+ * @param {string} path - Topic = kind of event
  */
-function buildHttpGet(hostName, port, topic, path){
-  return buildhttpRequest('GET', hostName, path, port, topic);
+function buildHttpGet(topic, path){
+  return buildhttpRequest('GET', path, topic);
 }
 
 /**
  * @param {HTTPMethod} httpMethod - Http method
- * @param {string} hostName - Host Name
- * @param {number} port - Port 
- * @param {string} topic - Topic = kind of event 
+ * @param {string} topic - Topic = kind of event
  */
-function buildhttpRequest(httpMethod, hostName, path, port, topic, jsonFile){
-  
+function buildhttpRequest(httpMethod, path, topic, jsonFile){
+
   var xhr = new XMLHttpRequest();
-  // n8n expone sus webhooks bajo /webhook/<path> (antes: Node-RED, sin prefijo)
-  var url = 'http://'.concat(hostName,':', port, '/webhook', path);
+  // Mismo origen: smacly-web reenvía /webhook a n8n (server.js)
+  var url = '/webhook'.concat(path);
   
   xhr.open(httpMethod, url, true);
   xhr.setRequestHeader('Content-Type', 'application/json');

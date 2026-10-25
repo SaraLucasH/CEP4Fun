@@ -18,11 +18,26 @@ const compilerProxy = require('./compilerProxy');
 
 const app = express();
 const server = http.createServer(app);
+
+const N8N_URL = process.env.N8N_URL || 'http://localhost:5678';
+app.use('/webhook', (req, res) => {
+  const target = new URL(req.originalUrl, N8N_URL);
+  const upstream = http.request(target, { method: req.method, headers: { ...req.headers, host: target.host } }, (upstreamRes) => {
+    res.writeHead(upstreamRes.statusCode, upstreamRes.headers);
+    upstreamRes.pipe(res);
+  });
+  upstream.on('error', (err) => {
+    console.error('Error reenviando a n8n: ' + err.message);
+    res.sendStatus(502);
+  });
+  req.pipe(upstream);
+});
 const io = socketIo(server);
 
 // Log
 const fs = require('fs');
 
+fs.mkdirSync(path.join(__dirname, 'logs'), { recursive: true });
 const logStream = fs.createWriteStream(path.join(__dirname + '/logs/', `${new Date().toISOString().split('T')[0]}_server.log`), { flags: 'a', autoClose: true });
 
 const originalLog = console.log;

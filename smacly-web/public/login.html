@@ -77,7 +77,7 @@
         });
         var data = await response.json();
         if (data.exito) {
-          window.location.href = '/';
+          window.location.href = '/home.html';
         }
         else {
           toastr.error(data.mensaje || 'Invalid username or password');

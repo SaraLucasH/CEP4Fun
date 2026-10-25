@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmaCly - Logs</title>
+  <link rel="stylesheet" href="/resources/styles.css">
+  <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
+  <script>
+    async function borrarLogsSesion(sessionId) {
+      if (!confirm('Are you sure you want to delete all the logs from this session?')) return;
+      try {
+        var respuesta = await fetch('/api/logs/sesion/' + encodeURIComponent(sessionId), { method: 'DELETE' });
+        var data = await respuesta.json();
+        if (data.exito) {
+          mostrarMensajeLogs('Session logs deleted', true);
+          cargarLogs();
+        } else {
+          mostrarMensajeLogs(data.mensaje || 'The session logs could not be deleted', false);
+        }
+      } catch (error) {
+        mostrarMensajeLogs('Error deleting session logs', false);
+      }
+    }
+  </script>
+  <style>
+    body.pantalla-logs {
+      background: #f3f4f8;
+      min-height: 100vh;
+      overflow: auto;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: center;
+      background-color: rgb(75, 86, 185);
+      color: #fff;
+    }
+
+    .app-header__inner {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 20px;
+      box-sizing: border-box;
+    }
+
+    /* #logo y h1 tienen reglas globales en styles.css pensadas para el editor;
+       se anulan con selectores más específicos en vez de renombrar id/etiqueta. */
+    .app-header__inner #logo { position: static; width: 44px; height: 44px; margin-top: 0; }
+    .app-header__text { flex: 1; }
+    .app-header__text h1#title { margin: 0; font-size: 16px; background: none; font-weight: normal; color: inherit; }
+
+    .app-header__actions { display: flex; align-items: center; gap: 10px; }
+    #salirSesion { width: 36px; height: 36px; object-fit: contain; cursor: pointer; opacity: 0.9; }
+    #salirSesion:hover { opacity: 1; transform: scale(1.08); }
+
+    .botonera_navegacion { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; padding: 8px 20px; background: #eef2ff; }
+    .botonera_navegacion a {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #243388; text-decoration: none; background: #fff;
+      border: 1px solid #bcc6ee; border-radius: 6px; padding: 4px 9px;
+    }
+    .botonera_navegacion a img { width: 18px; height: 18px; object-fit: contain; }
+    .botonera_navegacion a:hover { background: #dde4ff; }
+
+    .logs-contenedor {
+      width: calc(100% - 60px);
+      margin: 28px auto 32px auto;
+      max-width: 1400px;
+      background: #f7f7f7;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+
+    .panel-logs {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      padding: 22px;
+    }
+
+    .cabecera-tabla {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .acciones-cabecera { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-left: auto; }
+    .subtitulo-panel { margin-top: -6px; color: #58617f; font-size: 14px; }
+    .mensaje-panel { margin-top: 0; margin-bottom: 14px; min-height: 22px; font-weight: 600; }
+    .mensaje-ok { color: #188038; }
+    .mensaje-error { color: #c5221f; }
+
+    .filtros-tabla {
+      display: grid;
+      grid-template-columns: minmax(240px, 1.4fr) minmax(170px, 1fr) minmax(170px, 1fr) minmax(150px, .9fr);
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: end;
+    }
+
+    .campo { margin-bottom: 0; display: flex; flex-direction: column; gap: 6px; }
+    .campo label { font-weight: 600; }
+    .campo input, .campo select {
+      border: 1px solid #cfd7f5; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: #fff; color: #222;
+    }
+
+    .tabla-scroll { overflow-x: auto; border: 1px solid #e4e8f7; border-radius: 12px; background: #fff; }
+    table.tabla-logs { width: 100%; border-collapse: collapse; min-width: 1250px; }
+    .tabla-logs thead { background: #eef2ff; }
+    .tabla-logs th, .tabla-logs td {
+      padding: 12px 14px; text-align: left; border-bottom: 1px solid #edf1fb; font-size: 14px; vertical-align: middle;
+    }
+    .tabla-logs th { color: #22317f; }
+
+    .button { border-radius: 12px; }
+    .boton-secundario {
+      box-shadow: none; background: #eef2ff; color: #243388; border: 1px solid #bcc6ee;
+      text-shadow: none; padding: 6px 12px; border-radius: 12px;
+    }
+
+    .paginacion { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 12px; flex-wrap: wrap; }
+    .paginacion-acciones { display: flex; gap: 10px; align-items: center; }
+    .texto-largo { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .acciones-tabla { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .icono_descarga_logs { width: 30px; height: 30px; object-fit: contain; cursor: pointer; }
+    .icono_descarga_logs:hover { transform: scale(1.25); }
+
+    @media (max-width: 1000px) { .filtros-tabla { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 700px) {
+      .logs-contenedor { width: calc(100% - 20px); padding: 18px 12px; }
+      .filtros-tabla { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="pantalla-logs">
+
+  <header class="app-header">
+    <div class="app-header__inner">
+      <img id="logo" src="/resources/logoSmaCly2.png" alt="SmaCly logo"/>
+      <div class="app-header__text">
+        <h1 id="title">SmaCly : Design your smart contract using Blockly</h1>
+      </div>
+      <div class="app-header__actions">
+        <img id="salirSesion" src="/resources/iconoApagado.svg" alt="Close session" title="Close session" />
+        <form id="formLogout" action="/logout" method="post" style="display:none;">
+          <button type="submit">Close session</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <div id="botoneraNavegacion" class="botonera_navegacion"></div>
+
+  <main class="logs-contenedor">
+    <section class="panel-logs">
+      <p id="mensajeLogs" class="mensaje-panel"></p>
+
+      <div class="cabecera-tabla">
+        <div>
+          <h2>Logs grouped by session</h2>
+          <p class="subtitulo-panel">Each row represents a work session in the editor</p>
+        </div>
+        <div class="acciones-cabecera">
+          <button type="button" id="refrescarLogsBtn" class="button boton-secundario">Refresh</button>
+          <button type="button" id="borrarTodosLogsBtn" class="button boton-secundario" style="display:none;">Delete all records</button>
+        </div>
+      </div>
+
+      <div class="filtros-tabla">
+        <div class="campo">
+          <label for="filtroTextoLog">Search</label>
+          <input type="text" id="filtroTextoLog" placeholder="Session, user, email, role, workspace...">
+        </div>
+        <div class="campo">
+          <label for="filtroRolLog">Role</label>
+          <select id="filtroRolLog">
+            <option value="">All</option>
+            <option value="USER">USER</option>
+            <option value="PROFESSOR">PROFESSOR</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="filtroFechaLog">Date</label>
+          <input type="date" id="filtroFechaLog">
+        </div>
+        <div class="campo">
+          <label for="tamPaginaLogs">Sessions per page</label>
+          <select id="tamPaginaLogs">
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tabla-scroll">
+        <table class="tabla-logs">
+          <thead>
+            <tr>
+              <th>Session ID</th><th>User account</th><th>Email</th><th>Role</th>
+              <th>Workspace name</th><th>Workspace ID</th><th>Last updated</th><th>Nº logs</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tablaLogsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="paginacion">
+        <div id="resumenPaginacionLogs">Showing 0 sessions</div>
+        <div class="paginacion-acciones">
+          <button type="button" id="paginaAnteriorLogsBtn" class="button boton-secundario">Back</button>
+          <span id="paginaActualLogsTexto">Page 1</span>
+          <button type="button" id="paginaSiguienteLogsBtn" class="button boton-secundario">Next</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function pintarNav() {
+      var nav = document.getElementById('botoneraNavegacion');
+      var rol = 'USER';
+      try {
+        var respuesta = await fetch('/api/miPerfil');
+        if (respuesta.ok) {
+          var usuario = await respuesta.json();
+          rol = (usuario && usuario.rol) || 'USER';
+        }
+      } catch (error) {}
+
+      var html = '<a href="/home.html">Home</a>' +
+        '<a href="/"><img src="/resources/iconoEditorSmaCly.png" alt="">Editor</a>' +
+        '<a href="/edicion_datos_usuario.html"><img src="/resources/iconoMiPerfil.png" alt="">My profile</a>' +
+        '<a href="/workspaces.html"><img src="/resources/iconoWorkspace.png" alt="">Workspaces</a>';
+      if (rol === 'PROFESSOR' || rol === 'ADMIN') {
+        html += '<a href="/gestion_usuarios.html"><img src="/resources/iconoUsuarios.png" alt="">Users</a>';
+      }
+      nav.innerHTML = html;
+
+      document.getElementById('salirSesion').addEventListener('click', async function () {
+        if (!confirm('Would you like to log out?')) return;
+        try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
+        window.location.href = '/login.html';
+      });
+    }
+
+    var paginaActualLogs = 1;
+    var tamanioPaginaLogs = 10;
+    var listaLogs = [];
+    var listaSesiones = [];
+    var listaSesionesFiltradas = [];
+    var rolUsuarioActualLogs = '';
+    var tablaLogsBody = document.getElementById('tablaLogsBody');
+    var resumenPaginacionLogs = document.getElementById('resumenPaginacionLogs');
+    var paginaActualLogsTexto = document.getElementById('paginaActualLogsTexto');
+    var mensajeLogs = document.getElementById('mensajeLogs');
+
+    function mostrarMensajeLogs(texto, ok) {
+      mensajeLogs.textContent = texto;
+      mensajeLogs.className = ok ? 'mensaje-panel mensaje-ok' : 'mensaje-panel mensaje-error';
+    }
+
+    function normalizarTexto(_valor) {
+      if (_valor == null) return '';
+      return String(_valor).toLowerCase().trim();
+    }
+
+    function formatearFecha(_valor) {
+      if (!_valor) return '-';
+      try {
+        var fecha = new Date(_valor);
+        if (Number.isNaN(fecha.getTime())) return _valor;
+        return fecha.toLocaleString();
+      } catch (errorr) { return _valor; }
+    }
+
+    function obtenerFechaComparable(_valor) {
+      if (!_valor) return null;
+      try {
+        var fecha = new Date(_valor);
+        if (Number.isNaN(fecha.getTime())) return null;
+        return fecha;
+      } catch (error) { return null; }
+    }
+
+    function agruparLogsPorSesion(logs) {
+      var grupos = {};
+      for (var i = 0; i < logs.length; i++) {
+        var log = logs[i];
+        var sessionId = log.sessionId || 'sin_sesion';
+        if (!grupos[sessionId]) {
+          grupos[sessionId] = {
+            sessionId: sessionId, user: log.user || '', email: log.email || '', rol: log.rol || '',
+            workspaceName: log.workspaceName || '', workspaceId: log.workspaceId || '',
+            ultimaFecha: log.fecha || '', logs: [], cantidadLogs: 0
+          };
+        }
+        grupos[sessionId].logs.push(log);
+        grupos[sessionId].cantidadLogs++;
+        if (!grupos[sessionId].user && log.user) grupos[sessionId].user = log.user;
+        if (!grupos[sessionId].email && log.email) grupos[sessionId].email = log.email;
+        if (!grupos[sessionId].rol && log.rol) grupos[sessionId].rol = log.rol;
+        if (!grupos[sessionId].workspaceName && log.workspaceName) grupos[sessionId].workspaceName = log.workspaceName;
+        if (!grupos[sessionId].workspaceId && log.workspaceId) grupos[sessionId].workspaceId = log.workspaceId;
+        var fechaActual = obtenerFechaComparable(log.fecha);
+        var fechaUltima = obtenerFechaComparable(grupos[sessionId].ultimaFecha);
+        if (fechaActual != null && (fechaUltima == null || fechaActual > fechaUltima)) {
+          grupos[sessionId].ultimaFecha = log.fecha;
+        }
+      }
+      var sesiones = [];
+      var claves = Object.keys(grupos);
+      for (i = 0; i < claves.length; i++) sesiones.push(grupos[claves[i]]);
+      sesiones.sort(function (a, b) {
+        var fechaA = obtenerFechaComparable(a.ultimaFecha);
+        var fechaB = obtenerFechaComparable(b.ultimaFecha);
+        if (fechaA == null && fechaB == null) return 0;
+        if (fechaA == null) return 1;
+        if (fechaB == null) return -1;
+        return fechaB - fechaA;
+      });
+      return sesiones;
+    }
+
+    function aplicarFiltrosLogs() {
+      var texto = normalizarTexto(document.getElementById('filtroTextoLog').value);
+      var rol = document.getElementById('filtroRolLog').value;
+      var fecha = document.getElementById('filtroFechaLog').value;
+      var nuevaLista = [];
+      for (var i = 0; i < listaSesiones.length; i++) {
+        var sesion = listaSesiones[i];
+        var meter = true;
+        if (texto !== '') {
+          var campos = [sesion.sessionId, sesion.user, sesion.email, sesion.rol, sesion.workspaceName, sesion.workspaceId].map(normalizarTexto);
+          if (!campos.some(function (c) { return c.includes(texto); })) meter = false;
+        }
+        if (meter && rol !== '' && sesion.rol !== rol) meter = false;
+        if (meter && fecha !== '') {
+          try {
+            var fechaSesion = new Date(sesion.ultimaFecha);
+            var textoFecha = fechaSesion.toISOString().slice(0, 10);
+            if (textoFecha !== fecha) meter = false;
+          } catch (error) { meter = false; }
+        }
+        if (meter) nuevaLista.push(sesion);
+      }
+      listaSesionesFiltradas = nuevaLista;
+      paginaActualLogs = 1;
+      renderizarTablaLogs();
+    }
+
+    function renderizarTablaLogs() {
+      var inicio = (paginaActualLogs - 1) * tamanioPaginaLogs;
+      var fin = inicio + tamanioPaginaLogs;
+      var tablaHTML_logs = '';
+      var i = 0;
+      if (listaSesionesFiltradas.length === 0) {
+        tablaLogsBody.innerHTML = '<tr><td colspan="9">There are no log sessions to display</td></tr>';
+      } else {
+        for (i = inicio; i < fin && i < listaSesionesFiltradas.length; i++) {
+          var sesion = listaSesionesFiltradas[i];
+          tablaHTML_logs += '<tr>';
+          tablaHTML_logs += '<td class="texto-largo" title="' + (sesion.sessionId || '-') + '">' + (sesion.sessionId || '-') + '</td>';
+          tablaHTML_logs += '<td>' + (sesion.user || '-') + '</td>';
+          tablaHTML_logs += '<td>' + (sesion.email || '-') + '</td>';
+          tablaHTML_logs += '<td>' + (sesion.rol || '-') + '</td>';
+          tablaHTML_logs += '<td class="texto-largo" title="' + (sesion.workspaceName || '-') + '">' + (sesion.workspaceName || '-') + '</td>';
+          tablaHTML_logs += '<td class="texto-largo" title="' + (sesion.workspaceId || '-') + '">' + (sesion.workspaceId || '-') + '</td>';
+          tablaHTML_logs += '<td>' + formatearFecha(sesion.ultimaFecha) + '</td>';
+          tablaHTML_logs += '<td>' + sesion.cantidadLogs + '</td>';
+          tablaHTML_logs += '<td><div class="acciones-tabla">';
+          tablaHTML_logs += '<img src="/resources/json.png" class="icono_descarga_logs" title="Download session logs" onclick="descargarLogsSesion(\'' + sesion.sessionId + '\')">';
+          if (rolUsuarioActualLogs === 'PROFESSOR' || rolUsuarioActualLogs === 'ADMIN') {
+            tablaHTML_logs += '<button type="button" class="button boton-secundario" onclick="borrarLogsSesion(\'' + sesion.sessionId + '\')">Delete</button>';
+          }
+          tablaHTML_logs += '</div></td></tr>';
+        }
+        tablaLogsBody.innerHTML = tablaHTML_logs;
+      }
+      var total = listaSesionesFiltradas.length;
+      var totalPaginas = Math.ceil(total / tamanioPaginaLogs);
+      if (totalPaginas < 1) totalPaginas = 1;
+      if (paginaActualLogs > totalPaginas) paginaActualLogs = totalPaginas;
+      resumenPaginacionLogs.textContent = total === 0 ? 'Showing 0 sessions' : 'Showing ' + (inicio + 1) + '-' + Math.min(fin, total) + ' of ' + total + ' sessions';
+      paginaActualLogsTexto.textContent = 'Page ' + paginaActualLogs + ' of ' + totalPaginas;
+      document.getElementById('paginaAnteriorLogsBtn').disabled = paginaActualLogs <= 1;
+      document.getElementById('paginaSiguienteLogsBtn').disabled = paginaActualLogs >= totalPaginas;
+    }
+
+    function descargarTextoComoArchivo(nombreArchivo, contenido) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contenido));
+      element.setAttribute('download', nombreArchivo);
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+
+    function descargarLogsSesion(sessionId) {
+      var sesion = null;
+      for (var i = 0; i < listaSesiones.length; i++) {
+        if (listaSesiones[i].sessionId === sessionId) { sesion = listaSesiones[i]; break; }
+      }
+      if (sesion == null) {
+        mostrarMensajeLogs('The log session was not found', false);
+        return;
+      }
+      descargarTextoComoArchivo('logs_' + sessionId + '.json', JSON.stringify(sesion.logs, null, 2));
+      mostrarMensajeLogs('Logs downloaded successfully', true);
+    }
+
+    async function cargarLogs() {
+      try {
+        var respuesta = await fetch('/api/logs/mostrarLogs');
+        if (!respuesta.ok) throw new Error('Error loading logs');
+        var data = await respuesta.json();
+        listaLogs = Array.isArray(data) ? data : [];
+        listaSesiones = agruparLogsPorSesion(listaLogs);
+        listaSesionesFiltradas = listaSesiones.slice();
+        renderizarTablaLogs();
+      } catch (error) {
+        listaLogs = [];
+        listaSesiones = [];
+        listaSesionesFiltradas = [];
+        renderizarTablaLogs();
+        mostrarMensajeLogs('The visible logs could not be loaded', false);
+      }
+    }
+
+    async function configurarBotonBorradoMasivoLogs() {
+      var boton = document.getElementById('borrarTodosLogsBtn');
+      rolUsuarioActualLogs = '';
+      if (boton) boton.style.display = 'none';
+      try {
+        var respuesta = await fetch('/api/miPerfil');
+        if (!respuesta.ok) return;
+        var usuario = await respuesta.json();
+        rolUsuarioActualLogs = String(usuario.rol || '').toUpperCase();
+        if (boton && (rolUsuarioActualLogs === 'PROFESSOR' || rolUsuarioActualLogs === 'ADMIN')) {
+          boton.style.display = 'inline-block';
+        }
+      } catch (error) {
+        console.error('The authenticated user role could not be loaded', error);
+      }
+    }
+
+    async function borrarTodosLogsPermitidos() {
+      if (!confirm('Are you sure you want to delete all the log records you are allowed to manage?')) return;
+      var boton = document.getElementById('borrarTodosLogsBtn');
+      var textoOriginal = boton.textContent;
+      boton.disabled = true;
+      boton.textContent = 'Deleting...';
+      try {
+        var respuesta = await fetch('/api/logs', { method: 'DELETE' });
+        var data = {};
+        try { data = await respuesta.json(); } catch (errorJson) { data = {}; }
+        if (!respuesta.ok || !data.exito) {
+          mostrarMensajeLogs(data.mensaje || 'The log records could not be deleted', false);
+          return;
+        }
+        paginaActualLogs = 1;
+        mostrarMensajeLogs(data.mensaje || 'All permitted log records were deleted successfully', true);
+        await cargarLogs();
+      } catch (error) {
+        console.error(error);
+        mostrarMensajeLogs('Error deleting all permitted log records', false);
+      } finally {
+        boton.disabled = false;
+        boton.textContent = textoOriginal;
+      }
+    }
+
+    function prepararFiltrosYPaginacionLogs() {
+      document.getElementById('filtroTextoLog').addEventListener('input', aplicarFiltrosLogs);
+      document.getElementById('filtroRolLog').addEventListener('change', aplicarFiltrosLogs);
+      document.getElementById('filtroFechaLog').addEventListener('change', aplicarFiltrosLogs);
+      document.getElementById('tamPaginaLogs').addEventListener('change', function (e) {
+        tamanioPaginaLogs = Number(e.target.value);
+        paginaActualLogs = 1;
+        renderizarTablaLogs();
+      });
+      document.getElementById('paginaAnteriorLogsBtn').addEventListener('click', function () {
+        if (paginaActualLogs > 1) { paginaActualLogs--; renderizarTablaLogs(); }
+      });
+      document.getElementById('paginaSiguienteLogsBtn').addEventListener('click', function () {
+        var totalPaginas = Math.ceil(listaSesionesFiltradas.length / tamanioPaginaLogs);
+        if (totalPaginas < 1) totalPaginas = 1;
+        if (paginaActualLogs < totalPaginas) { paginaActualLogs++; renderizarTablaLogs(); }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      pintarNav();
+      prepararFiltrosYPaginacionLogs();
+      document.getElementById('refrescarLogsBtn').addEventListener('click', cargarLogs);
+      document.getElementById('borrarTodosLogsBtn').addEventListener('click', borrarTodosLogsPermitidos);
+      await configurarBotonBorradoMasivoLogs();
+      await cargarLogs();
+    });
+  </script>
+</body>
+</html>
