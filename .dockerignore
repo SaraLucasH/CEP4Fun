@@ -1,0 +1,13 @@
+.git
+installer
+node-red
+data
+logs
+n8n/n8n-data
+runtime/n8n-runtime.zip
+runtime/mongodb
+runtime/java
+runtime/java17
+runtime/node
+runtime/tools
+smacly-web
