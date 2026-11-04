@@ -268,7 +268,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/prg002",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -315,7 +315,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/prg003",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -362,7 +362,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/prg004",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -409,7 +409,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/ntd001",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -456,7 +456,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/sye001",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -550,7 +550,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/sce002",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -644,7 +644,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/sce005",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -691,7 +691,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:1080/event-state",
+        "url": "http://localhost:3000/flink-ingest/sce006",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",

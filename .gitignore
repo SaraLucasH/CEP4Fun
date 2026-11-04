@@ -20,3 +20,4 @@ smacly-web/logs/*.log
 
 # n8n runtime state (SQLite database, encryption key, execution history...). Workflows: *.json files in n8n/ are being tracked.
 /n8n/n8n-data/
+/flink-app/target

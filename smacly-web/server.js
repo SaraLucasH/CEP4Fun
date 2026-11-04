@@ -34,6 +34,134 @@ app.use('/webhook', (req, res) => {
 });
 const io = socketIo(server);
 
+
+const { Kafka } = require('kafkajs');
+
+const KAFKA_BOOTSTRAP = process.env.KAFKA_BOOTSTRAP || 'kafka:9092';
+const kafka = new Kafka({ clientId: 'smacly-web', brokers: [KAFKA_BOOTSTRAP] });
+const flinkResultsConsumer = kafka.consumer({ groupId: 'smacly-web-flink-bridge' });
+const flinkIngestProducer = kafka.producer();
+
+// A toast is only shown on the transitions that mean "this just broke" -
+// matches the old Siddhi-era behaviour, where fixing something (or being
+// correct from the start) only ever updated points, never popped a toast.
+const FLINK_BROKEN_RESULTS = new Set(['BROKEN_FIRST_TIME', 'WORKING_TO_BROKEN']);
+
+function emitFlinkToast(result, type, message, params) {
+  if (!FLINK_BROKEN_RESULTS.has(result.result)) return;
+  io.emit('Toasts', params ? { type, message, params } : { type, message });
+}
+
+function SyeDuplicatedItem_FlinkResult(result, entityType) {
+  io.emit('Points', result.points);
+  emitFlinkToast(result, 'Warning', 'toasts.sye_duplicateItem', { name: result.param1, type: entityType });
+}
+
+// One handler per migrated topic, keyed by result.topic - each knows which
+// toast key/type/params its event used under Siddhi. Points always come
+// straight from Flink's scoring (ScoringRuleFunction), never recomputed here.
+const FLINK_TOPIC_HANDLERS = {
+  DEP001: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.dep001_deprecatedCompiler');
+  },
+  NTD002: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Info', 'toasts.ntd002_tooManyPublicFunctions');
+  },
+  NTD003: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Error', 'toasts.ntd003_interfaceInheritance');
+  },
+  NTD004: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Error', 'toasts.ntd004_abstractInheritance');
+  },
+  SCE003: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.sce003_missingModifiers', { name: result.param1 });
+  },
+  SYE002: (result) => SyeDuplicatedItem_FlinkResult(result, 'interface'),
+  SYE003: (result) => SyeDuplicatedItem_FlinkResult(result, 'library'),
+  SYE004: (result) => SyeDuplicatedItem_FlinkResult(result, 'contract'),
+  NTD001: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.ntd001_varWithoutValue', { name: result.param1 });
+  },
+  SYE001: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Error', 'toasts.sye001_invalidCompiler');
+  },
+  PRG002: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Info', 'toasts.prg002_compilerNotDefined');
+  },
+  PRG003: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.prg003_functionWithoutBody', { name: result.param1 });
+  },
+  PRG004: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.prg004_modifierWithoutBody', { name: result.param1 });
+  },
+  SCE002: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.sce002_missingErrorHandling', { name: result.param1 });
+  },
+  SCE005: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.sce005_compilerTooLow');
+  },
+  SCE006: (result) => {
+    io.emit('Points', result.points);
+    emitFlinkToast(result, 'Warning', 'toasts.sce006_useSafeMath');
+  },
+};
+
+async function startFlinkResultsBridge() {
+  try {
+    await flinkResultsConsumer.connect();
+    await flinkResultsConsumer.subscribe({ topic: 'cep4fun-events-output', fromBeginning: false });
+    await flinkResultsConsumer.run({
+      eachMessage: async ({ message }) => {
+        if (!message.value) return;
+        var result;
+        try {
+          result = JSON.parse(message.value.toString());
+        } catch (err) {
+          console.error('Invalid JSON message: ' + err.message);
+          return;
+        }
+
+        console.log('Message received: ' + JSON.stringify(result));
+
+        const handler = FLINK_TOPIC_HANDLERS[result.topic];
+        if (handler) {
+          handler(result);
+        } else {
+          // Fallback for a topic not migrated to a dedicated handler yet.
+          io.emit('Points', result.points);
+          if (result.points < 0) {
+            io.emit('Toasts', {
+              type: 'Warning',
+              message: `Flink: ${result.topic} (${result.result})`
+            });
+          }
+        }
+      }
+    });
+    console.log('Flink bridge: connected to Kafka, listening on cep4fun-events-output');
+  } catch (err) {
+    console.error('Flink bridge: could not connect to Kafka: ' + err.message);
+  }
+}
+
+startFlinkResultsBridge();
+
+flinkIngestProducer.connect()
+  .then(() => console.log('Flink ingest: producer connected to Kafka'))
+  .catch((err) => console.error('Flink ingest: producer could not connect: ' + err.message));
+
 // Log
 const fs = require('fs');
 
@@ -66,8 +194,7 @@ app.use(session({
 }));
 app.use(flash());
 
-// La app (index.html) requiere haber iniciado sesión contra el backend "compilador".
-// Se comprueba ANTES del middleware estático para que este no sirva el fichero directamente.
+// Index.html requires user log in
 app.get(['/', '/index.html'], (req, res, next) => {
   if (!req.session.compiladorCookie) {
     return res.redirect('/login.html');
@@ -75,62 +202,123 @@ app.get(['/', '/index.html'], (req, res, next) => {
   next();
 });
 
-//app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use('/scripts', express.static(__dirname + '/node_modules/http/'));
-// Otros recursos si están fuera de public
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
 app.use((req, res, next) => {
-  // Website you wish to allow to connect
   res.setHeader("Access-Control-Allow-Origin", "*");
-
-  // Request methods you wish to allow
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-  );
-
-  // Request headers you wish to allow
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "*");
-
-  // Set to true if you need the website to include cookies in the requests sent
-  // to the API (e.g. in case you use sessions)
   res.setHeader("Access-Control-Allow-Credentials", true);
 
   res.locals.toasts = req.toastr.render();
-
-  // Pass to next layer of middleware
   next();
 });
 
 app.get('/', (req, res) => {
-  res.set('Cache-Control', 'no-store'); // evitar cache
+  res.set('Cache-Control', 'no-store'); // avoiding cache
   const stringIndex = path.join(__dirname, 'public', 'index.html');
   console.log(stringIndex);
   res.sendFile(stringIndex);
 });
 
-//************DEP001************************** */
+/* ---- Siddhi -> Flink migration: n8n ingest gateway ----
+ * Replaces every call n8n used to make into Siddhi (:1080/get-X and
+ * :1080/event-state/X). n8n's workflows (n8n/receive-log-event.json and
+ * n8n/event-state.json) now point here instead.
+ *
+ * Two shapes of event:
+ *  - "detector" topics (RAW_EVENT_MAPPERS): SmaCly sends a raw action and a
+ *    dedicated Flink job (Sye002Job, Ntd003Job, ...) still has to compute
+ *    the error condition - same as the old per-event .siddhi app. Forwarded
+ *    to that job's own raw input topic.
+ *  - "passthrough" topics (PASSTHROUGH_EVENTS): SmaCly already computed the
+ *    condition itself and sends {Timestamp,Topic,IdSession,State,Param1,
+ *    BlockId} directly - there was never a .siddhi detector for these. Goes
+ *    straight onto cep4fun-events-input; ScoringRuleFunction does the
+ *    transition tracking EventStateFlow used to do.
+ */
+const RAW_TOPIC_BY_EVENT = {
+  dep001: 'cep4fun-raw-dep001',
+  ntd002: 'cep4fun-raw-ntd002',
+  ntd003: 'cep4fun-raw-ntd003',
+  ntd004: 'cep4fun-raw-ntd004',
+  sce003: 'cep4fun-raw-sce003',
+  sye002: 'cep4fun-raw-sye002',
+  sye003: 'cep4fun-raw-sye003',
+  sye004: 'cep4fun-raw-sye004',
+};
+
+// SmaCly's raw payload shape differs per event (mirrors each old .siddhi
+// app's @source stream) - maps it onto the shape the matching Flink
+// detector job expects (flink-app/.../model/Raw*.java).
+const RAW_EVENT_MAPPERS = {
+  dep001: (b) => ({
+    timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId,
+    comparator: b.symbolversion, major: b.value1version, minor: b.value2version, patch: b.value3version
+  }),
+  ntd002: (b) => ({
+    timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, visibility: b.values_visibility
+  }),
+  ntd003: (b) => ({
+    timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, name: b.name, parent: b.parent
+  }),
+  ntd004: (b) => ({
+    timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, name: b.name, parent: b.parent
+  }),
+  sce003: (b) => ({
+    timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, name: b.name,
+    visibility: b.values_visibility, modifierCount: b.hasModifiers
+  }),
+  sye002: (b) => ({ timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, name: b.name }),
+  sye003: (b) => ({ timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, name: b.name }),
+  sye004: (b) => ({ timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, name: b.name }),
+};
+
+const PASSTHROUGH_EVENTS = new Set([
+  'ntd001', 'sye001', 'prg002', 'prg003', 'prg004', 'sce002', 'sce005', 'sce006'
+]);
+
+app.post('/flink-ingest/:topic', async (req, res) => {
+  const topic = req.params.topic.toLowerCase();
+  const body = req.body;
+
+  try {
+    if (RAW_TOPIC_BY_EVENT[topic]) {
+      const mapped = RAW_EVENT_MAPPERS[topic](body);
+      await flinkIngestProducer.send({
+        topic: RAW_TOPIC_BY_EVENT[topic],
+        messages: [{ value: JSON.stringify(mapped) }]
+      });
+    } else if (PASSTHROUGH_EVENTS.has(topic)) {
+      const inputEvent = {
+        timestamp: body.Timestamp,
+        topic: topic.toUpperCase(),
+        sessionId: body.IdSession,
+        blockId: body.BlockId,
+        param1: body.Param1,
+        error: Number(body.State) === 1
+      };
+      await flinkIngestProducer.send({
+        topic: 'cep4fun-events-input',
+        messages: [{ value: JSON.stringify(inputEvent) }]
+      });
+    } else {
+      console.error('flink-ingest: unknown topic ' + topic);
+      return res.sendStatus(404);
+    }
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('flink-ingest error (' + topic + '): ' + err.message);
+    res.sendStatus(500);
+  }
+});
+
+//************DEP001************/
 
 app.post('/validation-dep001', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Dep001_PostProcess(postBody);
@@ -139,8 +327,6 @@ app.post('/validation-dep001', (req, res) => {
   res.sendStatus(200);
 });
 
-
-//TODO - Make this part of a different module
 class PostProcessEventDep001 {
   constructor(e) {
     this.Timestamp = e.SmaclyDep001.Timestamp;
@@ -153,7 +339,6 @@ function Dep001_PostProcess(jsonObj) {
   var result = new PostProcessEventDep001(jsonObj);
 
   console.log('Dep001 received: ' + JSON.stringify(result));
-  // Emitir el mensaje a todos los clientes conectados
   if (result.VersionDeprecated == 1) {
     io.emit('Toasts', {
       type: 'Warning',
@@ -165,25 +350,8 @@ function Dep001_PostProcess(jsonObj) {
 //************ntd001************************** */
 
 app.post('/validation-ntd001', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
-
   Ntd001_PostProcess(postBody);
-
   //Response to external app
   res.sendStatus(200);
 });
@@ -206,8 +374,6 @@ function Ntd001_PostProcess(jsonObj) {
 
 class PostProcessEventNtd001 {
   constructor(e) {
-    this.Timestamp = e.SmaCly_ntd001.Timestamp;
-    this.IdSession = e.SmaCly_ntd001.IdSession;
     this.Name = e.SmaCly_ntd001.Param1;
     this.State = e.SmaCly_ntd001.State;
   }
@@ -216,21 +382,6 @@ class PostProcessEventNtd001 {
 //************ntd002************************** */
 
 app.post('/validation-ntd002', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Ntd002_PostProcess(postBody);
@@ -253,7 +404,6 @@ function Ntd002_PostProcess(jsonObj) {
   var result = new PostProcessEventNtd002(jsonObj);
   console.log('Ntd002 received: ' + JSON.stringify(result));
 
-  // Emitir el mensaje a todos los clientes conectados
   if (result.State == 1) {
     io.emit('Toasts', {
       type: 'Info',
@@ -268,21 +418,6 @@ function Ntd002_PostProcess(jsonObj) {
 //************ntd003************************** */
 
 app.post('/validation-ntd003', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Ntd003_PostProcess(postBody);
@@ -320,21 +455,6 @@ function Ntd003_PostProcess(jsonObj) {
 //************ntd004************************** */
 
 app.post('/validation-ntd004', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Ntd004_PostProcess(postBody);
@@ -372,21 +492,6 @@ function Ntd004_PostProcess(jsonObj) {
 //************prg001************************** */
 
 app.post('/validation-prg001', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
   if (postBody.Response == '1') {
     io.emit('Toasts', {
@@ -402,22 +507,6 @@ app.post('/validation-prg001', (req, res) => {
 //************prg002************************** */
 
 app.post('/validation-prg002', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
-
   var postBody = req.body;
 
   Prg002_PostProcess(postBody.SmaCly_prg002);
@@ -445,22 +534,6 @@ function Prg002_PostProcess(jsonObj) {
 //************prg003************************** */
 
 app.post('/validation-prg003', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
-
   var postBody = req.body;
 
   Prg003_PostProcess(postBody.SmaCly_prg003);
@@ -497,21 +570,6 @@ class PostProcessEventPrg00X {
 //************prg004************************** */
 
 app.post('/validation-prg004', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Prg004_PostProcess(postBody.SmaCly_prg004);
@@ -539,21 +597,6 @@ function Prg004_PostProcess(jsonObj) {
 //************ SYE001 SYE002 SYE003 SYE004 ************************** */
 
 app.post('/validation-sye001', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Sye001_PostProcess(postBody);
@@ -587,21 +630,6 @@ class PostProcessEventSye001 {
 }
 
 app.post('/validation-sye002', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye002, "interface", "Sye002");
@@ -611,21 +639,6 @@ app.post('/validation-sye002', (req, res) => {
 });
 
 app.post('/validation-sye003', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye003, "library", "Sye003");
@@ -635,21 +648,6 @@ app.post('/validation-sye003', (req, res) => {
 });
 
 app.post('/validation-sye004', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   SyeEvent_ItemDuplicated_PostProcess(postBody.SmaCly_sye004, "contract", "Sye004");
@@ -687,21 +685,6 @@ class PostProcessEventSyeDuplicatedItem {
 
 //************* SCE00X */
 app.post('/validation-sce002', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Sce002_PostProcess(postBody);
@@ -737,21 +720,6 @@ class PostProcessEventSce002 {
 }
 
 app.post('/validation-sce003', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Sce003_PostProcess(postBody);
@@ -789,21 +757,6 @@ function Sce003_PostProcess(jsonObj) {
 }
 
 app.post('/validation-sce005', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Sce005_PostProcess(postBody);
@@ -838,21 +791,6 @@ class PostProcessEventSce005 {
 }
 
 app.post('/validation-sce006', (req, res) => {
-  JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-      obj,
-      (key, value) =>
-        typeof value === "object" && value !== null
-          ? cache.includes(value)
-            ? undefined // Duplicate reference found, discard key
-            : cache.push(value) && value // Store value in our collection
-          : value,
-      indent
-    );
-    cache = null;
-    return retVal;
-  };
   var postBody = req.body;
 
   Sce006_PostProcess(postBody);
@@ -876,7 +814,6 @@ function Sce006_PostProcess(jsonObj) {
   }
 }
 
-//TODO - Make this part of a different module
 class PostProcessEventSce006 {
   constructor(e) {
     this.Timestamp = e.SmaCly_sce006.Timestamp;
@@ -888,14 +825,7 @@ class PostProcessEventSce006 {
 
 /************** END SCE00X */
 
-/************** COMPILADOR: LOGIN / REGISTRO / SESIÓN
-El backend Java "compilador" (puerto 8080 por defecto) tiene su propio login de Spring
-Security con usuarios/roles en MongoDB. En vez de duplicar ese sistema, smacly-web hace de
-fachada: cuando un usuario inicia sesión aquí, este servidor inicia sesión contra compilador
-en su nombre y guarda la cookie de esa sesión (JSESSIONID) en la sesión de Express. Todas las
-llamadas a /api/** de compilador (compilación, workspaces, logs, e3value, administración) se
-reenvían server-to-server usando esa cookie, así el navegador solo habla con este servidor
-(mismo origen, sin CORS) y sigue viendo el resto de la app tal cual está hoy. */
+/************** COMPILADOR: LOGIN / REGISTRO / SESIÓN **************/
 
 app.post('/login', async (req, res) => {
   try {
@@ -911,8 +841,8 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error: ' + error.message);
     if (error.code) {
-      // Error de red (p.ej. ECONNREFUSED): el servicio "compilador" no está arrancado o
-      // COMPILADOR_URL está mal configurado, no es un problema de credenciales.
+      // Network error (p.ej. ECONNREFUSED): "compilador" is not up or
+      // COMPILADOR_URL could be not properly configured, not a credential issue.
       return res.status(502).json({ exito: false, mensaje: 'Could not reach the compiler service. Please try again later.' });
     }
     res.status(error.status || 401).json({ exito: false, mensaje: 'Invalid username or password' });
@@ -932,7 +862,7 @@ app.get('/api/sesionActual', (req, res) => {
   res.json(req.session.compiladorUser);
 });
 
-// El registro de usuarios es público en compilador (no requiere sesión previa)
+// Compiler public register. No session required
 app.post('/api/registrarUsuario', async (req, res) => {
   try {
     const resultado = await compilerProxy.call(null, 'POST', '/api/registrarUsuario', req.body);
@@ -943,10 +873,8 @@ app.post('/api/registrarUsuario', async (req, res) => {
   }
 });
 
-/************** COMPILADOR: PROXY GENÉRICO DE /api/**
-Todas las rutas de abajo reenvían al compilador con la cookie de sesión del usuario ya
-autenticado en smacly-web. Si la sesión ha caducado (401/403 del compilador) se limpia la
-cookie guardada y se le pide al front que redirija a /login.html otra vez. */
+/************** COMPILADOR: Generic proxy /api/**
+ * User cookie sent. If session has expired (401/403) cookies is cleaned up and redirect to /login.html */
 
 function requireCompiladorSession(req, res, next) {
   if (!req.session.compiladorCookie) {
@@ -955,8 +883,7 @@ function requireCompiladorSession(req, res, next) {
   next();
 }
 
-// compilador devuelve el objeto Usuario tal cual, passwordHash incluido - nunca debe llegar
-// al navegador, ni el del propio usuario ni el de los usuarios que gestiona un PROFESSOR/ADMIN.
+// PWD should not reach browser
 function sanitizeUsuario(usuario) {
   if (!usuario || typeof usuario !== 'object') return usuario;
   const { passwordHash, ...resto } = usuario;
@@ -982,15 +909,10 @@ function proxyCompilador(method, buildPath) {
 }
 
 app.use('/api', requireCompiladorSession);
-
-// Compilación real (solc / vyper)
 app.post('/api/compilarSolidity', proxyCompilador('POST', '/api/compilarSolidity'));
 app.post('/api/compilarVyper', proxyCompilador('POST', '/api/compilarVyper'));
-
-// Parser Solidity -> bloques
 app.post('/api/parsearSolidity', proxyCompilador('POST', '/api/parsearSolidity'));
 
-// Mi perfil
 app.get('/api/miPerfil', async (req, res) => {
   try {
     const usuario = await compilerProxy.call(req.session.compiladorCookie, 'GET', '/api/miPerfil');
@@ -1003,6 +925,7 @@ app.get('/api/miPerfil', async (req, res) => {
     res.status(error.status || 502).json({ mensaje: error.message });
   }
 });
+
 app.put('/api/miPerfil', proxyCompilador('PUT', '/api/miPerfil'));
 
 // Workspaces
@@ -1015,7 +938,7 @@ app.get('/api/ultimoWorkspace', proxyCompilador('GET', '/api/ultimoWorkspace'));
 app.delete('/api/workspaces/:id', proxyCompilador('DELETE', (req) => '/api/workspaces/' + encodeURIComponent(req.params.id)));
 app.delete('/api/workspaces', proxyCompilador('DELETE', '/api/workspaces'));
 
-// Logs de actividad
+// Activity Logs
 app.post('/api/registrarLogs', proxyCompilador('POST', '/api/registrarLogs'));
 app.get('/api/logs/mostrarLogs', proxyCompilador('GET', '/api/logs/mostrarLogs'));
 app.delete('/api/logs/sesion/:sessionId', proxyCompilador('DELETE', (req) => '/api/logs/sesion/' + encodeURIComponent(req.params.sessionId)));
@@ -1028,8 +951,7 @@ app.post('/api/e3value/convertirE3Value', proxyCompilador('POST', '/api/e3value/
 app.post('/api/e3value/validar', proxyCompilador('POST', '/api/e3value/validar'));
 app.post('/api/e3value/preguntasObjetos', proxyCompilador('POST', '/api/e3value/preguntasObjetos'));
 
-// Administración de usuarios (el backend exige rol PROFESSOR/ADMIN; si el usuario no lo
-// tiene, compilador devuelve 403 y proxyCompilador lo traslada tal cual)
+// **************** User management **************** 
 app.get('/api/admin/usuarios/gestionables', async (req, res) => {
   try {
     const usuarios = await compilerProxy.call(req.session.compiladorCookie, 'GET', '/api/admin/usuarios/gestionables');
@@ -1048,10 +970,7 @@ app.delete('/api/admin/usuarios/:id', proxyCompilador('DELETE', (req) => '/api/a
 app.delete('/api/admin/usuarios', proxyCompilador('DELETE', '/api/admin/usuarios'));
 app.patch('/api/admin/usuarios/:id/bloqueo', proxyCompilador('PATCH', (req) => '/api/admin/usuarios/' + encodeURIComponent(req.params.id) + '/bloqueo'));
 
-/* NOTA: /api/admin/usuarios/carga-masiva (subida masiva de usuarios por Excel) no se ha
-portado - requiere reenviar un multipart/form-data, que este proxy no maneja todavía. */
-
-/************** END COMPILADOR PROXY */
+/************** END COMPILADOR PROXY ***************/
 
 server.listen(process.env.PORT, () => {
   console.log('Server started on port ' + process.env.PORT);
