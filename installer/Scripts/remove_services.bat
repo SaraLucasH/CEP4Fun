@@ -13,9 +13,17 @@ timeout /t 3 /nobreak
 timeout /t 3 /nobreak
 "%NSSM%" remove Cep4Fun-N8N confirm
 
-"%NSSM%" stop Cep4Fun-Siddhi
+"%NSSM%" stop Cep4Fun-FlinkTaskManager
 timeout /t 3 /nobreak
-"%NSSM%" remove Cep4Fun-Siddhi confirm
+"%NSSM%" remove Cep4Fun-FlinkTaskManager confirm
+
+"%NSSM%" stop Cep4Fun-FlinkJobManager
+timeout /t 3 /nobreak
+"%NSSM%" remove Cep4Fun-FlinkJobManager confirm
+
+"%NSSM%" stop Cep4Fun-Kafka
+timeout /t 3 /nobreak
+"%NSSM%" remove Cep4Fun-Kafka confirm
 
 "%NSSM%" stop Cep4Fun-Mongo
 timeout /t 3 /nobreak

@@ -23,7 +23,8 @@ REM === INSTALAR SERVICIO ===
 
 REM === CONFIGURACIÓN NSSM ===
 "%NSSM%" set Cep4Fun-Web AppDirectory "%APPDIR%"
-"%NSSM%" set Cep4Fun-Web AppParameters "\"%APP_JS%\"
+"%NSSM%" set Cep4Fun-Web AppParameters "\"%APP_JS%\""
+"%NSSM%" set Cep4Fun-Web AppEnvironmentExtra "KAFKA_BOOTSTRAP=localhost:9092"
 "%NSSM%" set Cep4Fun-Web Start SERVICE_AUTO_START
 "%NSSM%" set Cep4Fun-Web AppExit Default Restart
 "%NSSM%" set Cep4Fun-Web AppRestartDelay 5000
