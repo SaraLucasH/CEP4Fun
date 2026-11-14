@@ -69,6 +69,23 @@ services:
       - flink-savepoints:/opt/flink/savepoints
     restart: unless-stopped
 
+  flink-job-submitter:
+    image: flink:2.2.1-java17
+    depends_on:
+      - flink-jobmanager
+      - flink-taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        rest.address: flink-jobmanager
+        rest.port: 8081
+    volumes:
+      - ./flink-app/target/flink-app-1.0.0.jar:/opt/flink-app/flink-app-1.0.0.jar:ro
+      - ./docker/flink-job-submitter/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    restart: unless-stopped
+
   n8n:
     image: n8nio/n8n:2.45.3
     entrypoint: ["/bin/sh", "/cep4fun/entrypoint.sh"]
