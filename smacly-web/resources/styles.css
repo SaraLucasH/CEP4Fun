@@ -156,3 +156,22 @@ textarea {
 #warning{background: coral;}
 #info{background: cornflowerblue;}
 #question{background: grey;}
+
+
+/* Logo compacto de las cabeceras .app-header (home, usuarios, logs, workspaces).
+   Anula el #logo global de arriba, pensado para el editor. Tamano ajustable con
+   --header-logo-size. El editor usa #editorHeader #logo, mas especifico. */
+.app-header__inner #logo {
+  position: static;
+  width: var(--header-logo-size, 90px);
+  height: var(--header-logo-size, 90px);
+  margin-top: 0;
+}
+
+.app-header__text h1#title { 
+  margin: 0; 
+  font-size: 25px; 
+  background: none; 
+  font-weight: normal; 
+  color: inherit; 
+}

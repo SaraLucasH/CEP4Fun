@@ -58,5 +58,18 @@
         "sce003_missingModifiers": "Function \"{name}\" should have modifiers. Please, add modifiers as \"onlyOwner()\".",
         "sce005_compilerTooLow": "Compiler version should be upper than 0.8.0 to avoid integer overflow.",
         "sce006_useSafeMath": "Use libraries like SafeMath to avoid integer overflow."
+    },
+    "menu": {
+        "showCode": "🔎 Show code",
+        "download": "💾 Download",
+        "workspace": "🧩 Workspace",
+        "compile": "⚙️ Compile",
+        "importXML": "Import XML",
+        "e3value": "Change contract to e3value",
+        "workspaces": "📂 Workspaces",
+        "logs": "📋 Activity logs",
+        "profile": "👤 My profile",
+        "users": "👥 Users",
+        "home": "🏠 Home"
     }
 }

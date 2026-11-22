@@ -37,7 +37,13 @@ var currentAccountUser = null;
     '.smaclyModalBox textarea{min-height:120px;font-family:monospace;}' +
     '.smaclyModalActions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;}' +
     '.smaclyModalActions .button{padding:6px 12px;}' +
-    '.smaclyModalActions .secondary{background-color:#888;}';
+    '.smaclyModalActions .secondary{background-color:#888;}' +
+    '.popupPaginaCaja{position:relative;width:94%;max-width:1150px;height:90vh;background:#fff;border-radius:12px;' +
+    'box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;}' +
+    '.popupPaginaFrame{width:100%;height:100%;border:0;display:block;}' +
+    '.popupPaginaCerrar{position:absolute;top:8px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;' +
+    'border:1px solid #bcc6ee;background:#fff;color:#243388;font-size:16px;font-weight:bold;cursor:pointer;}' +
+    '.popupPaginaCerrar:hover{background:#dde4ff;}';
   document.head.appendChild(style);
 })();
 
@@ -125,18 +131,49 @@ async function inicializarAccountBar() {
   barra.innerHTML =
     '<span class="accountUser">👤 ' + escapeHtml(currentAccountUser.user || currentAccountUser.email) + '</span>' +
     '<span class="accountRole">' + escapeHtml(currentAccountUser.rol || 'USER') + '</span>' +
-    '<a href="/home.html">🏠 Home</a>' +
-    '<a href="/edicion_datos_usuario.html">My profile</a>' +
-    '<a href="/workspaces.html">📂 Workspaces</a>' +
-    '<a href="/logs.html">📋 Activity logs</a>' +
-    (esGestor ? '<a href="/gestion_usuarios.html">👥 Users</a>' : '') +
-    '<button id="btnAbrirE3Value">🧮 e3value</button>' +
     '<button id="btnCerrarSesion">🚪 Log out</button>';
 
-  document.getElementById('btnAbrirE3Value').addEventListener('click', function () {
-    iniciarConversionE3Value();
-  });
+  // El acceso a la gestion de usuarios solo se muestra a profesores y admins.
+  var menuUsuarios = document.getElementById('menuUsuariosEditor');
+  if (menuUsuarios && esGestor) {
+    menuUsuarios.style.display = '';
+  }
   document.getElementById('btnCerrarSesion').addEventListener('click', cerrarSesionUsuario);
+}
+
+/* ------------------------------------------------------- POPUP DE PAGINAS --- */
+
+/*
+Abre una de las paginas de gestion (workspaces, logs, perfil, usuarios) como
+popup sobre el editor, dentro de un iframe, para no perder el trabajo en curso.
+La pagina se ve y se comporta igual que abierta sola: dentro del iframe solo
+oculta su cabecera y su botonera de navegacion (ver /js/embed.js).
+*/
+function abrirPopupPagina(url) {
+  var existente = document.getElementById('popupPaginaOverlay');
+  if (existente) {
+    existente.remove();
+  }
+  var overlay = document.createElement('div');
+  overlay.id = 'popupPaginaOverlay';
+  overlay.className = 'smaclyModalOverlay open';
+  overlay.innerHTML =
+    '<div class="popupPaginaCaja">' +
+    '<button type="button" class="popupPaginaCerrar" title="Close" aria-label="Close">✕</button>' +
+    '<iframe class="popupPaginaFrame" src="' + url + '"></iframe>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  var cerrar = function () { overlay.remove(); };
+  overlay.querySelector('.popupPaginaCerrar').addEventListener('click', cerrar);
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) cerrar();
+  });
+  document.addEventListener('keydown', function onKey(e) {
+    if (e.key === 'Escape') {
+      cerrar();
+      document.removeEventListener('keydown', onKey);
+    }
+  });
 }
 
 async function cerrarSesionUsuario() {

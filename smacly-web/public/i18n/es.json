@@ -58,5 +58,18 @@
         "sce003_missingModifiers": "La función \"{name}\" debería tener modifiers como \"onlyOwner()\".",
         "sce005_compilerTooLow": "El compilador debería ser superior a la versión 0.8.0 para evitar overflow.",
         "sce006_useSafeMath": "Usa librerías como SafeMath para evitar desbordamientos de enteros."
+    },
+    "menu": {
+        "showCode": "🔎 Ver código",
+        "download": "💾 Descargar",
+        "workspace": "🧩 Espacio de trabajo",
+        "compile": "⚙️ Compilar",
+        "importXML": "Importar XML",
+        "e3value": "Convertir contrato a e3value",
+        "workspaces": "📂 Espacios de trabajo",
+        "logs": "📋 Registro de actividad",
+        "profile": "👤 Mi perfil",
+        "users": "👥 Usuarios",
+        "home": "🏠 Inicio"
     }
 }

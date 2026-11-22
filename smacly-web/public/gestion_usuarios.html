@@ -34,10 +34,7 @@
       padding: 10px 20px;
       box-sizing: border-box;
     }
-
-    /* #logo y h1 tienen reglas globales en styles.css pensadas para el editor;
-       se anulan con selectores más específicos en vez de renombrar id/etiqueta. */
-    .app-header__inner #logo { position: static; width: 44px; height: 44px; margin-top: 0; }
+        
     .app-header__text { flex: 1; }
     .app-header__text h1#title { margin: 0; font-size: 16px; background: none; font-weight: normal; color: inherit; }
 
@@ -147,6 +144,7 @@
       .fila_switch_password { flex-wrap: wrap; }
     }
   </style>
+  <script src="/js/embed.js"></script>
 </head>
 <body class="pantalla-gestion">
 
@@ -353,7 +351,7 @@
       document.getElementById('salirSesion').addEventListener('click', async function () {
         if (!confirm('Would you like to log out?')) return;
         try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
-        window.location.href = '/login.html';
+        (window.top || window).location.href = '/login.html';
       });
     }
 
