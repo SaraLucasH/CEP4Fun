@@ -1,3 +1,24 @@
+var DEFAULT_BLOCK_NAMES = {
+  interface: "Insert here interface's name",
+  library: "Insert here library's name",
+  contract: "Insert here contract's name"
+};
+
+// Toolbox (index.html) has its own text inside <field name="name">; this will now use default name constant
+function applyDefaultBlockNames(toolboxElement) {
+  var typeToKey = { interface: 'interface', library: 'library', contract: 'contract', abstract_contract: 'contract' };
+  Object.keys(typeToKey).forEach(function (type) {
+    var blocks = toolboxElement.querySelectorAll('block[type="' + type + '"]');
+    blocks.forEach(function (block) {
+      Array.prototype.forEach.call(block.children, function (child) {
+        if (child.tagName.toLowerCase() === 'field' && child.getAttribute('name') === 'name') {
+          child.textContent = DEFAULT_BLOCK_NAMES[typeToKey[type]];
+        }
+      });
+    });
+  });
+}
+
 Blockly.Blocks['file'] = {
   init: function() {
     this.appendValueInput("version_file")
@@ -82,7 +103,7 @@ Blockly.Blocks['interface'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("interface")
-        .appendField(new Blockly.FieldTextInput("Insert here interface's name"), "name");
+        .appendField(new Blockly.FieldTextInput(DEFAULT_BLOCK_NAMES.interface), "name");
     this.appendValueInput("nameinterfacefather")
         .setCheck("String")
         .appendField("Inheritance?");
@@ -157,7 +178,7 @@ Blockly.Blocks['alias_import'] = {
     this.appendStatementInput("functions_library")
         .setCheck(["clause"])
         .appendField("library")
-        .appendField(new Blockly.FieldTextInput("Insert here library's name"), "name");
+        .appendField(new Blockly.FieldTextInput(DEFAULT_BLOCK_NAMES.library), "name");
     this.setPreviousStatement(true, ["file","library","import"]);
     this.setNextStatement(true, ["library","interface","contract"]);
     this.setColour(195);
@@ -408,7 +429,7 @@ Blockly.Blocks['contract'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("contract")
-        .appendField(new Blockly.FieldTextInput("Insert here contract's name"), "name");
+        .appendField(new Blockly.FieldTextInput(DEFAULT_BLOCK_NAMES.contract), "name");
     this.appendValueInput("namecontractfather")
         .setCheck(["contract_father"])
         .appendField("Inheritance?");
@@ -428,7 +449,7 @@ Blockly.Blocks['abstract_contract'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("abstract contract")
-        .appendField(new Blockly.FieldTextInput("Insert here contract's name"), "name");
+        .appendField(new Blockly.FieldTextInput(DEFAULT_BLOCK_NAMES.contract), "name");
     this.appendValueInput("namecontractfather")
         .setCheck("String")
         .appendField("Inheritance?");

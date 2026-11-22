@@ -214,20 +214,36 @@ function getName(block) {
     return "";
 }
 
-//TODO - All functions for duplicated items should have shared code. Move shared code to another method
+// Bloques que han sido editados alguna vez. Un bloque recien arrastrado conserva
+// el nombre por defecto (DEFAULT_BLOCK_NAMES, customblocklibrary.js) y no se evalua hasta
+// que se edita. Despues de esto se tiene en cuenta siempre, aunque vuelva a poner el nombre por defecto.
+var editedNamedBlockIds = new Set();
+
+function blockIsPending(block) {
+    return !editedNamedBlockIds.has(block.id) &&
+        block.getFieldValue("name") === DEFAULT_BLOCK_NAMES[block.type];
+}
+
+// Envia el lote de bloques de ese tipo que ya han sido editados o tienen nombre propio.
+function sendDuplicateCandidates(changedBlock, blockType, sender) {
+    editedNamedBlockIds.add(changedBlock.id);
+
+    var timestamp = time();
+    var blocks = [];
+    workspace.getBlocksByType(blockType).forEach(function (b) {
+        if (!blockIsPending(b)) {
+            blocks.push(new LogEventSyeEventDuplicated(b, timestamp));
+        }
+    });
+    if (blocks.length > 0) sender(blocks);
+}
+
 function sye002Listener(e) {
     if (e == null) return;
 
     var block = workspace.getBlockById(e.blockId);
     if (fieldHasChanged(e) && block.type == "interface") {
-        var clauseBlocks = workspace.getBlocksByType("interface");
-
-        var blocks = [];
-        var timestamp = time();
-        for (var i = 0; i < clauseBlocks.length; i++) {//Saco los ids de los elementos que elimino
-            blocks[i] = new LogEventSyeEventDuplicated(clauseBlocks[i], timestamp);
-        }
-        sendPostSye002(blocks);
+        sendDuplicateCandidates(block, "interface", sendPostSye002);
     }
 }
 
@@ -236,14 +252,7 @@ function sye003Listener(e) {
 
     var block = workspace.getBlockById(e.blockId);
     if (fieldHasChanged(e) && block.type == "library") {
-        var clauseBlocks = workspace.getBlocksByType("library");
-
-        var blocks = [];
-        var timestamp = time();
-        for (var i = 0; i < clauseBlocks.length; i++) {//Saco los ids de los elementos que elimino
-            blocks[i] = new LogEventSyeEventDuplicated(clauseBlocks[i], timestamp);
-        }
-        sendPostSye003(blocks);
+        sendDuplicateCandidates(block, "library", sendPostSye003);
     }
 }
 
@@ -252,14 +261,7 @@ function sye004Listener(e) {
 
     var block = workspace.getBlockById(e.blockId);
     if (fieldHasChanged(e) && block.type == "contract") {
-        var clauseBlocks = workspace.getBlocksByType("contract");
-
-        var blocks = [];
-        var timestamp = time();
-        for (var i = 0; i < clauseBlocks.length; i++) {//Saco los ids de los elementos que elimino
-            blocks[i] = new LogEventSyeEventDuplicated(clauseBlocks[i], timestamp);
-        }
-        sendPostSye004(blocks);
+        sendDuplicateCandidates(block, "contract", sendPostSye004);
     }
 }
 

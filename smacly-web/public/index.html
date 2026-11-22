@@ -2826,6 +2826,7 @@
 
   <!--|Script|-->
   <script>
+    applyDefaultBlockNames(document.getElementById('toolbox'));
     var workspace = Blockly.inject('blocklyDiv',
       { toolbox: document.getElementById('toolbox') });
     Blockly.svgResize(workspace);
