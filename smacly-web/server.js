@@ -38,8 +38,43 @@ const io = socketIo(server);
 const { Kafka } = require('kafkajs');
 
 const KAFKA_BOOTSTRAP = process.env.KAFKA_BOOTSTRAP || 'kafka:9092';
-const kafka = new Kafka({ clientId: 'smacly-web', brokers: [KAFKA_BOOTSTRAP] });
-const flinkResultsConsumer = kafka.consumer({ groupId: 'smacly-web-flink-bridge' });
+const kafka = new Kafka({
+  clientId: 'smacly-web',
+  brokers: [KAFKA_BOOTSTRAP],
+  retry: { initialRetryTime: 500, retries: 15 }
+});
+
+// Kafka may not accept connections yet when this container starts (compose's
+// depends_on only waits for the container to start, not for the broker to be
+// ready), and may be restarted later. Every Kafka connection below therefore
+// retries forever instead of failing once and staying dead.
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Topics the Flink jobs read/write. Created here if missing, so a fresh or
+// wiped Kafka volume cannot leave the jobs failing with UnknownTopicOrPartition.
+const KAFKA_REQUIRED_TOPICS = [
+  'cep4fun-events-input', 'cep4fun-events-output',
+  'cep4fun-raw-dep001', 'cep4fun-raw-ntd002', 'cep4fun-raw-ntd003', 'cep4fun-raw-ntd004',
+  'cep4fun-raw-sce003', 'cep4fun-raw-sye002', 'cep4fun-raw-sye003', 'cep4fun-raw-sye004'
+];
+
+async function ensureKafkaTopics() {
+  const admin = kafka.admin();
+  await admin.connect();
+  try {
+    await admin.createTopics({
+      waitForLeaders: true,
+      topics: KAFKA_REQUIRED_TOPICS.map((topic) => ({ topic, numPartitions: 1, replicationFactor: 1 }))
+    });
+  } finally {
+    await admin.disconnect();
+  }
+}
+const flinkResultsConsumer = kafka.consumer({
+  // Grupo nuevo en cada arranque: solo se entregan resultados posteriores al
+  // inicio y nunca los que quedaron en cola mientras smacly-web estaba parado.
+  groupId: 'smacly-web-flink-bridge-' + Date.now()
+});
 const flinkIngestProducer = kafka.producer();
 
 // A toast is only shown on the transitions that mean "this just broke" -
@@ -119,6 +154,7 @@ const FLINK_TOPIC_HANDLERS = {
 };
 
 async function startFlinkResultsBridge() {
+  while (true) {
   try {
     await flinkResultsConsumer.connect();
     await flinkResultsConsumer.subscribe({ topic: 'cep4fun-events-output', fromBeginning: false });
@@ -134,6 +170,7 @@ async function startFlinkResultsBridge() {
         }
 
         console.log('Message received: ' + JSON.stringify(result));
+        console.log('Points received: ' + result.topic + ' ' + result.points + ' (' + result.result + ')');
 
         const handler = FLINK_TOPIC_HANDLERS[result.topic];
         if (handler) {
@@ -151,16 +188,61 @@ async function startFlinkResultsBridge() {
       }
     });
     console.log('Flink bridge: connected to Kafka, listening on cep4fun-events-output');
+    return;
   } catch (err) {
-    console.error('Flink bridge: could not connect to Kafka: ' + err.message);
+    console.error('Flink bridge: could not connect to Kafka, retrying in 5s: ' + err.message);
+    try { await flinkResultsConsumer.disconnect(); } catch (e) { /* ignore */ }
+    await sleep(5000);
+  }
   }
 }
 
-startFlinkResultsBridge();
+// If the consumer crashes later (broker restart), start it again.
+flinkResultsConsumer.on(flinkResultsConsumer.events.CRASH, (event) => {
+  console.error('Flink bridge: consumer crashed (' + event.payload.error.message + '), restarting in 5s');
+  setTimeout(async () => {
+    try { await flinkResultsConsumer.disconnect(); } catch (e) { /* ignore */ }
+    startFlinkResultsBridge();
+  }, 5000);
+});
 
-flinkIngestProducer.connect()
-  .then(() => console.log('Flink ingest: producer connected to Kafka'))
-  .catch((err) => console.error('Flink ingest: producer could not connect: ' + err.message));
+let flinkIngestProducerReady = false;
+
+async function connectFlinkIngestProducer() {
+  while (!flinkIngestProducerReady) {
+    try {
+      await flinkIngestProducer.connect();
+      flinkIngestProducerReady = true;
+      console.log('Flink ingest: producer connected to Kafka');
+    } catch (err) {
+      console.error('Flink ingest: producer could not connect, retrying in 5s: ' + err.message);
+      await sleep(5000);
+    }
+  }
+}
+
+flinkIngestProducer.on(flinkIngestProducer.events.DISCONNECT, () => {
+  if (flinkIngestProducerReady) {
+    flinkIngestProducerReady = false;
+    console.error('Flink ingest: producer disconnected, reconnecting...');
+    connectFlinkIngestProducer();
+  }
+});
+
+// Topics first (idempotent), then the producer and the results bridge.
+(async function startKafkaLayer() {
+  while (true) {
+    try {
+      await ensureKafkaTopics();
+      break;
+    } catch (err) {
+      console.error('Kafka: could not ensure topics, retrying in 5s: ' + err.message);
+      await sleep(5000);
+    }
+  }
+  connectFlinkIngestProducer();
+  startFlinkResultsBridge();
+})();
 
 // Log
 const fs = require('fs');
@@ -277,7 +359,9 @@ const RAW_EVENT_MAPPERS = {
   sye004: (b) => ({ timestamp: b.timestamp, sessionId: b.idSession, blockId: b.blockId, name: b.name }),
 };
 
-const PASSTHROUGH_EVENTS = new Set([
+const DUPLICATE_TOPICS = new Set(['sye002', 'sye003', 'sye004']);
+
+const PASSTHROUGH_EVENTS =new Set([
   'ntd001', 'sye001', 'prg002', 'prg003', 'prg004', 'sce002', 'sce005', 'sce006'
 ]);
 
@@ -287,10 +371,18 @@ app.post('/flink-ingest/:topic', async (req, res) => {
 
   try {
     if (RAW_TOPIC_BY_EVENT[topic]) {
-      const mapped = RAW_EVENT_MAPPERS[topic](body);
+      // El editor manda un ARRAY con todos los bloques (SYE002/3/4, NTD...)
+      // o un objeto suelto: se normaliza y se envia un mensaje por bloque.
+      const items = (Array.isArray(body) ? body : [body]).filter(b => b && typeof b === 'object');
+      if (items.length === 0) return res.sendStatus(400);
       await flinkIngestProducer.send({
         topic: RAW_TOPIC_BY_EVENT[topic],
-        messages: [{ value: JSON.stringify(mapped) }]
+        messages: items.map((b, i) => {
+          const m = RAW_EVENT_MAPPERS[topic](b);
+          // SYE002/3/4: el detector espera al ultimo bloque del lote para juzgar duplicados
+          if (DUPLICATE_TOPICS.has(topic)) m.last = (i === items.length - 1);
+          return { value: JSON.stringify(m) };
+        })
       });
     } else if (PASSTHROUGH_EVENTS.has(topic)) {
       const inputEvent = {
