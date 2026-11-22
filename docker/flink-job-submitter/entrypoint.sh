@@ -27,13 +27,18 @@ com.cep4fun.flink.jobs.Dep001Job
 com.cep4fun.flink.jobs.Sce003Job"
 
 while true; do
-  if "$FLINK_BIN" list -m "$JOBMANAGER" 2>/dev/null | grep -q "(RUNNING)"; then
-    : # Ya hay al menos un job corriendo - no hace falta hacer nada.
-  else
-    echo "$(date -Iseconds) No hay jobs corriendo - enviando los 9..."
+  # Idempotente por job: solo se envian los que NO aparecen ya en la lista
+  # (el nombre del job contiene el codigo del evento, p. ej. SYE002, o
+  # "Gamification"). Asi nunca se duplican jobs aunque el cluster este en
+  # plena recuperacion y el listado salga incompleto un momento.
+  LIST=$("$FLINK_BIN" list -m "$JOBMANAGER" 2>/dev/null)
+  if [ -n "$LIST" ]; then
     for CLASS in $JOBS; do
-      "$FLINK_BIN" run -m "$JOBMANAGER" -d -c "$CLASS" "$FLINK_APP_JAR" \
-        || echo "$(date -Iseconds) fallo al enviar $CLASS (normal mientras el cluster arranca - se reintenta en 30s)"
+      KEY=$(basename "$CLASS" | sed 's/.*\.//; s/Job$//')
+      if ! echo "$LIST" | grep -qi "$KEY"; then
+        echo "$(date -Iseconds) Falta el job $KEY - enviando..."
+        "$FLINK_BIN" run -m "$JOBMANAGER" -d -c "$CLASS" "$FLINK_APP_JAR"           || echo "$(date -Iseconds) fallo al enviar $CLASS (se reintenta en 30s)"
+      fi
     done
   fi
   sleep 30

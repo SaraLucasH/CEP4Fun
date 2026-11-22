@@ -18,6 +18,8 @@ public class DuplicateDetectorFunction extends KeyedProcessFunction<String, RawN
     private final String outputTopic;
 
     private transient MapState<String, String> nameByBlock;
+    // Names touched by the batch in progress; evaluated once its last block arrives.
+    private transient MapState<String, Boolean> pendingNames;
 
     public DuplicateDetectorFunction(String outputTopic) {
         this.outputTopic = outputTopic;
@@ -28,6 +30,8 @@ public class DuplicateDetectorFunction extends KeyedProcessFunction<String, RawN
         MapStateDescriptor<String, String> descriptor =
                 new MapStateDescriptor<>("name-by-block-" + outputTopic, Types.STRING, Types.STRING);
         nameByBlock = getRuntimeContext().getMapState(descriptor);
+        pendingNames = getRuntimeContext().getMapState(
+                new MapStateDescriptor<>("pending-names-" + outputTopic, Types.STRING, Types.BOOLEAN));
     }
 
     @Override
@@ -35,10 +39,24 @@ public class DuplicateDetectorFunction extends KeyedProcessFunction<String, RawN
         String oldName = nameByBlock.get(event.blockId);
         nameByBlock.put(event.blockId, event.name);
 
-        emitForName(event.name, event.timestamp, ctx.getCurrentKey(), out);
-
+        pendingNames.put(event.name, true);
         if (oldName != null && !oldName.equals(event.name)) {
-            emitForName(oldName, event.timestamp, ctx.getCurrentKey(), out);
+            pendingNames.put(oldName, true);
+        }
+
+        // The editor sends every block in one batch. Judge duplicates only once the whole
+        // batch is known; otherwise the first of two equal names would be scored as correct.
+        if (event.last != null && !event.last) {
+            return;
+        }
+
+        List<String> names = new ArrayList<>();
+        for (String n : pendingNames.keys()) {
+            names.add(n);
+        }
+        pendingNames.clear();
+        for (String n : names) {
+            emitForName(n, event.timestamp, ctx.getCurrentKey(), out);
         }
     }
 

@@ -31,7 +31,7 @@ public class Dep001Job {
                 .setBootstrapServers(KAFKA_BOOTSTRAP)
                 .setTopics(RAW_TOPIC)
                 .setGroupId("cep4fun-dep001-detector")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
@@ -76,7 +76,13 @@ public class Dep001Job {
     }
 
     private static RawDeprecatedVersionEvent parseEvent(String json) throws Exception {
-        return JSON.readValue(json, RawDeprecatedVersionEvent.class);
+        try {
+            return JSON.readValue(json, RawDeprecatedVersionEvent.class);
+        } catch (Exception e) {
+            // Mensaje invalido: se devuelve un evento vacio (sin sessionId) que se descarta
+            // despues; asi un solo mensaje malo no entra en bucle de reinicios.
+            return new RawDeprecatedVersionEvent();
+        }
     }
 
     private static String toJson(InputEvent event) throws Exception {

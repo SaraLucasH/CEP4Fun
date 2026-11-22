@@ -11,6 +11,8 @@ public class RawNamedEntityEvent {
     public String sessionId;
     public String blockId;
     public String name;
+    /** false for every block of a batch except the last one; null/true = evaluate now. */
+    public Boolean last;
 
     public RawNamedEntityEvent() {
     }
