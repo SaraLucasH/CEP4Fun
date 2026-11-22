@@ -62,7 +62,7 @@ public class GamificationJob {
                 .setBootstrapServers(KAFKA_BOOTSTRAP)
                 .setTopics(INPUT_TOPIC)
                 .setGroupId("cep4fun-gamification")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
@@ -71,6 +71,7 @@ public class GamificationJob {
         DataStream<InputEvent> events = raw.map(GamificationJob::parseEvent).name("parse-json");
 
         DataStream<OutputEvent> results = events
+                .filter(e -> e.sessionId != null && e.blockId != null && e.topic != null)
                 .keyBy(InputEvent::blockKey)
                 .process(new ScoringRuleFunction(buildMagnitudesByTopic(), DEFAULT_MAGNITUDES))
                 .name("scoring-rule");
@@ -91,7 +92,13 @@ public class GamificationJob {
     }
 
     private static InputEvent parseEvent(String json) throws Exception {
-        return JSON.readValue(json, InputEvent.class);
+        try {
+            return JSON.readValue(json, InputEvent.class);
+        } catch (Exception e) {
+            // Mensaje invalido: se devuelve un evento vacio (sin sessionId) que se descarta
+            // despues; asi un solo mensaje malo no entra en bucle de reinicios.
+            return new InputEvent();
+        }
     }
 
     private static String toJson(OutputEvent output) throws Exception {

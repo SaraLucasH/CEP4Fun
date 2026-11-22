@@ -30,7 +30,7 @@ public class Ntd002Job {
                 .setBootstrapServers(KAFKA_BOOTSTRAP)
                 .setTopics(RAW_TOPIC)
                 .setGroupId("cep4fun-ntd002-detector")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
@@ -39,7 +39,7 @@ public class Ntd002Job {
         DataStream<RawVisibilityEvent> events = raw.map(Ntd002Job::parseEvent).name("parse-json");
 
         DataStream<InputEvent> detected = events
-                .keyBy(e -> e.sessionId)
+                .filter(e -> e.sessionId != null).keyBy(e -> e.sessionId)
                 .process(new TooManyPublicFunctionsFunction())
                 .name("too-many-public-detector");
 
@@ -59,7 +59,13 @@ public class Ntd002Job {
     }
 
     private static RawVisibilityEvent parseEvent(String json) throws Exception {
-        return JSON.readValue(json, RawVisibilityEvent.class);
+        try {
+            return JSON.readValue(json, RawVisibilityEvent.class);
+        } catch (Exception e) {
+            // Mensaje invalido: se devuelve un evento vacio (sin sessionId) que se descarta
+            // despues; asi un solo mensaje malo no entra en bucle de reinicios.
+            return new RawVisibilityEvent();
+        }
     }
 
     private static String toJson(InputEvent event) throws Exception {

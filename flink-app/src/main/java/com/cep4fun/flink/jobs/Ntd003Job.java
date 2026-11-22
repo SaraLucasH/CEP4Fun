@@ -32,7 +32,7 @@ public class Ntd003Job {
                 .setBootstrapServers(KAFKA_BOOTSTRAP)
                 .setTopics(RAW_TOPIC)
                 .setGroupId("cep4fun-ntd003-detector")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
@@ -41,7 +41,7 @@ public class Ntd003Job {
         DataStream<RawInheritanceEvent> events = raw.map(Ntd003Job::parseEvent).name("parse-json");
 
         DataStream<InputEvent> detected = events
-                .keyBy(e -> e.sessionId)
+                .filter(e -> e.sessionId != null).keyBy(e -> e.sessionId)
                 .process(new ProperInheritanceFunction(OUTPUT_TOPIC, FORBIDDEN_PARENT))
                 .name("proper-inheritance-detector");
 
@@ -61,7 +61,13 @@ public class Ntd003Job {
     }
 
     private static RawInheritanceEvent parseEvent(String json) throws Exception {
-        return JSON.readValue(json, RawInheritanceEvent.class);
+        try {
+            return JSON.readValue(json, RawInheritanceEvent.class);
+        } catch (Exception e) {
+            // Mensaje invalido: se devuelve un evento vacio (sin sessionId) que se descarta
+            // despues; asi un solo mensaje malo no entra en bucle de reinicios.
+            return new RawInheritanceEvent();
+        }
     }
 
     private static String toJson(InputEvent event) throws Exception {

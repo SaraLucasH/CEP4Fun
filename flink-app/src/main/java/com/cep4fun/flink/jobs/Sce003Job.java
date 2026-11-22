@@ -31,7 +31,7 @@ public class Sce003Job {
                 .setBootstrapServers(KAFKA_BOOTSTRAP)
                 .setTopics(RAW_TOPIC)
                 .setGroupId("cep4fun-sce003-detector")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
@@ -70,7 +70,13 @@ public class Sce003Job {
     }
 
     private static RawModifierEvent parseEvent(String json) throws Exception {
-        return JSON.readValue(json, RawModifierEvent.class);
+        try {
+            return JSON.readValue(json, RawModifierEvent.class);
+        } catch (Exception e) {
+            // Mensaje invalido: se devuelve un evento vacio (sin sessionId) que se descarta
+            // despues; asi un solo mensaje malo no entra en bucle de reinicios.
+            return new RawModifierEvent();
+        }
     }
 
     private static String toJson(InputEvent event) throws Exception {

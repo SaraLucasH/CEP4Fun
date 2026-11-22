@@ -30,7 +30,7 @@ public class Sye002Job {
                 .setBootstrapServers(KAFKA_BOOTSTRAP)
                 .setTopics(RAW_TOPIC)
                 .setGroupId("cep4fun-sye002-detector")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
@@ -39,7 +39,7 @@ public class Sye002Job {
         DataStream<RawNamedEntityEvent> events = raw.map(Sye002Job::parseEvent).name("parse-json");
 
         DataStream<InputEvent> detected = events
-                .keyBy(e -> e.sessionId)
+                .filter(e -> e.sessionId != null).keyBy(e -> e.sessionId)
                 .process(new DuplicateDetectorFunction(OUTPUT_TOPIC))
                 .name("duplicate-detector");
 
@@ -59,7 +59,13 @@ public class Sye002Job {
     }
 
     private static RawNamedEntityEvent parseEvent(String json) throws Exception {
-        return JSON.readValue(json, RawNamedEntityEvent.class);
+        try {
+            return JSON.readValue(json, RawNamedEntityEvent.class);
+        } catch (Exception e) {
+            // Mensaje invalido: se devuelve un evento vacio (sin sessionId) que se descarta
+            // despues; asi un solo mensaje malo no entra en bucle de reinicios.
+            return new RawNamedEntityEvent();
+        }
     }
 
     private static String toJson(InputEvent event) throws Exception {
