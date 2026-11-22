@@ -1,6 +1,7 @@
 var socket = io();
 
 socket.on('Points', (newPoints) => {
+    console.log('Points received: ' + newPoints);
     var points = parseInt(document.getElementById('points').innerHTML);
     if (points == NaN) {
         points = 0;
