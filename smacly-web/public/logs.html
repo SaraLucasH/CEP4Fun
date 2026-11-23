@@ -4,6 +4,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmaCly - Logs</title>
   <link rel="stylesheet" href="/resources/styles.css">
+  <link rel="stylesheet" href="/resources/styles-smacly.css">
+  <link rel="stylesheet" href="/resources/modalCuadroDialogo.css">
+  <script src="/js/modalCuadroDialogo.js"></script>
+  <script src="/js/cerrarSesion.js"></script>
   <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
   <script>
     async function borrarLogsSesion(sessionId) {
@@ -53,15 +57,6 @@
     .app-header__actions { display: flex; align-items: center; gap: 10px; }
     #salirSesion { width: 36px; height: 36px; object-fit: contain; cursor: pointer; opacity: 0.9; }
     #salirSesion:hover { opacity: 1; transform: scale(1.08); }
-
-    .botonera_navegacion { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; padding: 8px 20px; background: #eef2ff; }
-    .botonera_navegacion a {
-      display: inline-flex; align-items: center; gap: 6px;
-      color: #243388; text-decoration: none; background: #fff;
-      border: 1px solid #bcc6ee; border-radius: 6px; padding: 4px 9px;
-    }
-    .botonera_navegacion a img { width: 18px; height: 18px; object-fit: contain; }
-    .botonera_navegacion a:hover { background: #dde4ff; }
 
     .logs-contenedor {
       width: calc(100% - 60px);
@@ -223,33 +218,6 @@
   </main>
 
   <script>
-    async function pintarNav() {
-      var nav = document.getElementById('botoneraNavegacion');
-      var rol = 'USER';
-      try {
-        var respuesta = await fetch('/api/miPerfil');
-        if (respuesta.ok) {
-          var usuario = await respuesta.json();
-          rol = (usuario && usuario.rol) || 'USER';
-        }
-      } catch (error) {}
-
-      var html = '<a href="/home.html">Home</a>' +
-        '<a href="/"><img src="/resources/iconoEditorSmaCly.png" alt="">Editor</a>' +
-        '<a href="/edicion_datos_usuario.html"><img src="/resources/iconoMiPerfil.png" alt="">My profile</a>' +
-        '<a href="/workspaces.html"><img src="/resources/iconoWorkspace.png" alt="">Workspaces</a>';
-      if (rol === 'PROFESSOR' || rol === 'ADMIN') {
-        html += '<a href="/gestion_usuarios.html"><img src="/resources/iconoUsuarios.png" alt="">Users</a>';
-      }
-      nav.innerHTML = html;
-
-      document.getElementById('salirSesion').addEventListener('click', async function () {
-        if (!confirm('Would you like to log out?')) return;
-        try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
-        (window.top || window).location.href = '/login.html';
-      });
-    }
-
     var paginaActualLogs = 1;
     var tamanioPaginaLogs = 10;
     var listaLogs = [];
@@ -496,7 +464,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
-      pintarNav();
       prepararFiltrosYPaginacionLogs();
       document.getElementById('refrescarLogsBtn').addEventListener('click', cargarLogs);
       document.getElementById('borrarTodosLogsBtn').addEventListener('click', borrarTodosLogsPermitidos);
