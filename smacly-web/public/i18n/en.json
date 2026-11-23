@@ -23,6 +23,7 @@
         "toVyper": "⚙️ Transform Blockly to Vyper",
         "saveVyper": "💾 Save Vyper Code",
         "compileVyper": "🛠️ Compile Vyper",
+        "fromSolidity": "Convert Solidity to blocks",
         "fromXML": "🧩 Transform XML to Blockly"
     },
     "workspace": {
@@ -64,6 +65,8 @@
         "download": "💾 Download",
         "workspace": "🧩 Workspace",
         "compile": "⚙️ Compile",
+        "saveWorkspace": "💾 Save workspace",
+        "importSolidity": "Import Solidity",
         "importXML": "Import XML",
         "e3value": "Change contract to e3value",
         "workspaces": "📂 Workspaces",

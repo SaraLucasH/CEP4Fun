@@ -1,15 +1,18 @@
+// Nombres por defecto de los bloques que declaran entidades con nombre. Fuente unica:
+// los usan la definicion de cada bloque (aqui), el toolbox (applyDefaultBlockNames) y la
+// deteccion de duplicados (cep4fun/functions.js), asi que cambiarlos aqui no rompe ninguno.
 var DEFAULT_BLOCK_NAMES = {
   interface: "Insert here interface's name",
   library: "Insert here library's name",
   contract: "Insert here contract's name"
 };
 
-// Toolbox (index.html) has its own text inside <field name="name">; this will now use default name constant
+// El toolbox trae su propio texto en cada <field name="name">; esto lo sustituye por la
+// constante, de modo que bloque y toolbox no puedan desincronizarse.
 function applyDefaultBlockNames(toolboxElement) {
   var typeToKey = { interface: 'interface', library: 'library', contract: 'contract', abstract_contract: 'contract' };
   Object.keys(typeToKey).forEach(function (type) {
-    var blocks = toolboxElement.querySelectorAll('block[type="' + type + '"]');
-    blocks.forEach(function (block) {
+    toolboxElement.querySelectorAll('block[type="' + type + '"]').forEach(function (block) {
       Array.prototype.forEach.call(block.children, function (child) {
         if (child.tagName.toLowerCase() === 'field' && child.getAttribute('name') === 'name') {
           child.textContent = DEFAULT_BLOCK_NAMES[typeToKey[type]];
@@ -31,8 +34,6 @@ Blockly.Blocks['file'] = {
     this.setTooltip("This blocks represents a smart contract file himself. This is the first element of the blocks model contract (Require define a compiler version). This element requires a version element or experimental version. Inside it, you should include the block contract or abstract contract to define a smart contract  (smart contract class). Optionally, you can define or import resources to extend the funcionality");
     this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/structure-of-a-contract.html");
   },
-
-  
 };
 
 Blockly.Blocks['version'] = {
@@ -52,29 +53,6 @@ Blockly.Blocks['version'] = {
   }
 };
 
-
-Blockly.Blocks['range_version'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("pragma solidity")
-        .appendField(new Blockly.FieldDropdown([[">","greater"], [">=","greater_equal"]]), "symbolversion")
-        .appendField(new Blockly.FieldNumber(0, 0, 0), "value1version")
-        .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 9), "value2version")
-        .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 25), "value3version")
-        .appendField(new Blockly.FieldDropdown([["<=","less_equal"], ["<","less"]]), "symbolcomparation")
-        .appendField(new Blockly.FieldNumber(0, 0, 0), "value1versionoptional")
-        .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 9), "value2versionoptional")
-        .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 25), "value3versionoptional");
-    this.setOutput(true, "range_version");//Returned type or list of returned types. Null or undefined if any type could be returned (e.g. variable get).
-    this.setColour(120);
- this.setTooltip("This element represents the compiler order 'pragma solidity'. The compiler transform the smart contract code to bytecode for deploy in a blockchain network. You must insert this element expression in the file element");
- this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/layout-of-source-files.html#version-pragma");
-  }
-};
 
 Blockly.Blocks['version_experimental'] = {
   init: function() {
@@ -105,7 +83,7 @@ Blockly.Blocks['interface'] = {
         .appendField("interface")
         .appendField(new Blockly.FieldTextInput(DEFAULT_BLOCK_NAMES.interface), "name");
     this.appendValueInput("nameinterfacefather")
-        .setCheck("String")
+        .setCheck(["interface_father"])
         .appendField("Inheritance?");
     this.appendStatementInput("interface_functions")
         .setCheck(["interface_clausedeclaration","event"]);
@@ -114,6 +92,19 @@ Blockly.Blocks['interface'] = {
     this.setColour(230);
  this.setTooltip("Interface element contains the function's head to be implemented in the smart contract. Inside this element, you should only include events or the head of the smart contract's functions. You should define the complete functions inside the smart contract's body (Inside contract class)");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#interfaces");
+  }
+};
+
+Blockly.Blocks['interface_father'] = {
+  init: function() {
+    this.appendValueInput("interfaces_inherit")
+        .setCheck(['interface_father'])
+        .appendField(new Blockly.FieldTextInput("Interface's name inherit"), "name");
+    this.setInputsInline(false);
+    this.setOutput(true, 'interface_father');
+    this.setColour(230);
+ this.setTooltip("This block represents the name of the interface on which its functionality is inherited.");
+ this.setHelpUrl("");
   }
 };
 
@@ -130,10 +121,10 @@ Blockly.Blocks['interface_clausedeclaration'] = {
         .appendField("visibility")
         .appendField(new Blockly.FieldDropdown([["external","external"]]), "values_visibility")
         .appendField("state")
-        .appendField(new Blockly.FieldDropdown([["view","view"], ["pure","pure"], ["payable","payable"]]), "values_inputmodifier")
+        .appendField(new Blockly.FieldDropdown([["none",""],["view","view"], ["pure","pure"], ["payable","payable"]]), "values_inputmodifier")
         .appendField("Modifiers?");
     this.appendValueInput(["returns_values"])
-        .setCheck(["outputparam"])
+        .setCheck(["outputparam","tuple"])
         .appendField("returns values?");
     this.setInputsInline(true);
     this.setPreviousStatement(true, ["interface_clausedeclaration","event"]);
@@ -196,40 +187,46 @@ Blockly.Blocks['modifier'] = {
         .appendField("Input params?");
     this.appendStatementInput("restrictions_modifier")
         .setCheck(["restriction_clause","restriction_clausecomment","personalized_expression","assign_value_expression","markmodifier","closemodifier"]);
-    this.setPreviousStatement(true,["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier"]);
-    this.setNextStatement(true,["modifier","event","clause"]);
+    this.setPreviousStatement(true, ["contract_constructor","modifier","event"]);
+    this.setNextStatement(true, ["modifier","event","clause"]); 
     this.setColour(165);
  this.setTooltip("This element represents a smart contract's modifier which are used to change or restrict the behavior of a function in a smart contract in Solidity language. You can use a modifier to automatically check a condition prior to executing the function. Contract's modifier must be include inside the contract element, must be defined before the definition of the events and functions of a smart contract. Modifier element contains restrictions,expressions and conditional logic expressions. The Modifier element may or may not receive input parameters.");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#function-modifiers");
   }
 };
 
+
 Blockly.Blocks['block_inputmodifier'] = {
   init: function() {
+    this.appendDummyInput()
+        .appendField("input modifier")
+        .appendField(new Blockly.FieldTextInput("modifier"), "value");
+    this.appendValueInput("inputparams")
+        .setCheck(["inputparam"])
+        .appendField("params?");
     this.appendValueInput("modifier")
         .setCheck(["block_inputmodifier"])
-        .appendField("input modifier")
-        .appendField(new Blockly.FieldTextInput(""), "value");
+        .appendField("next");
     this.setInputsInline(false);
     this.setOutput(true, ["block_inputmodifier"]);
     this.setColour(165);
- this.setTooltip("This element represents the function's modifier. If you insert a modifier, you can change or restrict the behavior of a function in a smart contract in Solidity language. You must insert this element in the function's head element");
- this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#function-modifiers");
+    this.setTooltip("This element represents the function's modifier. If you insert a modifier, you can change or restrict the behavior of a function in a smart contract in Solidity language. You must insert this element in the function's head element");
+    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#function-modifiers");
   }
 };
+
 Blockly.Blocks['restriction_clause'] = {
   init: function() {
     this.appendValueInput("condition")
-        .setCheck(["comparation_logicalexpression","comparation_arithmeticalexpression","comparation_expression","parenthesis_expression","personalized_inputexpression"])
+        .setCheck(["comparation_logicalexpression","comparation_arithmeticalexpression","comparation_expression","parenthesis_expression","personalized_inputexpression","block_negation"])
         .appendField("require");
     this.setInputsInline(true);
-    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(45);
  this.setTooltip("This element represents a require element in Solidity. In Solidity language,this expression is used to define a requirement that must be met for the execution of the code, otherwise an exception is produced and it is not executed. You must insert this element inside Smart contract's contructor, modifier or functions.");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/control-structures.html#panic-via-assert-and-error-via-require");
@@ -239,15 +236,17 @@ Blockly.Blocks['restriction_clause'] = {
 Blockly.Blocks['restriction_clausecomment'] = {
   init: function() {
     this.appendValueInput("condition")
-        .setCheck(["comparation_logicalexpression","comparation_arithmeticalexpression","comparation_expression","parenthesis_expression","personalized_inputexpression"])
+        .setCheck(["comparation_logicalexpression","comparation_arithmeticalexpression","comparation_expression","parenthesis_expression","personalized_inputexpression","block_negation"])
         .appendField("require");
     this.appendDummyInput()
         .appendField("comment")
         .appendField(new Blockly.FieldTextInput("Insert here your comment"), "comment");
-    this.setPreviousStatement(true,  ["contract_constructor","modifier","restriction_clausecomment","clause"]);
-    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+     this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(45);
  this.setTooltip("This element represents a require element in Solidity. In Solidity language, this expression is used to define a requirement that must be met for the execution of the code, otherwise an exception is produced and it is not executed. You must insert this element inside Smart contract's contructor, modifier or functions.");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/control-structures.html#panic-via-assert-and-error-via-require");
@@ -259,9 +258,9 @@ Blockly.Blocks['closemodifier'] = {
     this.appendDummyInput()
         .appendField("_;");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(165);
  this.setTooltip("The _; symbol within a modifier has a very specific purpose: it indicates where the code of the function being modified is to be executed.");
  this.setHelpUrl("");
@@ -273,12 +272,12 @@ Blockly.Blocks['markmodifier'] = {
     this.appendDummyInput()
         .appendField("_;");
     this.setInputsInline(true);
-    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(165);
  this.setTooltip("The _; symbol within a modifier has a very specific purpose: it indicates where the code of the function being modified is to be executed.");
  this.setHelpUrl("");
@@ -293,12 +292,26 @@ Blockly.Blocks['event'] = {
         .appendField(new Blockly.FieldTextInput("Insert here event's name"), "name")
         .appendField("Input params?");
     this.setInputsInline(false);
-    this.setPreviousStatement(true,["abstract_contract","abstract_clausedeclaration","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","contract","modifier","event"]);//Incapacita que se pueda meter dentro de contratos
+    this.setPreviousStatement(true,["contract_constructor","modifier","event"]);//Incapacita que se pueda meter dentro de contratos
     this.setNextStatement(true, ["event","clause","interface_clausedeclaration"]);
     this.setColour(60);
  this.setTooltip("This element is a Smart contract's event. Contract's event must be include inside the contract element. The event element may or may not receive input parameters");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#events");
+  }
+};
+
+Blockly.Blocks['error_definition'] = {
+  init: function() {
+    this.appendValueInput("inputparams")
+        .setCheck("inputparam")
+        .appendField("error")
+        .appendField(new Blockly.FieldTextInput("Insert here error's name"),"name")
+        .appendField("Input params?");
+    this.setPreviousStatement(true, ["event","error_definition","contract_constructor","modifier","clause" ]);
+    this.setNextStatement(true, ["event","error_definition","clause","contract_constructor"]);
+    this.setColour(0);
+    this.setTooltip("Defines a custom Solidity error.");
+    this.setHelpUrl("");
   }
 };
 
@@ -309,8 +322,8 @@ Blockly.Blocks['emit_event'] = {
         .appendField("emit")
         .appendField(new Blockly.FieldTextInput("Insert here event's name to emit"), "name")
         .appendField("Input params?");
-    this.setPreviousStatement(true,["emit_event","assign_value_expression","personalized_expression","var_expression","block_assembly","abyencode_function","deleteexpression","revert_expression","assert_function","sha_function","restriction_clausecomment","restriction_clause"]);
-    this.setNextStatement(true,["emit_event","assign_value_expression","personalized_expression","var_expression","block_assembly","abyencode_function","deleteexpression","revert_expression","assert_function","sha_function","restriction_clausecomment","restriction_clause"]);
+    this.setPreviousStatement(true,["emit_event","assign_value_expression","personalized_expression","block_assembly","abyencode_function","deleteexpression","revert_expression","assert_function","sha_function","restriction_clausecomment","restriction_clause"]);
+    this.setNextStatement(true,["emit_event","assign_value_expression","personalized_expression","block_assembly","abyencode_function","deleteexpression","revert_expression","assert_function","sha_function","restriction_clausecomment","restriction_clause"]);
     this.setColour(60);
  this.setTooltip("This element represents the trigger expression of the event inside the function. Emit event expression only can be insert inside the function element. The emit event expression may or may not receive input parameters ");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/structure-of-a-contract.html#events");
@@ -335,7 +348,7 @@ Blockly.Blocks['inputparam'] = {
 Blockly.Blocks['inputparamshortidentifier'] = {
   init: function() {
     this.appendValueInput("type")
-        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_text","type_mapping","type_User","type_Company"])
+        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_text","type_mapping","type_User","type_Company"])
         .appendField("input param")
         .appendField("type");
     this.appendValueInput("arraydimension")
@@ -356,14 +369,12 @@ Blockly.Blocks['inputparamshortidentifier'] = {
 Blockly.Blocks['input_param'] = {
   init: function() {
     this.appendValueInput("type")
-        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_text","type_mapping","type_User","type_Company"])
+        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_text","type_mapping","type_User","type_Company"])
         .appendField("type");
     this.appendValueInput("arraydimension")
         .setCheck(["arraydimension","dynamic_array"])
         .appendField("array dimension?");
     this.appendDummyInput()
-        .appendField("indexed?")
-        .appendField(new Blockly.FieldCheckbox("TRUE"), "indexed")
         .appendField("storagedata?")
         .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"],["calldata","calldata"]]), "storagedata_values")
         .appendField("name")
@@ -377,49 +388,26 @@ Blockly.Blocks['input_param'] = {
 };
 
 
-/*Blockly.Blocks['outputparam'] = {
-  init: function() {
-    this.appendValueInput("outputparam")
-        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_text"])
-        .appendField("output")
-        .appendField("type");
-    this.appendDummyInput()
-      .appendField("name")
-      .appendField(new Blockly.FieldTextInput("Indicate param's name"), "name");
-    this.setOutput(true, "outputparam");
-    this.setColour(315);
- this.setTooltip("");
- this.setHelpUrl("");
-  }
-};*/
-
-Blockly.Blocks['outputparam'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Output param")
-        .appendField(new Blockly.FieldTextInput("Insert type here"), "type")
-        .appendField(new Blockly.FieldTextInput("Insert value here"), "value");
-    this.setOutput(true, "outputparam");
-    this.setColour(315);
- this.setTooltip("The data type or value that the function returns. If you define a function's outputparam, the functions's last line should be a 'return expression'");
- this.setHelpUrl("");
-  }
-};
-
 Blockly.Blocks['outputparam'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("outputparam");
     this.appendValueInput("value_type_outputparam")
-        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_text","type_User","type_Company"])
+        .setCheck([ "type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_text","type_mapping","type_User","type_Company"])
         .appendField("type");
+    this.appendValueInput("arraydimension")
+        .setCheck(["dynamic_array","array_property"])
+        .appendField("array dimension?");
     this.appendDummyInput()
-        .appendField(new Blockly.FieldTextInput("Insert here the name of the output param"), "name");
+        .appendField("storage?")
+        .appendField(new Blockly.FieldDropdown([["none",""],["memory","memory"],["storage","storage"],["calldata","calldata"]]), "storagedata_values")
+        .appendField("name")
+        .appendField(new Blockly.FieldTextInput("Insert here the name of the output param"),"name");
     this.setInputsInline(true);
-    this.setOutput(true, null);
+    this.setOutput(true,null);
     this.setColour(230);
- this.setTooltip("The data type or value that the function returns. If you define a function's outputparam, the functions's last line should be a 'return expression'");
- this.setHelpUrl("");
+    this.setTooltip("The data type or value that the function returns.");
+    this.setHelpUrl("");
   }
 };
 
@@ -434,8 +422,8 @@ Blockly.Blocks['contract'] = {
         .setCheck(["contract_father"])
         .appendField("Inheritance?");
     this.appendStatementInput("contract_elements")
-        .setCheck(["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause"]);
+        .setCheck(["receive_function","fallback_function","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","error_definition","modifier","clause"]);
     this.setInputsInline(true);
     this.setPreviousStatement(true, ["file","interface","library","import","abstract_contract","contract"]);
     this.setNextStatement(true,["contract"]);
@@ -451,13 +439,12 @@ Blockly.Blocks['abstract_contract'] = {
         .appendField("abstract contract")
         .appendField(new Blockly.FieldTextInput(DEFAULT_BLOCK_NAMES.contract), "name");
     this.appendValueInput("namecontractfather")
-        .setCheck("String")
+        .setCheck(["contract_father"])
         .appendField("Inheritance?");
     this.appendStatementInput("contract_elements")
-        .setCheck(["abstract_clausedeclaration","event","clause","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","import","block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+        .setCheck(["abstract_clausedeclaration","event","modifier","clause","contract_constructor","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property","number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty", "boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setInputsInline(true);
-    this.setPreviousStatement(true,  ["file","interface","library","import","abstract_contract"]);
+    this.setPreviousStatement(true,["file","interface","library","import","abstract_contract"]);
     this.setNextStatement(true, ["abstract_contract","contract"]);
     this.setColour(345);
  this.setTooltip("This element represents an abstract smart contract, who simulates an abstract class in Java. In this element, the logic to be executed by the smart contract is defined based on a series of conditions defined by the user. Abstract contract element contains properties,modifiers,events or functions");
@@ -478,18 +465,18 @@ Blockly.Blocks['abstract_clausedeclaration'] = {
         .appendField("virtual")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "virtual");
     this.appendValueInput("modifiers")
-        .setCheck("outputparam")
+        .setCheck(["block_inputmodifier","overridemodifier"])
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("state")
-        .appendField(new Blockly.FieldDropdown([["view","view"], ["pure","pure"], ["payable","payable"]]), "values_inputmodifier")
+        .appendField(new Blockly.FieldDropdown([["none",""],["view","view"], ["pure","pure"], ["payable","payable"]]), "values_inputmodifier")
         .appendField("Modifiers?");
     this.appendValueInput("returns_values")
-        .setCheck(null)
+        .setCheck(["outputparam","type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_Company","type_User","type_text","type_mapping","tuple"])
         .appendField("returns values?");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["clause",'abstract_clausedeclaration',"event"]);
-    this.setNextStatement(true, ["clause",'abstract_clausedeclaration',"event"]);
+    this.setPreviousStatement(true, ["abstract_clausedeclaration", "event"]);
+    this.setNextStatement(true, ["abstract_clausedeclaration", "event"]);
     this.setColour(15);
  this.setTooltip("");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#abstract-contracts");
@@ -516,34 +503,13 @@ Blockly.Blocks['interface_father'] = {
         .setCheck(['interface_father'])
         .appendField(new Blockly.FieldTextInput("Interface's name inherit"), "name");
     this.setInputsInline(false);
-    this.setOutput(true, null);
+    this.setOutput(true, "interface_father");
     this.setColour(230);
  this.setTooltip("This block represents the name of the interface on which its functionality is inherited.");
  this.setHelpUrl("");
   }
 };
 
-Blockly.Blocks['contract_constructor'] = {
-  init: function() {
-    this.appendValueInput("inputparams")
-        .setCheck(["inputparam"])
-        .appendField("constructor")
-        .appendField("input params?");
-    this.appendDummyInput()
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["internal","internal"]]), "visibility_values")
-        .appendField("payable?")
-        .appendField(new Blockly.FieldCheckbox("TRUE"), "payable");
-    this.appendStatementInput("expressions_constructor")
-        .setCheck(["restriction_clause","restriction_clausecomment","personalized_expression","assign_value_expression"]);
-    this.setInputsInline(true);
-    this.setPreviousStatement(true,["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract","contract_constructor","import","block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true, ["contract_constructor","event","modifier","clause"]);
-    this.setColour(230);
- this.setTooltip("This element is a Smart contract's constructor, where the variables/properties of the smart contract are initialized. Contract's constructor must be include inside the contract element. If you don't define a constructor, by default, the empty constructor is used");
- this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#constructor");
-  }
-};
 
 Blockly.Blocks['contract_constructor'] = {
   init: function() {
@@ -555,16 +521,15 @@ Blockly.Blocks['contract_constructor'] = {
         .setCheck('block_constructor_contract_inherance')
         .appendField("inherance?");
     this.appendDummyInput()
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["internal","internal"]]), "visibility_values")
         .appendField("payable?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "payable");
     this.appendStatementInput("expressions_constructor")
-        .setCheck(["restriction_clause","restriction_clausecomment","personalized_expression","assign_value_expression"]);
+        .setCheck(["restriction_clause","restriction_clausecomment","personalized_expression","assign_value_expression","block_try"]);
     this.setInputsInline(true);
     this.setPreviousStatement(true,["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract","contract_constructor","import","block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setNextStatement(true, ["contract_constructor","event","modifier","clause"]);
-    this.setColour(230);
+    this.setColour(320);
     this.setTooltip("This element is a Smart contract's constructor, where the variables/properties of the smart contract are initialized. Contract's constructor must be include inside the contract element. If you don't define a constructor, by default, the empty constructor is used");
     this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#constructor");
   }
@@ -573,15 +538,15 @@ Blockly.Blocks['contract_constructor'] = {
 Blockly.Blocks['block_constructor_contract_inherance'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("name")
+        .appendField("Contract's name inherance")
         .appendField(new Blockly.FieldTextInput("default"), "contract_name_inherance");
     this.appendValueInput("input_params")
         .setCheck("inputparam")
         .appendField("Input params?");
     this.setInputsInline(true);
     this.setOutput(true, null);
-    this.setColour(230);
- this.setTooltip("");
+    this.setColour(320);
+ this.setTooltip("This is a call to the constructor of the parent contract from which this contract inherits. The input parameters must correspond to those defined in the constructor of the contract from which it inherits (parent).");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#constructor");
   }
 };
@@ -603,28 +568,81 @@ Blockly.Blocks['clause'] = {
     this.appendValueInput("modifiers")
         .setCheck(["block_inputmodifier","overridemodifier"])
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("state")
-        .appendField(new Blockly.FieldDropdown([["view","view"], ["pure","pure"], ["payable","payable"]]), "values_inputmodifier")
+        .appendField(new Blockly.FieldDropdown([["none",""],["view","view"], ["pure","pure"], ["payable","payable"]]), "values_inputmodifier")
         .appendField("Modifiers?");
     this.appendValueInput("returns_values")
-        .setCheck(["outputparam","type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_Company","type_User","type_text","type_mapping"])
+        .setCheck(["outputparam","type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_Company","type_User","type_text","type_mapping","tuple"])
         .appendField("returns values?");
     this.appendStatementInput("elements_function")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-        "block_ifcondition","block_whilelopp","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        .setCheck(["block_unchecked","restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
         "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setInputsInline(true);
     this.setPreviousStatement(true, ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause"]);
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","clause"]);
     this.setNextStatement(true, ["clause"]);
     this.setColour(15);
- this.setTooltip("This element is a Smart contract's function. Contract's clause must be include inside the contract element. If the function sends currencies inside it, you must include the 'payable'");
- this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#functions");
+    this.setTooltip("This element is a Smart contract's function. Contract's clause must be include inside the contract element. If the function sends currencies inside it, you must include the 'payable'");
+    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#functions");
+  }
+};
+  
+Blockly.Blocks['receive_function'] = {
+  init: function() {
+    var payableField = new Blockly.FieldCheckbox("TRUE", function(value) { //ASÍ SIEMPRE ES TRUE AUNQUE DESMARQUE EL USUARIO
+       return "TRUE";
+    });
+    this.appendDummyInput()
+        .appendField("receive")
+        .appendField("visibility")
+        .appendField(new Blockly.FieldDropdown([["external","external"]]), "values_visibility")
+        .appendField("payable")
+        .appendField(payableField, "payable")
+        .appendField("virtual")
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "virtual");
+    this.appendStatementInput("elements_function")
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_try"]);
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause","receive_function","fallback_function"]);
+    this.setNextStatement(true, ["clause","receive_function","fallback_function"]);
+    this.setColour(15);
+    this.setTooltip("Receive function. It is executed when the contract receives Ether without calldata.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#receive-ether-function");
   }
 };
 
+Blockly.Blocks['fallback_function'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("fallback")
+        .appendField("visibility")
+        .appendField(new Blockly.FieldDropdown([["external","external"]]), "values_visibility")
+        .appendField("payable")
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "payable")
+        .appendField("virtual")
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "virtual");
+
+    this.appendStatementInput("elements_function")
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_try"]);
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause","receive_function","fallback_function"]);
+    this.setNextStatement(true, ["clause","receive_function","fallback_function"]);
+    this.setColour(15);
+    this.setTooltip("Fallback function. It is executed when no other function matches the calldata.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#fallback-function");
+  }
+};
 
 Blockly.Blocks['overridemodifier'] = {
   init: function() {
@@ -646,11 +664,11 @@ Blockly.Blocks['return_clause'] = {
     this.appendDummyInput()
         .appendField("return");
     this.appendValueInput("values")
-        .setCheck(["personalized_inputexpression","shift_expression","bitwise_expression","casting_expression","msgvariables","coin","txvariables","blockvariables","assing_value_expression1inputs","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","type_text","block_null","time_expression","block_boolean","block_thisexpression","comparation_expression","comparation_arithmeticalexpression","arithmetical_expression"]);
+        .setCheck(["personalized_inputexpression","shift_expression","bitwise_expression","casting_expression","msgvariables","coin","tuple","txvariables","blockvariables","assing_value_expression1inputs","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","type_text","block_null","time_expression","block_boolean","block_thisexpression","comparation_expression","comparation_arithmeticalexpression","arithmetical_expression","block_positivenumber","block_number","block_text","comparation_logicalexpression"]);
     this.setInputsInline(true);
-    this.setPreviousStatement(true,["clause","restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true,["clause","restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(15);
  this.setTooltip("This expression must be used to return a value. Must be the last expression contained in a function");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#return-variables");
@@ -662,7 +680,7 @@ Blockly.Blocks['coin_expression'] = {
     this.appendDummyInput()
         .appendField("coin")
         .appendField(new Blockly.FieldNumber(0), "amount_coin")
-        .appendField(new Blockly.FieldDropdown([["ether","ether"], ["gwei","gwei "], ["pwei","pwei"], ["wei","wei"], ["szabo","szabo"], ["finney","finney"]]), "type_coin");
+        .appendField(new Blockly.FieldDropdown([["ether","ether"], ["gwei","gwei"], ["pwei","pwei"], ["wei","wei"], ["szabo","szabo"], ["finney","finney"]]), "type_coin");
     this.setOutput(true, "coin_expression");
     this.setColour(230);
  this.setTooltip("This expressión represents a determined amount Ethereum unit currencies");
@@ -682,24 +700,6 @@ Blockly.Blocks['visibility_function'] = {
   }
 };
 
-Blockly.Blocks['var_expression'] = {
-  init: function() {
-    this.appendValueInput("expression_varexpression")
-        .setCheck(["personalized_inputexpression","shift_expression","bitwise_expression","casting_expression","msgvariables","coin","txvariables","blockvariables","assing_value_expression1inputs","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now"])
-        .appendField("var")
-        .appendField(new Blockly.FieldTextInput("Insert here variable's name"), "name");
-    this.setInputsInline(true);
-    this.setPreviousStatement(true,["clause","restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setColour(230);
- this.setTooltip("");
- this.setHelpUrl("");
-  }
-};
 
 Blockly.Blocks['block_usinglibrary'] = {
   init: function() {
@@ -711,7 +711,7 @@ Blockly.Blocks['block_usinglibrary'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(230);
- this.setTooltip("");
+ this.setTooltip("This element represents the compiler order 'pragma solidity'. The compiler transform the smart contract code to bytecode for deploy in a blockchain network. You must insert this element expression in the file element");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#using-for");
   }
 };
@@ -720,22 +720,22 @@ Blockly.Blocks['range_version'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("range_version")
-        .appendField(new Blockly.FieldDropdown([[">","greater"], [">=","greater_equal"]]), "symbolcomparation")
-        .appendField(new Blockly.FieldNumber(0, 0, 0), "value1")
+        .appendField(new Blockly.FieldDropdown([[">","greater"], [">=","greater_equal"]]), "symbolversion")
+        .appendField(new Blockly.FieldNumber(0, 0, 0), "value1version")
         .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 9), "value2")
+        .appendField(new Blockly.FieldNumber(0, 0, 9), "value2version")
         .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 25), "value3")
+        .appendField(new Blockly.FieldNumber(0, 0, 25), "value3version")
         .appendField(new Blockly.FieldDropdown([["<=","less_equal"], ["<","less"], [">","greater"], [">=","greater_equal"]]), "symbolcomparation")
-        .appendField(new Blockly.FieldNumber(0, 0, 0), "value1optional")
+        .appendField(new Blockly.FieldNumber(0, 0, 0), "value1versionoptional")
         .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 9), "value2optional")
+        .appendField(new Blockly.FieldNumber(0, 0, 9), "value2versionoptional")
         .appendField(".")
-        .appendField(new Blockly.FieldNumber(0, 0, 25), "value3optional");
+        .appendField(new Blockly.FieldNumber(0, 0, 25), "value3versionoptional");
     this.setOutput(true, null);
     this.setColour(120);
  this.setTooltip("");
- this.setHelpUrl("");
+ this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/layout-of-source-files.html#version-pragma");
   }
 };
 
@@ -746,14 +746,14 @@ Blockly.Blocks['assign_value_expression'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldDropdown([["=","="], ["|=","|="], ["^=","^="], ["&=","&="], ["<<=","<<="], [">>=",">>="], ["+=","+="], ["-=","-="], ["*=","*="], ["/=","/="], ["%=","%="]]), "operators");
     this.appendValueInput("value2_assignexpression")
-        .setCheck(["personalized_inputexpression","bitwise_expression","shift_expression","casting_expression","msgvariables","coin","block_negation","txvariables","blockvariables","tuple","block_positivenumber","block_number","block_text","block_boolean","arithmetical_expression","parenthesis_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","block_new","block_thisexpression","block_null"]);
+        .setCheck(["comparation_expression","comparation_arithmeticalexpression","comparation_logicalexpression","personalized_inputexpression","bitwise_expression","shift_expression","casting_expression","msgvariables","coin","block_negation","txvariables","blockvariables","tuple","block_positivenumber","block_number","block_text","block_boolean","arithmetical_expression","parenthesis_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","block_new","block_thisexpression","block_null"]);
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_new"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_new"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_new"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_new"]);
     this.setColour(230);
  this.setTooltip("Assign a value expression");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/control-structures.html#destructuring-assignments-and-returning-multiple-values");
@@ -767,7 +767,7 @@ Blockly.Blocks['assing_value_expression1inputs'] = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldDropdown([["=","="], ["|=","|="], ["^=","^="], ["<<=","<<="], [">>=",">>="], ["+=","+="], ["-=","-="], ["*=","*="], ["/=","/="], ["%=","%="]]), "operators");
     this.appendValueInput("value1_assignexpression")
-        .setCheck(["personalized_inputexpression","casting_expression","bitwise_expression","block_text","block_boolean","block_number","block_positivenumber","block_positivenumber","msgvariables","coin","txvariables","blockvariables","tuple","arithmetical_expression","parenthesis_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","block_new","block_negation","block_thisexpression"]);
+        .setCheck(["comparation_expression","comparation_arithmeticalexpression","comparation_logicalexpression","personalized_inputexpression","casting_expression","bitwise_expression","block_text","block_boolean","block_number","block_positivenumber","block_positivenumber","msgvariables","coin","txvariables","blockvariables","tuple","arithmetical_expression","parenthesis_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","block_new","block_negation","block_thisexpression"]);
     this.setInputsInline(true);
     this.setOutput(true, "assing_value_expression1inputs");
     this.setColour(230);
@@ -861,12 +861,12 @@ Blockly.Blocks['selfdestruct_function'] = {
     this.appendDummyInput()
         .appendField("selfdestruct")
         .appendField(new Blockly.FieldTextInput("Insert here expression"), "value_parameter");
-    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(345);
  this.setTooltip("");
  this.setHelpUrl("");
@@ -878,12 +878,12 @@ Blockly.Blocks['keccak_function'] = {
     this.appendDummyInput()
         .appendField("keccak256")
         .appendField(new Blockly.FieldTextInput("Insert here expression"), "value_parameter");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(345);
  this.setTooltip("");
  this.setHelpUrl("");
@@ -893,14 +893,14 @@ Blockly.Blocks['keccak_function'] = {
 Blockly.Blocks['sha_function'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldDropdown([["sha3","sha3"], ["sha256","sha256"]]), "name")
+        .appendField(new Blockly.FieldDropdown([["sha256","sha256"]]), "name")
         .appendField(new Blockly.FieldTextInput("Insert here expression"), "value_parameter");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(345);
  this.setTooltip("");
  this.setHelpUrl("");
@@ -912,35 +912,18 @@ Blockly.Blocks['abyencode_function'] = {
     this.appendDummyInput()
         .appendField("abi.encodePacked")
         .appendField(new Blockly.FieldTextInput("Insert here expression"), "value_parameter");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(345);
  this.setTooltip("");
  this.setHelpUrl("");
   }
 };
 
-Blockly.Blocks['log_function'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("log")
-        .appendField(new Blockly.FieldNumber(0, 0), "value_log")
-        .appendField(new Blockly.FieldTextInput("value_parameter"), "Insert here the expression");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setColour(195);
- this.setTooltip("");
- this.setHelpUrl("");
-  }
-};
 
 Blockly.Blocks['keccak_inputfunction'] = {
   init: function() {
@@ -957,7 +940,7 @@ Blockly.Blocks['keccak_inputfunction'] = {
 Blockly.Blocks['sha_inputfunction'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldDropdown([["sha3","sha3"], ["sha256","sha256"]]), "identifier")
+        .appendField(new Blockly.FieldDropdown([["sha256","sha256"]]), "identifier")
         .appendField(new Blockly.FieldTextInput("Insert here expression"), "value_parameter");
     this.setOutput(true, "sha_inputfunction");
     this.setColour(345);
@@ -994,10 +977,10 @@ Blockly.Blocks['coin'] = {
 Blockly.Blocks['casting_expression'] = {
   init: function() {
     this.appendValueInput("type")
-        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_text","block_payable","block_type_casting"])
+        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_text","block_payable","block_type_casting"])
         .appendField("type to cast");
     this.appendValueInput("expressioncast")
-        .setCheck(["personalized_inputexpression"])
+        .setCheck(null)//Para ceptar cualquier tipo de expresión por si caso
         .appendField("expression to cast");
     this.setInputsInline(true);
     this.setOutput(true, null);
@@ -1042,7 +1025,7 @@ Blockly.Blocks['personalized_struct'] = {
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","modifier","event","clause","contract_constructor"]);
     this.setNextStatement(true,  ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","modifier","event","clause","contract_constructor"]);
-    this.setColour(329);
+    this.setColour(190);
  this.setTooltip("Define a personalized data type.  This data type personalised <u>may contain a number of different types of variables representing different properties of the data type</u>.");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/types.html#structs");
   }
@@ -1052,28 +1035,26 @@ Blockly.Blocks['number_property'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("type")
-        .appendField(new Blockly.FieldDropdown([["int","int"], ["uint","uint"], ["float","float"]]), "numbertype_property");
+        .appendField(new Blockly.FieldDropdown([ ["uint", "uint"],["uint8", "uint8"],["uint16", "uint16"],["uint32", "uint32"],["uint64", "uint64"],["uint128", "uint128"],["uint256", "uint256"],["int", "int"],["int8", "int8"],["int16", "int16"],["int32", "int32"],["int64", "int64"],["int128", "int128"],["int256", "int256"]]), "numbertype_property");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
     this.appendDummyInput()
       .appendField("visibility")
-      .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+      .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
       .appendField("constant?")
       .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-      .appendField("storagedata?")
-      .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");
     this.appendValueInput("valueproperty")
         .setCheck(["Number", "personalized_inputexpression","assing_value_expression1inputs"])
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here the name of the property"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","modifier","event","clause","contract_constructor"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("");
  this.setHelpUrl("");
   }
@@ -1083,28 +1064,26 @@ Blockly.Blocks['byte_property'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("type")
-        .appendField(new Blockly.FieldDropdown([["byte","byte"], ["bytes2","bytes2"], ["bytes3","bytes3"], ["bytes4","bytes4"], ["bytes5","bytes5"], ["bytes6","bytes6"], ["bytes7","bytes7"], ["bytes8","bytes8"], ["bytes9","bytes9"], ["bytes10","bytes10"], ["bytes12","bytes12"], ["bytes14","bytes14"], ["bytes16","bytes16"], ["bytes18","bytes18"], ["bytes20","bytes20"], ["bytes22","bytes22"], ["bytes24","bytes24"], ["bytes26","bytes26"], ["bytes28","bytes28"], ["bytes30","bytes30"], ["bytes32","bytes32"]]), "byte_type");
+        .appendField(new Blockly.FieldDropdown([["bytes","bytes"],["bytes1","bytes1"], ["bytes2","bytes2"], ["bytes3","bytes3"], ["bytes4","bytes4"], ["bytes5","bytes5"], ["bytes6","bytes6"], ["bytes7","bytes7"], ["bytes8","bytes8"], ["bytes9","bytes9"], ["bytes10","bytes10"], ["bytes12","bytes12"], ["bytes14","bytes14"], ["bytes16","bytes16"], ["bytes18","bytes18"], ["bytes20","bytes20"], ["bytes22","bytes22"], ["bytes24","bytes24"], ["bytes26","bytes26"], ["bytes28","bytes28"], ["bytes30","bytes30"], ["bytes32","bytes32"]]), "byte_type");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("constant?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");
     this.appendValueInput("valueproperty")
         .setCheck(["personalized_inputexpression","assing_value_expression1inputs"])
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here byte property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a byte variable. The user can determine the size of bytes to be held by the variable.");
  this.setHelpUrl("");
   }
@@ -1120,21 +1099,19 @@ Blockly.Blocks['identifier_property'] = {
         .appendField("array dimension?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("constant?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");
     this.appendValueInput("valueproperty")
         .setCheck(["personalized_inputexpression","assing_value_expression1inputs","block_new"])
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here property's identifier"), "name")
         .appendField("value");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true,["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a personalized data type variable. The user must determinate the variable personalized type.");
  this.setHelpUrl("");
   }
@@ -1149,11 +1126,9 @@ Blockly.Blocks['user_property'] = {
         .appendField("array dimesion?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("constant?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");  
     this.appendValueInput("valueproperty")
         .setCheck("assing_value_expression1inputs")
         .appendField("identifier")
@@ -1162,7 +1137,7 @@ Blockly.Blocks['user_property'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This variable represents a personalized data type 'User' that interacts with the smart contract. If you want to use this variable, it requires you to define the custom data type 'User' (a struct data type), which is found in the 'Predefined data type' toolbar.");
  this.setHelpUrl("");
   }
@@ -1177,11 +1152,9 @@ Blockly.Blocks['company_property'] = {
         .appendField("array dimesion?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("constant?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");
     this.appendValueInput("valueproperty")
         .setCheck("assing_value_expression1inputs")
         .appendField("identifier")
@@ -1190,7 +1163,7 @@ Blockly.Blocks['company_property'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This variable represents a personalized data type 'Company' that interacts with the smart contract. If you want to use this variable, it requires you to define the custom data type 'Company' (a struct data type), which is found in the 'Predefined data type' toolbar.");
  this.setHelpUrl("");
   }
@@ -1206,21 +1179,19 @@ Blockly.Blocks['address_property'] = {
         .appendField("array dimension?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("constant?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values")
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here the address property's identifier"), "name");
     this.appendValueInput("valueproperty")
         .setCheck(["personalized_inputexpression","assing_value_expression1inputs"])
         .appendField("value");
-    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true,["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This variable represents an entity (smart contract, user, company) that interacts with the smart contract. Only address payable can send currencies. If you can convert an address variable to address payable, you must use a casting expression. Example: address payable(variable) or payable(variable)");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/types.html#address");
   }
@@ -1231,32 +1202,28 @@ Blockly.Blocks['mapping_property'] = {
     this.appendDummyInput()
         .appendField("mapping");
     this.appendValueInput("key")
-        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_text"]);
+        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_text"]);
     this.appendDummyInput()
         .appendField("=>");
     this.appendValueInput("value")
-        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_float","type_identifier","type_text","type_User","type_Company"]);
+        .setCheck(["type_byte","type_uint","type_int","type_address","type_bool","type_identifier","type_text","type_User","type_Company"]);
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
-        .appendField("constant?")
-        .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
     this.appendValueInput("valueproperty")
         .setCheck(["personalized_inputexpression","assing_value_expression1inputs"])
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here mapping property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("The Key value in mapping property can be almost any type except for a mapping, a dynamically sized array, a contract, an enum and a struct");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/types.html#mapping-types");
   }
@@ -1265,28 +1232,26 @@ Blockly.Blocks['mapping_property'] = {
 Blockly.Blocks['boolean_property'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("type boolean");
+        .appendField("type bool");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimesion?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("constant?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");
     this.appendValueInput("valueproperty")
         .setCheck(["Boolean", "String","personalized_inputexpression","assing_value_expression1inputs"])
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here boolean property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a bool variable. Bool variable represents two opposites values");
  this.setHelpUrl("");
   }
@@ -1296,32 +1261,31 @@ Blockly.Blocks['text_property'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("type")
-        .appendField(new Blockly.FieldDropdown([["char","char_type"], ["string","string_type"]]), "type");
+        .appendField(new Blockly.FieldDropdown([["string","string_type"],["bytes[1]","bytes_type"]]), "type");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimesion?");
     this.appendDummyInput()
         .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility")
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility")
         .appendField("constant?")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "constant")
-        .appendField("storagedata?")
-        .appendField(new Blockly.FieldDropdown([["memory","memory"], ["storage","storage"]]), "storagedata_values");
     this.appendValueInput("valueproperty")
         .setCheck(["String","personalized_inputexpression","assing_value_expression1inputs"])
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here boolean property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true,["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a string variable. String is a text (Array of characters)");
  this.setHelpUrl("");
   }
 };
+
 
 
 Blockly.Blocks['enum'] = {
@@ -1329,29 +1293,30 @@ Blockly.Blocks['enum'] = {
     this.appendDummyInput()
         .appendField("enum")
         .appendField(new Blockly.FieldTextInput("Insert here enum's identifier"), "name");
-    this.appendValueInput("values_enum")
-        .setCheck(["enum_value"]);
+    this.appendStatementInput("values_enum")
+        .setCheck(["enum_value"])
+        .appendField("values");
     this.setInputsInline(true);
-    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_construtor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(225);
- this.setTooltip("Represents a personalized data type that contains a personalized values");
- this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/types.html#enums");
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
+    this.setColour(190);
+    this.setTooltip("Represents a personalized data type that contains personalized values");
+    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/types.html#enums");
   }
 };
 
 Blockly.Blocks['enum_value'] = {
   init: function() {
-    this.appendValueInput("value")
-        .setCheck(["enum"])
+    this.appendDummyInput()
         .appendField("enum value")
         .appendField(new Blockly.FieldTextInput("Insert here the value"), "value_enum");
-    this.setOutput(true, null);
-    this.setColour(230);
- this.setTooltip("You can define here the values of your enum type");
- this.setHelpUrl("");
+    this.setPreviousStatement(true, "enum_value");
+    this.setNextStatement(true, "enum_value");
+    this.setColour(190);
+    this.setTooltip("You can define here the values of your enum type");
+    this.setHelpUrl("");
   }
 };
 
@@ -1360,7 +1325,7 @@ Blockly.Blocks['number_shortproperty'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("type")
-        .appendField(new Blockly.FieldDropdown([["int","int"], ["uint","uint"], ["float","float"]]), "numbertype_property");
+        .appendField(new Blockly.FieldDropdown([ ["uint", "uint"],["uint8", "uint8"],["uint16", "uint16"],["uint32", "uint32"],["uint64", "uint64"],["uint128", "uint128"],["uint256", "uint256"],["int", "int"],["int8", "int8"],["int16", "int16"],["int32", "int32"],["int64", "int64"],["int128", "int128"],["int256", "int256"]]), "numbertype_property");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
@@ -1370,12 +1335,12 @@ Blockly.Blocks['number_shortproperty'] = {
         .appendField(new Blockly.FieldTextInput("Insert here the name of the property"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
- this.setTooltip("This block represents a number variable.");
+    this.setColour(190);
+ this.setTooltip("This block represents a number variable");
  this.setHelpUrl("");
   }
 };
@@ -1383,7 +1348,7 @@ Blockly.Blocks['number_shortproperty'] = {
 Blockly.Blocks['boolean_shortproperty'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("type boolean");
+        .appendField("type bool");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
@@ -1393,11 +1358,11 @@ Blockly.Blocks['boolean_shortproperty'] = {
         .appendField(new Blockly.FieldTextInput("Insert here boolean property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true,["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a bool variable. Bool variable represents two opposites values");
  this.setHelpUrl("");
   }
@@ -1407,7 +1372,7 @@ Blockly.Blocks['text_shortproperty'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("type")
-        .appendField(new Blockly.FieldDropdown([["char","char_type"], ["string","string_type"]]), "type");
+        .appendField(new Blockly.FieldDropdown([["string","string_type"],["bytes[1]","bytes_type"]]), "type");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
@@ -1417,11 +1382,11 @@ Blockly.Blocks['text_shortproperty'] = {
         .appendField(new Blockly.FieldTextInput("Insert here Text property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a string variable. String is a text (Array of characters)");
  this.setHelpUrl("");
   }
@@ -1441,11 +1406,11 @@ Blockly.Blocks['address_shortproperty'] = {
         .appendField(new Blockly.FieldTextInput("Insert here the address property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This variable represents an entity (smart contract, user, company) that interacts with the smart contract. Only address payable can send currencies. If you can convert an address variable to address payable, you must use a casting expression. Example: address payable(variable) or payable(variable)");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/types.html#address");
   }
@@ -1465,11 +1430,11 @@ Blockly.Blocks['identifier_shortproperty'] = {
         .appendField(new Blockly.FieldTextInput("Insert here the property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause","block_ifcondition"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a personalized data type variable. The user must determinate the variable personalized type.");
  this.setHelpUrl("");
   }
@@ -1480,7 +1445,7 @@ Blockly.Blocks['byte_shortproperty'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("type")
-        .appendField(new Blockly.FieldDropdown([["byte","byte"], ["bytes2","bytes2"], ["bytes3","bytes3"], ["bytes4","bytes4"], ["bytes5","bytes5"], ["bytes6","bytes6"], ["bytes7","bytes7"], ["bytes8","bytes8"], ["bytes9","bytes9"], ["bytes10","bytes10"], ["bytes12","bytes12"], ["bytes14","bytes14"], ["bytes16","bytes16"], ["bytes18","bytes18"], ["bytes20","bytes20"], ["bytes22","bytes22"], ["bytes24","bytes24"], ["bytes26","bytes26"], ["bytes28","bytes28"], ["bytes30","bytes30"], ["bytes32","bytes32"]]), "byte_type");
+        .appendField(new Blockly.FieldDropdown([["bytes","bytes"],["bytes1","bytes1"], ["bytes2","bytes2"], ["bytes3","bytes3"], ["bytes4","bytes4"], ["bytes5","bytes5"], ["bytes6","bytes6"], ["bytes7","bytes7"], ["bytes8","bytes8"], ["bytes9","bytes9"], ["bytes10","bytes10"], ["bytes12","bytes12"], ["bytes14","bytes14"], ["bytes16","bytes16"], ["bytes18","bytes18"], ["bytes20","bytes20"], ["bytes22","bytes22"], ["bytes24","bytes24"], ["bytes26","bytes26"], ["bytes28","bytes28"], ["bytes30","bytes30"], ["bytes32","bytes32"]]), "byte_type");
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
@@ -1490,11 +1455,11 @@ Blockly.Blocks['byte_shortproperty'] = {
         .appendField(new Blockly.FieldTextInput("Insert here byte property's identifier"), "name")
         .appendField("value");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a byte variable. The user can determine the size of bytes to be held by the variable.");
  this.setHelpUrl("");
   }
@@ -1505,11 +1470,11 @@ Blockly.Blocks['mapping_shortproperty'] = {
     this.appendDummyInput()
         .appendField("mapping");
     this.appendValueInput("key")
-        .setCheck(["type_address","type_bool","type_byte","type_float","type_identifier","type_int","type_uint","type_text"]);
+        .setCheck(["type_address","type_bool","type_byte","type_identifier","type_int","type_uint","type_text"]);
     this.appendDummyInput()
         .appendField("=>");
     this.appendValueInput("value")
-        .setCheck(["type_address","type_bool","type_byte","type_float","type_identifier","type_int","type_uint","type_text","type_User","type_Company"]);
+        .setCheck(["type_address","type_bool","type_byte","type_identifier","type_int","type_uint","type_text","type_User","type_Company"]);
     this.appendValueInput("arraydimension")
         .setCheck(["dynamic_array","array_property"])
         .appendField("array dimension?");
@@ -1518,11 +1483,11 @@ Blockly.Blocks['mapping_shortproperty'] = {
         .appendField("identifier")
         .appendField(new Blockly.FieldTextInput("Insert here mapping property's identifier"), "name")
         .appendField("value");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","contract","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum"]);
     this.setNextStatement(true,["restriction_clause","restriction_clausecomment","block_user","block_struct","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","modifier","event","clause"]);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("");
  this.setHelpUrl("");
   }
@@ -1543,7 +1508,7 @@ Blockly.Blocks['user_shortproperty'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a personalized data type 'User' variable that interacts with the smart contract. If you want to use this variable, it requires you to define the custom data type 'User' (a struct data type), which is found in the 'Predefined data type' toolbar.");
  this.setHelpUrl("");
   }
@@ -1565,7 +1530,7 @@ Blockly.Blocks['company_shortproperty'] = {
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
-    this.setColour(230);
+    this.setColour(190);
  this.setTooltip("This block represents a personalized data type 'Company' variable that interacts with the smart contract. If you want to use this variable, it requires you to define the custom data type 'Company' (a struct data type), which is found in the 'Predefined data type' toolbar.");
  this.setHelpUrl("");
   }
@@ -1602,7 +1567,7 @@ Blockly.Blocks['dynamic_array'] = {
 Blockly.Blocks['visibility'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["internal","internal"]]), "values_visibility");
+        .appendField(new Blockly.FieldDropdown([["public","public"], ["private","private"], ["none",""],["internal","internal"]]), "values_visibility");
     this.setOutput(true, 'visibility');
     this.setColour(230);
  this.setTooltip("");
@@ -1645,11 +1610,25 @@ Blockly.Blocks['assert_function'] = {
   }
 };
 
+Blockly.Blocks['block_unchecked'] = {
+  init: function() {
+    this.appendStatementInput("statements").setCheck([ "restriction_clause","restriction_clausecomment","emit_event", "personalized_expression","assign_value_expression","revert_expression", "deleteexpression","return_clause","block_ifcondition","block_whileloop","block_dowhile","block_for","block_unchecked"]) .appendField("unchecked");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(230);
+    this.setTooltip("Executes arithmetic operations without overflow and underflow checks.");
+    this.setHelpUrl("");
+  }
+};
 
 Blockly.Blocks['type_byte'] = {
   init: function() {
-    this.appendDummyInput()
-        .appendField(new Blockly.FieldDropdown([["byte","byte"], ["bytes2","bytes2"], ["bytes3","bytes3"], ["bytes4","bytes4"], ["bytes5","bytes5"], ["bytes6","bytes6"], ["bytes7","bytes7"], ["bytes8","bytes8"], ["bytes9","bytes9"], ["bytes10","bytes10"], ["bytes11","bytes11"], ["bytes12","bytes12"], ["bytes13","bytes13"], ["bytes14","bytes14"], ["bytes15","bytes15"], ["bytes16","bytes16"], ["bytes17","bytes17"], ["bytes18","bytes18"], ["bytes20","bytes20"], ["bytes22","bytes22"], ["bytes24","bytes24"], ["bytes25","bytes25"], ["bytes25","bytes25"], ["bytes26","bytes26"], ["bytes28","bytes28"], ["bytes30","bytes30"], ["bytes32","bytes32"]]), "bytes_options");
+    var opcionesBytes = [["bytes", "bytes"]];
+    for(var i = 1; i <= 32; i++){
+      var tipoByte = "bytes" + i;
+      opcionesBytes.push([tipoByte, tipoByte]);
+    }
+    this.appendDummyInput().appendField(new Blockly.FieldDropdown(opcionesBytes),"bytes_options");
     this.setOutput(true, "type_byte");
     this.setColour(230);
  this.setTooltip("Represents an array of bytes");
@@ -1723,16 +1702,6 @@ Blockly.Blocks['type_Company'] = {
   }
 };
 
-Blockly.Blocks['type_float'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField(new Blockly.FieldLabelSerializable("float"), "float_options");
-    this.setOutput(true, "type_float");
-    this.setColour(230);
- this.setTooltip("Represents a decimal number");
- this.setHelpUrl("");
-  }
-};
 
 Blockly.Blocks['type_identifier'] = {
   init: function() {
@@ -1748,7 +1717,7 @@ Blockly.Blocks['type_identifier'] = {
 Blockly.Blocks['type_text'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(new Blockly.FieldDropdown([["char","char"], ["string","string"]]), "typetext_options");
+        .appendField("String");
     this.setInputsInline(true);
     this.setOutput(true, "type_text");
     this.setColour(230);
@@ -1757,18 +1726,16 @@ Blockly.Blocks['type_text'] = {
   }
 };
 
-
-
 Blockly.Blocks['type_mapping'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("mapping");
     this.appendValueInput("key")
-        .setCheck(["type_text","type_int","type_uint","type_float","type_bool","type_byte","type_identifier","type_address"]);
+        .setCheck(["type_text","type_int","type_uint","type_bool","type_byte","type_identifier","type_address"]);
     this.appendDummyInput()
         .appendField("=>");
     this.appendValueInput("value")
-        .setCheck(["type_text","type_int","type_uint","type_float","type_bool","type_byte","type_identifier","type_User","type_Company","type_mapping"]);
+        .setCheck(["type_text","type_int","type_uint","type_bool","type_byte","type_identifier","type_User","type_Company","type_mapping"]);
     this.setOutput(true, null);
     this.setColour(230);
  this.setTooltip("This data type represents a map key-value (Example: Dictionary, PhoneBook, etc.). You need associate a key to a value.");
@@ -1845,12 +1812,12 @@ Blockly.Blocks['deleteexpression'] = {
     this.appendDummyInput()
         .appendField("delete")
         .appendField(new Blockly.FieldTextInput("Insert here the expression"), "value_deleteexpression");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
     this.setColour(230);
  this.setTooltip("");
  this.setHelpUrl("");
@@ -1862,12 +1829,12 @@ Blockly.Blocks['revert_expression'] = {
     this.appendDummyInput()
         .appendField("revert")
         .appendField(new Blockly.FieldTextInput("Insert here the expression"), "value_revertexpression");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
     this.setColour(230);
     this.setTooltip("This expression terminates the execution of the code and reverts the current state of the smart contract back to the initial state before the execution of the code.");
     this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/control-structures.html#revert");   
@@ -1879,12 +1846,12 @@ Blockly.Blocks['block_assembly'] = {
     this.appendStatementInput("assembly_values")
         .setCheck(['block_let_expression',"block_assignvalue_assemblyexpression"])
         .appendField("assembly");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.setColour(230);
  this.setTooltip("This expression is used to define low-level code expressions to be executed by the EVM. Inside this expression, you can define variables, aritmethical expression, etc.");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/assembly.html");
@@ -1924,12 +1891,12 @@ Blockly.Blocks['personalized_expression'] = {
   init: function() {
     this.appendDummyInput()
         .appendField(new Blockly.FieldTextInput("Insert here your personalized expression"), "values_expression");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
     this.setColour(230);
  this.setTooltip("Represents a personalized expression. You can define whatever you want");
  this.setHelpUrl("");
@@ -1952,13 +1919,11 @@ Blockly.Blocks['tuple'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("tuple");
-    this.appendValueInput("values")
-        .setCheck(["block_text", "block_number","block_positivenumber","block_boolean","personalized_inputexpression"]);
+    this.appendStatementInput("values")
+        .setCheck(["outputparam","personalized_expression"]);
     this.setInputsInline(true);
     this.setOutput(true, "tuple");
     this.setColour(230);
- this.setTooltip("");
- this.setHelpUrl("");
   }
 };
 
@@ -1968,17 +1933,17 @@ Blockly.Blocks['block_ifcondition'] = {
         .setCheck(["parenthesis_expression","comparation_logicalexpression","comparation_arithmeticalexpression","comparation_expression","parenthesis_expression","block_negation","personalized_inputexpression","block_boolean"])
         .appendField("if");
     this.appendStatementInput("actionsif")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-        "block_ifcondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty",]);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_try"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
     this.setColour(230);
  this.setTooltip("Defines a condition that must be met in order to execute the logic/code inside its body.");
@@ -1989,15 +1954,15 @@ Blockly.Blocks['block_ifcondition'] = {
 Blockly.Blocks['block_elsecondition'] = {
   init: function() {
     this.appendStatementInput("actionselse")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-        "block_ifcondition","block_whilelopp","block_dowhile","block_for","block_assembly"])
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_assembly"])
         .appendField("else");
-    this.setPreviousStatement(true,["block_elseifcondition"]);
-    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
+    this.setPreviousStatement(true,["block_ifcondition","block_elseifcondition"]);
+    this.setNextStatement(true,["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly","block_try"]);
     this.setColour(230);
  this.setTooltip("Executes the logic contained in the if the condition defined in the IF has not been met.");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/control-structures.html");
@@ -2010,18 +1975,19 @@ Blockly.Blocks['block_elseifcondition'] = {
         .setCheck(["parenthesis_expression","comparation_logicalexpression","comparation_arithmeticalexpression","parenthesis_expression","comparation_expression"])
         .appendField("else if");
     this.appendStatementInput("actionselseif")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-        "block_ifcondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
-    this.setPreviousStatement(true, ["block_elseifcondition"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
+    this.setPreviousStatement(true, ["block_ifcondition","block_elseifcondition"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly","block_try"]);
     this.setColour(230);
  this.setTooltip("Executes the collected logic if the condition defined in its block is met and if the condition defined in the previous IF is not met.");
  this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/control-structures.html");
   }
 };
+
 
 Blockly.Blocks['block_negation'] = {
   init: function() {
@@ -2047,25 +2013,44 @@ Blockly.Blocks['block_new'] = {
   }
 };
 
-Blockly.Blocks['block_null'] = {
+Blockly.Blocks["block_try"] = {
   init: function() {
-    this.appendDummyInput()
-        .appendField("null");
-    this.setOutput(true, "block_null");
-    this.setColour(0);
- this.setTooltip("");
- this.setHelpUrl("");
+    this.appendValueInput("expression")
+    .setCheck(["personalized_inputexpression","casting_expression","block_new"]).appendField("try");
+    this.appendValueInput("returns")
+    .setCheck(["inputparam","outputparam","tuple"]).appendField("returns?");
+    this.appendStatementInput("actions_try").setCheck(null);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, ["block_catch"]);
+    this.setColour(210);
+    this.setTooltip("Executes an external call and handles possible errors using catch blocks.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/latest/control-structures.html#try-catch");
+  }
+};
+
+Blockly.Blocks["block_catch"] = {
+  init: function() {
+    this.appendDummyInput().appendField("catch").appendField(new Blockly.FieldDropdown([["generic","generic"],["Error","Error"],["Panic","Panic"],["bytes","bytes"]]), "catch_type");
+    this.appendValueInput("parameter")
+    .setCheck(["inputparam","inputparamshortidentifier"]).appendField("parameter?");
+    this.appendStatementInput("actions_catch")
+    .setCheck(null);
+    this.setPreviousStatement(true, ["block_try","block_catch"]);
+    this.setNextStatement(true, ["block_catch"]);
+    this.setColour(210);
+    this.setTooltip("Handles an error produced by the try block.");
+    this.setHelpUrl("https://docs.soliditylang.org/en/latest/control-structures.html#try-catch");
   }
 };
 
 Blockly.Blocks['comparation_expression'] = {
   init: function() {
     this.appendValueInput("value1_expression")
-        .setCheck(["block_boolean","block_text","block_number","block_null","msgvariables","blockvariables","tuple","time_expression","coin_expression","block_positivenumber","block_negation","parenthesis_expression","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now"]);
+        .setCheck(["block_boolean","coin","block_text","block_number","block_null","msgvariables","blockvariables","tuple","time_expression","coin_expression","block_positivenumber","block_negation","parenthesis_expression","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","txvariables"]);
     this.appendDummyInput()
         .appendField(new Blockly.FieldDropdown([["==","=="], ["!=","!="]]), "operators");
     this.appendValueInput("value2_expression")
-        .setCheck(["block_boolean","block_text","block_number","block_null","msgvariables","blockvariables","tuple","time_expression","coin_expression","block_positivenumber","block_negation","parenthesis_expression","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now"]);
+        .setCheck(["block_boolean","coin","block_text","block_number","block_null","msgvariables","blockvariables","tuple","time_expression","coin_expression","block_positivenumber","block_negation","parenthesis_expression","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now","txvariables"]);
     this.setInputsInline(true);
     this.setOutput(true, "comparation_expression");
     this.setColour(230);
@@ -2077,11 +2062,11 @@ Blockly.Blocks['comparation_expression'] = {
 Blockly.Blocks['comparation_arithmeticalexpression'] = {
   init: function() {
     this.appendValueInput("value1_arithmeticalcomparationexpression","arithmetical_expression")
-        .setCheck(["block_number","block_positivenumber","time_expression","coin_expression","parenthesis_expression","msgvariables","blockvariables","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now"]);
+        .setCheck(["block_number","coin","block_positivenumber","time_expression","coin_expression","parenthesis_expression","msgvariables","blockvariables","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now"]);
     this.appendDummyInput()
         .appendField(new Blockly.FieldDropdown([["<","<"], ["<=","<="], [">",">"], [">=",">="]]), "operators");
     this.appendValueInput("value2_arithmeticalcomparationexpression")
-        .setCheck(["block_number","block_positivenumber","time_expression","coin_expression","parenthesis_expression","msgvariables","blockvariables","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now"]);
+        .setCheck(["block_number","coin","block_positivenumber","time_expression","coin_expression","parenthesis_expression","msgvariables","blockvariables","personalized_inputexpression","arithmetical_expression","keccak_inputfunction","sha_inputfunction","abyencode_function","block_now"]);
     this.setOutput(true, "comparation_arithmeticalexpression","arithmetical_expression");
     this.setColour(230);
  this.setTooltip("This blocks represents an expression to compare numeric values");
@@ -2092,11 +2077,11 @@ Blockly.Blocks['comparation_arithmeticalexpression'] = {
 Blockly.Blocks['comparation_logicalexpression'] = {
   init: function() {
     this.appendValueInput("value1_logicalexpression")
-        .setCheck(["comparation_expression","comparation_arithmeticalexpression","block_negation","personalized_inputexpression"]);
+        .setCheck(["comparation_expression","comparation_arithmeticalexpression","block_negation","personalized_inputexpression","comparation_logicalexpression"]);
     this.appendDummyInput()
         .appendField(new Blockly.FieldDropdown([["&&","&&"], ["||","||"]]), "operators");
     this.appendValueInput("value2_logicalexpression")
-        .setCheck(["comparation_expression","comparation_arithmeticalexpression","arithmetical_expression","block_negation","personalized_inputexpression"]);
+        .setCheck(["comparation_expression","comparation_arithmeticalexpression","arithmetical_expression","block_negation","personalized_inputexpression","comparation_logicalexpression"]);
     this.setInputsInline(true);
     this.setOutput(true, "comparation_logicalexpression");
     this.setColour(230);
@@ -2267,7 +2252,7 @@ Blockly.Blocks['block_for'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("for")
-        .appendField(new Blockly.FieldTextInput("Counter's name"), "namevariable")
+        .appendField(new Blockly.FieldTextInput("counter"), "namevariable")
         .appendField("=")
         .appendField(new Blockly.FieldNumber(0, 0), "value")
         .appendField(";")
@@ -2278,16 +2263,16 @@ Blockly.Blocks['block_for'] = {
         .appendField(new Blockly.FieldTextInput("counter"), "namevariable3")
         .appendField(new Blockly.FieldDropdown([["++","++"], ["--","--"]]), "arithmeticaloperator");
     this.appendStatementInput("expressions_for")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-        "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly","block_try"]);
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
     this.setColour(330);
  this.setTooltip("This element represents Solidity for loop. The for loop is executed a number of times until the limit indicated by the loop counter is reached.");
@@ -2302,16 +2287,16 @@ Blockly.Blocks['block_whileloop'] = {
         .appendField("while")
         .appendField("condition");
     this.appendStatementInput("elements_while")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-        "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
         "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
-        this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+        this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
         "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+    "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
     this.setColour(330);
  this.setTooltip("This element represents Solidity while loop. This loop requires a logic expression to control the execution code.");
@@ -2324,131 +2309,21 @@ Blockly.Blocks['block_dowhile'] = {
     this.appendDummyInput()
         .appendField("do");
     this.appendStatementInput("elements_dowhile")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause",
-        "block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for"]);
+        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
+        "block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for"]);
     this.appendValueInput("condition")
         .setCheck(["block_negation","comparation_expression","comparation_arithmeticalexpression","comparation_logicalexpression","parenthesis_expression","personalized_inputexpression","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
         "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"])
         .appendField("while condition");
-    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    this.setPreviousStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
     "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_assembly"]);
-    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","var_expression","personalized_expression","assign_value_expression","bracket_expression",
-    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","log_function","return_clause","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_ifcondition","block_elseifcondition","block_elsecondition","block_whilelopp","block_dowhile","block_for","block_assembly"]);
+    this.setNextStatement(true, ["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
+    "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
+    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_ifcondition","block_elseifcondition","block_elsecondition","block_whileloop","block_dowhile","block_for","block_assembly"]);
     this.setColour(335);
  this.setTooltip("This element represents Solidity dowhile loop. This loop requires a logic expression to control the execution code.");
  this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks['error_definition'] = {
-  init: function() {
-    this.appendValueInput("inputparams")
-        .setCheck("inputparam")
-        .appendField("error")
-        .appendField(new Blockly.FieldTextInput("Insert here error's name"),"name")
-        .appendField("Input params?");
-    this.setPreviousStatement(true, ["event","error_definition","contract_constructor","modifier","clause" ]);
-    this.setNextStatement(true, ["event","error_definition","clause","contract_constructor"]);
-    this.setColour(0);
-    this.setTooltip("Defines a custom Solidity error.");
-    this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks['receive_function'] = {
-  init: function() {
-    var payableField = new Blockly.FieldCheckbox("TRUE", function(value) { //ASÍ SIEMPRE ES TRUE AUNQUE DESMARQUE EL USUARIO
-       return "TRUE";
-    });
-    this.appendDummyInput()
-        .appendField("receive")
-        .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["external","external"]]), "values_visibility")
-        .appendField("payable")
-        .appendField(payableField, "payable")
-        .appendField("virtual")
-        .appendField(new Blockly.FieldCheckbox("FALSE"), "virtual");
-    this.appendStatementInput("elements_function")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
-        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_try"]);
-    this.setInputsInline(true);
-    this.setPreviousStatement(true, ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause","receive_function","fallback_function"]);
-    this.setNextStatement(true, ["clause","receive_function","fallback_function"]);
-    this.setColour(15);
-    this.setTooltip("Receive function. It is executed when the contract receives Ether without calldata.");
-    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#receive-ether-function");
-  }
-};
-
-Blockly.Blocks['fallback_function'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("fallback")
-        .appendField("visibility")
-        .appendField(new Blockly.FieldDropdown([["external","external"]]), "values_visibility")
-        .appendField("payable")
-        .appendField(new Blockly.FieldCheckbox("FALSE"), "payable")
-        .appendField("virtual")
-        .appendField(new Blockly.FieldCheckbox("FALSE"), "virtual");
-
-    this.appendStatementInput("elements_function")
-        .setCheck(["restriction_clause","restriction_clausecomment","emit_event","personalized_expression","assign_value_expression","bracket_expression",
-        "selfdestruct_function","keccak_function","sha_function","abyencode_function","assert_function","revert_expression","deleteexpression","return_clause",
-        "block_ifcondition","block_whileloop","block_dowhile","block_for","block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-        "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","block_try"]);
-    this.setInputsInline(true);
-    this.setPreviousStatement(true, ["block_user","block_company","personalized_struct","mapping_property","text_property","byte_property","identifier_property","boolean_property","address_property",
-    "number_property","identifier_shortproperty","address_shortproperty","number_shortproperty","text_shortproperty","boolean_shortproperty","byte_shortproperty","mapping_shortproperty","enum","contract_constructor","event","modifier","clause","receive_function","fallback_function"]);
-    this.setNextStatement(true, ["clause","receive_function","fallback_function"]);
-    this.setColour(15);
-    this.setTooltip("Fallback function. It is executed when no other function matches the calldata.");
-    this.setHelpUrl("https://docs.soliditylang.org/en/v0.8.25/contracts.html#fallback-function");
-  }
-};
-
-Blockly.Blocks['block_unchecked'] = {
-  init: function() {
-    this.appendStatementInput("statements").setCheck([ "restriction_clause","restriction_clausecomment","emit_event", "personalized_expression","assign_value_expression","revert_expression", "deleteexpression","return_clause","block_ifcondition","block_whileloop","block_dowhile","block_for","block_unchecked"]) .appendField("unchecked");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(230);
-    this.setTooltip("Executes arithmetic operations without overflow and underflow checks.");
-    this.setHelpUrl("");
-  }
-};
-
-Blockly.Blocks["block_try"] = {
-  init: function() {
-    this.appendValueInput("expression")
-    .setCheck(["personalized_inputexpression","casting_expression","block_new"]).appendField("try");
-    this.appendValueInput("returns")
-    .setCheck(["inputparam","outputparam","tuple"]).appendField("returns?");
-    this.appendStatementInput("actions_try").setCheck(null);
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, ["block_catch"]);
-    this.setColour(210);
-    this.setTooltip("Executes an external call and handles possible errors using catch blocks.");
-    this.setHelpUrl("https://docs.soliditylang.org/en/latest/control-structures.html#try-catch");
-  }
-};
-
-Blockly.Blocks["block_catch"] = {
-  init: function() {
-    this.appendDummyInput().appendField("catch").appendField(new Blockly.FieldDropdown([["generic","generic"],["Error","Error"],["Panic","Panic"],["bytes","bytes"]]), "catch_type");
-    this.appendValueInput("parameter")
-    .setCheck(["inputparam","inputparamshortidentifier"]).appendField("parameter?");
-    this.appendStatementInput("actions_catch")
-    .setCheck(null);
-    this.setPreviousStatement(true, ["block_try","block_catch"]);
-    this.setNextStatement(true, ["block_catch"]);
-    this.setColour(210);
-    this.setTooltip("Handles an error produced by the try block.");
-    this.setHelpUrl("https://docs.soliditylang.org/en/latest/control-structures.html#try-catch");
   }
 };
