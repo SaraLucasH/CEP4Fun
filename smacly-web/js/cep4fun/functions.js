@@ -3,13 +3,13 @@ function dep001_sye001Listener(e) {
 
     if (itemSelectedFromToolbox(e)) {
         var block = workspace.getBlockById(e.newValue);
-        if (block.type == "version") {
+        if (block != null && block.type == "version") {
             var logEventoSye001 = new LogEventSye001(block);
             sendPostSye001(logEventoSye001);
         }
     } else if (fieldHasChanged(e)) {
         var block = workspace.getBlockById(e.blockId);
-        if (block.type == "version") {
+        if (block != null && block.type == "version") {
             var logEventoDep001 = new LogEventDep001(block);
             var logEventoSye001 = new LogEventSye001(block);
             if (logEventoDep001.value1version == 0 && logEventoDep001.value2version == 0 && logEventoDep001.value3version == 0
@@ -36,7 +36,7 @@ function ntd002_sce003_Listener(e) {
     if (e == null) return;
 
     var block = workspace.getBlockById(e.blockId);
-    if (fieldHasChanged(e) && block.type == "clause") {
+    if (block != null && fieldHasChanged(e) && block.type == "clause") {
         var clauseBlocks = workspace.getBlocksByType("clause");
 
         var blocksNtd002 = [];
@@ -242,7 +242,7 @@ function sye002Listener(e) {
     if (e == null) return;
 
     var block = workspace.getBlockById(e.blockId);
-    if (fieldHasChanged(e) && block.type == "interface") {
+    if (block != null && fieldHasChanged(e) && block.type == "interface") {
         sendDuplicateCandidates(block, "interface", sendPostSye002);
     }
 }
@@ -251,7 +251,7 @@ function sye003Listener(e) {
     if (e == null) return;
 
     var block = workspace.getBlockById(e.blockId);
-    if (fieldHasChanged(e) && block.type == "library") {
+    if (block != null && fieldHasChanged(e) && block.type == "library") {
         sendDuplicateCandidates(block, "library", sendPostSye003);
     }
 }
@@ -260,7 +260,7 @@ function sye004Listener(e) {
     if (e == null) return;
 
     var block = workspace.getBlockById(e.blockId);
-    if (fieldHasChanged(e) && block.type == "contract") {
+    if (block != null && fieldHasChanged(e) && block.type == "contract") {
         sendDuplicateCandidates(block, "contract", sendPostSye004);
     }
 }
