@@ -263,7 +263,7 @@ console.error = function (...args) {
   originalError.apply(console, args); // también imprime por consola
 };
 
-app.use(bodyparser.json());
+app.use(bodyparser.json({ strict: false }));
 
 app.use(toastr());
 
