@@ -13,18 +13,18 @@
         "generate": "Generate contract",
         "download": "Download",
         "close": "Close",
-        "seeXML": "🔎 See XML",
-        "saveXML": "💾 Save XML",
-        "saveLogs": "💾 Save Log Events",
-        "clean": "🗑️ Clean Workspace",
-        "toSolidity": "⚙️ Transform Blockly to Solidity",
-        "saveSolidity": "💾 Save Solidity Code",
-        "compileSolidity": "🛠️ Compile Solidity",
-        "toVyper": "⚙️ Transform Blockly to Vyper",
-        "saveVyper": "💾 Save Vyper Code",
-        "compileVyper": "🛠️ Compile Vyper",
+        "seeXML": "XML",
+        "saveXML": "XML",
+        "saveLogs": "Logs",
+        "clean": "Clean editor",
+        "toSolidity": "Solidity",
+        "saveSolidity": "Solidity",
+        "compileSolidity": "Compile Solidity",
+        "toVyper": "Vyper",
+        "saveVyper": "Vyper",
+        "compileVyper": "Compile Vyper",
         "fromSolidity": "Convert Solidity to blocks",
-        "fromXML": "🧩 Transform XML to Blockly"
+        "fromXML": "Convert XML to blocks"
     },
     "workspace": {
         "title": "Workspace",
@@ -38,7 +38,7 @@
     "logs": {
         "title": "Event log",
         "empty": "No events logged",
-        "enable": "Register Log Events"
+        "enable": "Register user activity"
     },
     "footer": {
         "copyright": "All rights reserved"
@@ -61,11 +61,11 @@
         "sce006_useSafeMath": "Use libraries like SafeMath to avoid integer overflow."
     },
     "menu": {
-        "showCode": "🔎 Show code",
+        "showCode": "🔎 Show Code",
         "download": "💾 Download",
         "workspace": "🧩 Workspace",
         "compile": "⚙️ Compile",
-        "saveWorkspace": "💾 Save workspace",
+        "saveWorkspace": "Save workspace",
         "importSolidity": "Import Solidity",
         "importXML": "Import XML",
         "e3value": "Change contract to e3value",

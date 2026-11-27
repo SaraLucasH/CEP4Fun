@@ -15,7 +15,7 @@ async function cargarBotonera() {
   var paginaActual = window.location.pathname;
   var opciones = [ //SE CARGAN LAS OPCIONES DE LA CINTA DE NAVEGACION
     { texto: '🏠 Home', ruta: '/home.html' },
-    { texto: '🧩 SmaCly', ruta: '/' },
+    { texto: '🧩 SmaCly', ruta: '/editor.html' },
     { texto: '📂 Workspaces', ruta: '/workspaces.html' },
     { texto: '📋 Activity logs', ruta: '/logs.html' }];//FIN CINTA DE NAVEGACIÓN
   if(rol === 'PROFESSOR' || rol === 'ADMIN'){ //SI ES UNO DE ESTOS ROLES PUEDE ACCEDER A LA GESTION DE USUARIOS
@@ -75,7 +75,7 @@ async function cerrarSesionUsuario() {
   } catch (error) {
     console.error("The session could not be closed: " + error.message);
   }
-  (window.top || window).location.href = "/login.html";
+  (window.top || window).location.href = "/login.html?logout=true";
 }
 
 function activarIconoCerrarSesion() {

@@ -1,111 +1,75 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>SmaCly - Register</title>
-  <link rel="stylesheet" href="/resources/styles.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Language" content="es">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmaCly - Register user</title>
+  <link rel="stylesheet" href="/resources/styles-smacly.css">
   <link rel="shortcut icon" href="/resources/iconoNavegador.ico" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-  <style>
-    .authWrapper {
-      max-width: 420px;
-      margin: 50px auto;
-      padding: 24px;
-      border-radius: 10px;
-      background-color: rgb(135, 143, 223);
-      color: #fff;
-      font-family: sans-serif;
-      text-align: center;
-    }
-
-    .authWrapper h1 {
-      background: none;
-      font-size: 150%;
-    }
-
-    .authWrapper input[type="text"],
-    .authWrapper input[type="password"],
-    .authWrapper input[type="email"] {
-      width: 90%;
-      padding: 8px;
-      margin: 6px 0;
-      border-radius: 6px;
-      border: 1px solid #057fd0;
-    }
-
-    .authWrapper .button {
-      width: 94%;
-      margin-top: 10px;
-      padding: 10px;
-    }
-
-    .authLink {
-      display: block;
-      margin-top: 14px;
-      color: #fff;
-    }
-  </style>
+  <script src="/js/registrarUsuario.js"></script>
 </head>
+<body class="pantalla-login">
 
-<body>
-  <div class="authWrapper">
-    <img id="logo" src="/resources/logoSmaCly2.png" style="position: static; width: 90px; height: 90px;" />
-    <h1>Create your account</h1>
-    <form id="registerForm">
-      <input type="text" id="user" placeholder="Username" required autocomplete="username">
-      <input type="text" id="nombre" placeholder="First name">
-      <input type="text" id="apellido" placeholder="Last name">
-      <input type="text" id="institucion" placeholder="Institution">
-      <input type="email" id="email" placeholder="Email" required autocomplete="email">
-      <input type="password" id="password" placeholder="Password" required autocomplete="new-password">
-      <input type="password" id="password2" placeholder="Confirm password" required autocomplete="new-password">
-      <input type="submit" class="button" value="Register">
-    </form>
-    <a class="authLink" href="/login.html">Already have an account? Log in</a>
-  </div>
+  <header class="app-header">
+    <div class="app-header__inner">
+      <img id="logo" src="/resources/logoSmaCly2.png" alt="SmaCly logo"/>
 
-  <script>
-    toastr.options = { closeButton: true, timeOut: 4000, positionClass: 'toast-top-right' };
+      <div class="app-header__text">
+        <h1 id="title">SmaCly : Design your smart contract using Blockly</h1>
+      </div>
 
-    document.getElementById('registerForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      var password = document.getElementById('password').value;
-      var password2 = document.getElementById('password2').value;
-      if (password !== password2) {
-        toastr.error('The passwords entered do not match');
-        return;
-      }
-      var payload = {
-        user: document.getElementById('user').value.trim(),
-        nombre: document.getElementById('nombre').value.trim(),
-        apellidos: document.getElementById('apellido').value.trim(),
-        institucion: document.getElementById('institucion').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        password: password
-      };
-      try {
-        var response = await fetch('/api/registrarUsuario', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        var data = await response.json();
-        if (data.exito) {
-          toastr.success(data.mensaje || 'User successfully registered');
-          setTimeout(function () { window.location.href = '/login.html'; }, 1200);
-        }
-        else {
-          toastr.error(data.mensaje || 'The user could not be registered');
-        }
-      }
-      catch (error) {
-        toastr.error('Error connecting to the server');
-      }
-    });
-  </script>
+      <div class="app-header__actions">
+      </div>
+    </div>
+  </header>
+
+  <main class="pantalla-centro">
+    <section class="tarjeta">
+      <h2 class="tarjeta-titulo">Create an account</h2>
+      <p class="tarjeta-texto">Sign up to start using SmaCly</p>
+
+      <form id="registerForm" class="formu">
+        <div class="campo">
+          <label for="user">User account name</label>
+          <input type="text" id="user" name="user" placeholder="Insert here the user account name" required>
+        </div>
+
+        <div class="campo">
+          <label for="nombre">User personal name</label>
+          <input type="text" id="nombre" name="nombre" placeholder="Insert here your personal name">
+        </div>
+
+        <div class="campo">
+          <label for="apellido">User surname</label>
+          <input type="text" id="apellido" name="apellido" placeholder="Insert here your surname">
+        </div>
+
+         <div class="campo">
+          <label for="institucion">Institution</label>
+          <input type="text" id="institucion" name="institucion" placeholder="University, enterprise ...">
+        </div>
+
+        <div class="campo">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="user@email.com" required>
+        </div>
+
+        <div class="campo">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Insert here your password" required>
+        </div>
+
+         <div class="campo">
+          <label for="password">Re-enter password</label>
+          <input type="password" id="password2" name="password2" placeholder="Re-enter the password" required>
+        </div>
+
+        <button type="submit" class="button boton-grande">Sign up</button>
+      </form>
+      <p id="mensaje" class="aviso"></p>
+      <p class="texto-centro">Do you already have an account?<a href="/login.html" class="link">Go to login page</a></p>
+    </section>
+  </main>
 </body>
-
 </html>

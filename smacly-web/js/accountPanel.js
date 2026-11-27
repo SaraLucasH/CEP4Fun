@@ -15,13 +15,6 @@ var currentAccountUser = null;
 (function injectAccountPanelStyles() {
   var style = document.createElement('style');
   style.textContent =
-    '#accountBar{display:flex;justify-content:flex-end;align-items:center;gap:10px;' +
-    'background-color:rgb(75,86,185);color:#fff;padding:6px 14px;font-family:sans-serif;font-size:14px;}' +
-    '#accountBar .accountUser{font-weight:bold;}' +
-    '#accountBar .accountRole{opacity:0.8;font-size:12px;border:1px solid #fff;border-radius:10px;padding:1px 8px;}' +
-    '#accountBar a,#accountBar button{cursor:pointer;background-color:#057fd0;color:#fff;border:1px solid #f0f7fa;' +
-    'border-radius:6px;padding:5px 10px;font-size:13px;text-decoration:none;}' +
-    '#accountBar a:hover,#accountBar button:hover{background-color:#019ad2;}' +
     '.smaclyModalOverlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;' +
     'background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;}' +
     '.smaclyModalOverlay.open{display:flex;}' +
@@ -123,22 +116,15 @@ async function inicializarAccountBar() {
   catch (error) {
     return;
   }
-  var barra = document.getElementById('accountBar');
-  if (!barra || !currentAccountUser) return;
+  if (!currentAccountUser) return;
 
   var esGestor = currentAccountUser.rol === 'PROFESSOR' || currentAccountUser.rol === 'ADMIN';
-
-  barra.innerHTML =
-    '<span class="accountUser">👤 ' + escapeHtml(currentAccountUser.user || currentAccountUser.email) + '</span>' +
-    '<span class="accountRole">' + escapeHtml(currentAccountUser.rol || 'USER') + '</span>' +
-    '<button id="btnCerrarSesion">🚪 Log out</button>';
 
   // El acceso a la gestion de usuarios solo se muestra a profesores y admins.
   var menuUsuarios = document.getElementById('menuUsuariosEditor');
   if (menuUsuarios && esGestor) {
     menuUsuarios.style.display = '';
   }
-  document.getElementById('btnCerrarSesion').addEventListener('click', cerrarSesionUsuario);
 }
 
 /* ------------------------------------------------------- POPUP DE PAGINAS --- */

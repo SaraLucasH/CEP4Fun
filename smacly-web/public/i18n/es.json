@@ -13,18 +13,18 @@
         "generate": "Generar contrato",
         "download": "Descargar",
         "close": "Cerrar",
-        "seeXML": "🔎 Ver XML",
-        "saveXML": "💾 Guardar Código XML",
-        "saveLogs": "💾 Guardar Logs de Eventos",
-        "clean": "🗑️ Limpiar Área de Trabajo",
-        "toSolidity": "⚙️ Transformar Blockly a Código Solidity",
-        "saveSolidity": "💾 Guardar Código Solidity",
-        "compileSolidity": "🛠️ Compilar Solidity",
-        "toVyper": "⚙️ Transformar Blockly a Código Vyper",
-        "saveVyper": "💾 Guardar Código Vyper",
-        "compileVyper": "🛠️ Compilar Vyper",
+        "seeXML": "XML",
+        "saveXML": "XML",
+        "saveLogs": "Logs",
+        "clean": "Limpiar editor",
+        "toSolidity": "Solidity",
+        "saveSolidity": "Solidity",
+        "compileSolidity": "Compilar Solidity",
+        "toVyper": "Vyper",
+        "saveVyper": "Vyper",
+        "compileVyper": "Compilar Vyper",
         "fromSolidity": "Convertir Solidity a bloques",
-        "fromXML": "🧩 Transformar XML a Blockly"
+        "fromXML": "Convertir XML a bloques"
     },
     "workspace": {
         "title": "Área de trabajo",
@@ -37,7 +37,7 @@
     },
     "logs": {
         "title": "Registro de eventos",
-        "enable": "Registrar Logs de Eventos",
+        "enable": "Registrar actividad del usuario",
         "empty": "No hay eventos registrados"
     },
     "footer": {
@@ -65,7 +65,7 @@
         "download": "💾 Descargar",
         "workspace": "🧩 Espacio de trabajo",
         "compile": "⚙️ Compilar",
-        "saveWorkspace": "💾 Guardar espacio de trabajo",
+        "saveWorkspace": "Guardar espacio de trabajo",
         "importSolidity": "Importar Solidity",
         "importXML": "Importar XML",
         "e3value": "Convertir contrato a e3value",

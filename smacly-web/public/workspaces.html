@@ -3,7 +3,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmaCly - My workspaces</title>
-  <link rel="stylesheet" href="/resources/styles.css">
   <link rel="stylesheet" href="/resources/styles-smacly.css">
   <link rel="stylesheet" href="/resources/modalCuadroDialogo.css">
   <script src="/js/modalCuadroDialogo.js"></script>
@@ -87,45 +86,11 @@
       font-family: sans-serif;
     }
 
-    .app-header {
-      display: flex;
-      justify-content: center;
-      background-color: rgb(75, 86, 185);
-      color: #fff;
-    }
 
-    .app-header__inner {
-      width: 100%;
-      max-width: 1400px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 10px 20px;
-      box-sizing: border-box;
-    }
     
-    .app-header__text {
-      flex: 1;
-    }
 
-    .app-header__actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
 
-    #salirSesion {
-      width: 36px;
-      height: 36px;
-      object-fit: contain;
-      cursor: pointer;
-      opacity: 0.9;
-    }
 
-    #salirSesion:hover {
-      opacity: 1;
-      transform: scale(1.08);
-    }
 
     .workspaces-contenedor {
       width: calc(100% - 60px);
@@ -573,7 +538,7 @@
         return;
       }
       localStorage.setItem('workspaceIdSeleccionado', idWorkspace);
-      (window.top || window).location.href = '/';
+      (window.top || window).location.href = '/editor.html';
     }
 
     async function borrarWorkspace(idWorkspace) {

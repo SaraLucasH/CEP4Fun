@@ -2,7 +2,7 @@
 const spanish = "es";
 const english = "en";
 
-let currentLang = localStorage.getItem("lang") || spanish;
+let currentLang = localStorage.getItem("lang") || english;
 
 function loadLanguage(lang) {
   return fetch(`/i18n/${lang}.json`)

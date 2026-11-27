@@ -277,12 +277,15 @@ app.use(session({
 app.use(flash());
 
 // Index.html requires user log in
-app.get(['/', '/index.html'], (req, res, next) => {
+app.get(['/', '/index.html', '/editor.html'], (req, res, next) => {
   if (!req.session.compiladorCookie) {
     return res.redirect('/login.html');
   }
   next();
 });
+
+// Same URL as the original SmaCly: the editor is also served at /editor.html
+app.get('/editor.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/scripts', express.static(__dirname + '/node_modules/http/'));

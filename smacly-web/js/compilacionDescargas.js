@@ -105,6 +105,12 @@ window.__smaclyRefactor.compilacionDescargasCargado = true;
     }
 
 
+    // CEP4Fun: the Node session can expire (e.g. server restart); explain it and go back to login
+    async function sesionCaducadaCompilacion(titulo) {
+      await mostrarMensajeEditor(titulo,"Your session has expired. Please log in again.",true);
+      (window.top || window).location.href = "/login.html";
+    }
+
     async function compileSolidity() {
       try {
           // 1. Obtener el código Solidity generado desde Blockly
@@ -139,11 +145,15 @@ window.__smaclyRefactor.compilacionDescargasCargado = true;
           body: JSON.stringify(payload)
           });
 
+          if(response.status === 401){
+            await sesionCaducadaCompilacion("Solidity compilation");
+            return;
+          }
           if(!response.ok){
             throw new Error("HTTP " + response.status);
           }
           const resultado = await response.json();
-          //SE MUESTRA EL RESULTADO DEL PROCESO DE COMPILACIÓN            
+          //SE MUESTRA EL RESULTADO DEL PROCESO DE COMPILACIÓN
           console.log("Solidity code compilation result:", resultado);
           var mensaje = construirMensajeCompilacion(resultado,"Solidity");
           await mostrarMensajeEditor("Solidity compilation",mensaje,true);
@@ -191,6 +201,10 @@ window.__smaclyRefactor.compilacionDescargasCargado = true;
           body: JSON.stringify(payload)
         });
 
+        if (response.status === 401) {
+          await sesionCaducadaCompilacion("Vyper compilation");
+          return;
+        }
         if (!response.ok) {
           throw new Error("HTTP " + response.status);
         }
